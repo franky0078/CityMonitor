@@ -26,9 +26,11 @@ namespace UI_Extended
         private GetterValueBinding<bool> _showLabelsBinding;
         private GetterValueBinding<bool> _iconOnlyModeBinding;
         private GetterValueBinding<bool> _iconPositionLockedBinding;
+        private GetterValueBinding<bool> _iconVisibilityEditModeBinding;
         private GetterValueBinding<int> _iconBackgroundTransparencyBinding;
         private GetterValueBinding<int> _iconSizeBinding;
         private GetterValueBinding<int> _iconGapBinding;
+        private GetterValueBinding<string> _hiddenIconsBinding;
 
         private EntityQuery _potentialWorkforceQuery;
         private EntityQuery _workplaceQuery;
@@ -65,6 +67,10 @@ namespace UI_Extended
                 Group, "iconPositionLocked",
                 () => Mod.Setting?.IconPositionLocked ?? false));
 
+            AddBinding(_iconVisibilityEditModeBinding = new GetterValueBinding<bool>(
+                Group, "iconVisibilityEditMode",
+                () => Mod.Setting?.IconVisibilityEditMode ?? false));
+
             AddBinding(_iconBackgroundTransparencyBinding = new GetterValueBinding<int>(
                 Group, "iconBackgroundTransparency",
                 () => ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)));
@@ -76,6 +82,10 @@ namespace UI_Extended
             AddBinding(_iconGapBinding = new GetterValueBinding<int>(
                 Group, "iconGap",
                 () => ClampIconGap(Mod.Setting?.IconGap ?? 5)));
+
+            AddBinding(_hiddenIconsBinding = new GetterValueBinding<string>(
+                Group, "hiddenIcons",
+                () => Mod.Setting?.HiddenIcons ?? "[]"));
 
             _updateIntervalSeconds = ClampUpdateInterval(Mod.Setting?.UpdateIntervalSeconds ?? 15);
 
@@ -95,6 +105,18 @@ namespace UI_Extended
                 if (Mod.Setting != null)
                 {
                     Mod.Setting.UiState = json;
+                    Mod.Setting.ApplyAndSave();
+                }
+            }));
+
+            // Per Rechtsklick ausgeblendete Symbole speichern.
+            AddBinding(new TriggerBinding<string>(Group, "saveHiddenIcons", (json) =>
+            {
+                if (Mod.Setting != null)
+                {
+                    Mod.Setting.HiddenIcons = string.IsNullOrWhiteSpace(json)
+                        ? "[]"
+                        : json;
                     Mod.Setting.ApplyAndSave();
                 }
             }));
@@ -135,9 +157,11 @@ namespace UI_Extended
             _showLabelsBinding.Update();
             _iconOnlyModeBinding.Update();
             _iconPositionLockedBinding.Update();
+            _iconVisibilityEditModeBinding.Update();
             _iconBackgroundTransparencyBinding.Update();
             _iconSizeBinding.Update();
             _iconGapBinding.Update();
+            _hiddenIconsBinding.Update();
 
             _updateIntervalSeconds = ClampUpdateInterval(
                 Mod.Setting?.UpdateIntervalSeconds ?? 15);
@@ -148,6 +172,7 @@ namespace UI_Extended
                 $"ShowLabels={Mod.Setting?.ShowLabels}, " +
                 $"IconOnlyMode={Mod.Setting?.IconOnlyMode}, " +
                 $"IconPositionLocked={Mod.Setting?.IconPositionLocked}, " +
+                $"IconVisibilityEditMode={Mod.Setting?.IconVisibilityEditMode}, " +
                 $"IconBackgroundTransparency={ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)}%, " +
                 $"IconSize={ClampIconSize(Mod.Setting?.IconSize ?? 30)}, " +
                 $"IconGap={ClampIconGap(Mod.Setting?.IconGap ?? 5)}, " +

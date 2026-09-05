@@ -39,11 +39,15 @@ namespace UI_Extended
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconOnlyMode)), "Kompakter Symbolmodus" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconOnlyMode)),
-                    "Zeigt nur die Status-Symbole ohne Panel-Hintergrund und Kopfzeile. Ein farbiger Ring zeigt den Zustand an; die aktuellen Werte erscheinen beim Überfahren mit der Maus. Beschriftungen und die normale Wertdarstellung werden in diesem Modus ignoriert." },
+                    "Zeigt nur die Status-Symbole ohne Panel-Hintergrund und Kopfzeile. Ein farbiger Ring zeigt den Zustand an; die aktuellen Werte erscheinen beim Überfahren mit der Maus." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconPositionLocked)), "Icon-Leiste fixieren" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconPositionLocked)),
                     "Fixiert die Icon-Leiste an ihrer aktuellen Position. Ist die Option deaktiviert, kann die Leiste mit der Maus verschoben werden." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Symbole ein-/ausblenden" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconVisibilityEditMode)),
+                    "Aktiviert den Bearbeitungsmodus für die Symbolleiste. Sichtbare Symbole werden vollständig deckend dargestellt, ausgeblendete Symbole mit 75 % Transparenz. Mit Rechtsklick kann ein Symbol aus- oder wieder eingeblendet werden. Nach dem Deaktivieren werden ausgeblendete Symbole verborgen und für sichtbare Symbole wieder die eingestellte Icon-Transparenz verwendet." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundTransparency)), "Icon-Transparenz (%)" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
@@ -56,6 +60,10 @@ namespace UI_Extended
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconGap)), "Icon-Abstand" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconGap)),
                     "Legt den vertikalen Abstand zwischen den Status-Symbolen im kompakten Symbolmodus fest. Bereich: 0 bis 20." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowAllIcons)), "Alle Icons einblenden" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowAllIcons)),
+                    "Blendet alle Symbole wieder ein, die im kompakten Symbolmodus per Rechtsklick ausgeblendet wurden." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Aktualisierungsintervall" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
@@ -82,6 +90,22 @@ namespace UI_Extended
                 { "UI_Extended.CityMonitor.HighSchool", "Oberschule" },
                 { "UI_Extended.CityMonitor.College", "College" },
                 { "UI_Extended.CityMonitor.University", "Universität" },
+
+                { "UI_Extended.CityMonitor.HideIcon", "Rechtsklick: Symbol ausblenden" },
+                { "UI_Extended.CityMonitor.ShowIcon", "Rechtsklick: Symbol einblenden" },
+                { "UI_Extended.CityMonitor.Fire", "Feuerwehr" },
+                { "UI_Extended.CityMonitor.FireHazard", "Brandgefahr" },
+                { "UI_Extended.CityMonitor.Healthcare", "Krankenhaus" },
+                { "UI_Extended.CityMonitor.Cemetery", "Friedhof" },
+                { "UI_Extended.CityMonitor.Garbage", "Müll" },
+                { "UI_Extended.CityMonitor.Processing", "Verarbeitung" },
+                { "UI_Extended.CityMonitor.Landfill", "Deponie frei" },
+                { "UI_Extended.CityMonitor.TrafficFlow", "Verkehrsfluss" },
+                { "UI_Extended.CityMonitor.Electricity", "Strom" },
+                { "UI_Extended.CityMonitor.WaterSewage", "Wasser / Abwasser" },
+                { "UI_Extended.CityMonitor.Water", "Wasser" },
+                { "UI_Extended.CityMonitor.Sewage", "Abwasser" },
+                { "UI_Extended.CityMonitor.Availability", "Verfügbarkeit" },
             };
         }
 

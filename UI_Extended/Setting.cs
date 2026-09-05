@@ -24,6 +24,10 @@ namespace UI_Extended
         [SettingsUIHidden]
         public string UiState { get; set; } = "";
 
+        // JSON-Array mit den per Rechtsklick ausgeblendeten Symbol-IDs.
+        [SettingsUIHidden]
+        public string HiddenIcons { get; set; } = "[]";
+
         public Setting(IMod mod) : base(mod) { }
 
         [SettingsUISection(kSection, kGeneralGroup)]
@@ -44,6 +48,10 @@ namespace UI_Extended
 
         [SettingsUISection(kSection, kDisplayGroup)]
         [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool IconVisibilityEditMode { get; set; } = false;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
         [SettingsUISlider(min = 0, max = 100, step = 5)]
         public int IconBackgroundTransparency { get; set; } = 40;
 
@@ -56,6 +64,18 @@ namespace UI_Extended
         [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
         [SettingsUISlider(min = 0, max = 20, step = 1)]
         public int IconGap { get; set; } = 5;
+
+        [SettingsUIButton]
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool ShowAllIcons
+        {
+            set
+            {
+                HiddenIcons = "[]";
+                ApplyAndSave();
+            }
+        }
 
         [SettingsUISection(kSection, kUpdateGroup)]
         [SettingsUISlider(min = 5, max = 60, step = 1)]
@@ -73,9 +93,11 @@ namespace UI_Extended
             ShowLabels = false;
             IconOnlyMode = false;
             IconPositionLocked = false;
+            IconVisibilityEditMode = false;
             IconBackgroundTransparency = 40;
             IconSize = 30;
             IconGap = 5;
+            HiddenIcons = "[]";
             UpdateIntervalSeconds = 15;
         }
     }

@@ -39,11 +39,15 @@ namespace UI_Extended
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconOnlyMode)), "Compact icon mode" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconOnlyMode)),
-                    "Shows only the status icons without the panel background or header. A colored ring indicates the current status, and values are shown on hover. Labels and the normal value layout are ignored in this mode." },
+                    "Shows only the status icons without the panel background or header. A colored ring indicates the current status, and values are shown on hover." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconPositionLocked)), "Lock icon bar" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconPositionLocked)),
                     "Locks the icon bar at its current position. When disabled, the bar can be moved with the mouse." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Show / hide icons" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconVisibilityEditMode)),
+                    "Enables icon visibility editing. Visible icons are shown fully opaque, while hidden icons are shown with 75% transparency. Right-click an icon to hide it or make it visible again. When editing is disabled, hidden icons disappear and visible icons return to the configured icon transparency." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundTransparency)), "Icon transparency (%)" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
@@ -56,6 +60,10 @@ namespace UI_Extended
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconGap)), "Icon spacing" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconGap)),
                     "Sets the vertical spacing between status icons in compact icon mode. Range: 0 to 20." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowAllIcons)), "Show all icons" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowAllIcons)),
+                    "Restores all icons that were hidden with a right-click in compact icon mode." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Update interval" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
@@ -82,6 +90,22 @@ namespace UI_Extended
                 { "UI_Extended.CityMonitor.HighSchool", "High School" },
                 { "UI_Extended.CityMonitor.College", "College" },
                 { "UI_Extended.CityMonitor.University", "University" },
+
+                { "UI_Extended.CityMonitor.HideIcon", "Right-click: hide icon" },
+                { "UI_Extended.CityMonitor.ShowIcon", "Right-click: show icon" },
+                { "UI_Extended.CityMonitor.Fire", "Fire & Rescue" },
+                { "UI_Extended.CityMonitor.FireHazard", "Fire hazard" },
+                { "UI_Extended.CityMonitor.Healthcare", "Healthcare" },
+                { "UI_Extended.CityMonitor.Cemetery", "Cemetery" },
+                { "UI_Extended.CityMonitor.Garbage", "Garbage" },
+                { "UI_Extended.CityMonitor.Processing", "Processing" },
+                { "UI_Extended.CityMonitor.Landfill", "Landfill free" },
+                { "UI_Extended.CityMonitor.TrafficFlow", "Traffic flow" },
+                { "UI_Extended.CityMonitor.Electricity", "Electricity" },
+                { "UI_Extended.CityMonitor.WaterSewage", "Water / Sewage" },
+                { "UI_Extended.CityMonitor.Water", "Water" },
+                { "UI_Extended.CityMonitor.Sewage", "Sewage" },
+                { "UI_Extended.CityMonitor.Availability", "Availability" },
             };
         }
 
