@@ -8,7 +8,7 @@ using Game.Prefabs;
 using Game.SceneFlow;
 using Game.Simulation;
 using Game.Tools;
-using Game.UI;                 // UISystemBase
+using Game.UI;
 using UI_Extended.Logic;
 using UI_Extended.UI;
 using Unity.Collections;
@@ -19,7 +19,11 @@ namespace UI_Extended
     public partial class EmploymentUISystem : UISystemBase
     {
         private const string Group = "cityMonitor";
+
         private ValueBinding<CityMonitorData> _dataBinding;
+        private GetterValueBinding<bool> _showPanelBinding;
+        private GetterValueBinding<bool> _compactValuesBinding;
+        private GetterValueBinding<bool> _showLabelsBinding;
 
         private EntityQuery _potentialWorkforceQuery;
         private EntityQuery _workplaceQuery;
@@ -27,7 +31,8 @@ namespace UI_Extended
         private EntityQuery _studentQuery;
 
         private float _timer = 0f;
-        private const float STATS_INTERVAL = 15f;
+
+        private int _updateIntervalSeconds = 15;
 
         protected override void OnCreate()
         {
@@ -39,11 +44,29 @@ namespace UI_Extended
             AddBinding(_dataBinding = new ValueBinding<CityMonitorData>(
                 Group, "data", default, new ValueWriter<CityMonitorData>()));
 
+            AddBinding(_showPanelBinding = new GetterValueBinding<bool>(
+                Group, "showPanel", () => Mod.Setting?.ShowPanel ?? true));
+
+            AddBinding(_compactValuesBinding = new GetterValueBinding<bool>(
+                Group, "compactValues", () => Mod.Setting?.CompactValues ?? false));
+
+            AddBinding(_showLabelsBinding = new GetterValueBinding<bool>(
+                Group, "showLabels", () => Mod.Setting?.ShowLabels ?? false));
+
+            _updateIntervalSeconds = ClampUpdateInterval(Mod.Setting?.UpdateIntervalSeconds ?? 15);
+
+            // Änderungen aus dem normalen Cities-Skylines-Optionenmenü werden
+            // von ModSetting.ApplyAndSave() über dieses Event gemeldet.
+            if (Mod.Setting != null)
+            {
+                Mod.Setting.onSettingsApplied += OnSettingsApplied;
+            }
+
             // Gespeicherten UI-Zustand an die Oberfläche geben
-            AddBinding(new ValueBinding<string>("cityMonitor", "uiState", Mod.Setting?.UiState ?? ""));
+            AddBinding(new ValueBinding<string>(Group, "uiState", Mod.Setting?.UiState ?? ""));
 
             // Änderungen aus der UI entgegennehmen und speichern
-            AddBinding(new TriggerBinding<string>("cityMonitor", "saveUiState", (json) =>
+            AddBinding(new TriggerBinding<string>(Group, "saveUiState", (json) =>
             {
                 if (Mod.Setting != null)
                 {
@@ -57,13 +80,51 @@ namespace UI_Extended
         {
             base.OnUpdate();
 
-            if (GameManager.instance.gameMode != GameMode.Game) return;
+            if (GameManager.instance.gameMode != GameMode.Game)
+                return;
 
             _timer += SystemAPI.Time.DeltaTime;
-            if (_timer < STATS_INTERVAL) return;
-            _timer = 0f;
 
+            if (_timer < _updateIntervalSeconds)
+                return;
+
+            _timer = 0f;
             CalculateAndUpdate();
+        }
+
+        protected override void OnDestroy()
+        {
+            if (Mod.Setting != null)
+            {
+                Mod.Setting.onSettingsApplied -= OnSettingsApplied;
+            }
+
+            base.OnDestroy();
+        }
+
+        private void OnSettingsApplied(Game.Settings.Setting setting)
+        {
+            // GetterValueBinding liest beim Update direkt die aktuellen Werte
+            // aus der tatsächlich angewendeten ModSetting-Instanz.
+            _showPanelBinding.Update();
+            _compactValuesBinding.Update();
+            _showLabelsBinding.Update();
+
+            _updateIntervalSeconds = ClampUpdateInterval(
+                Mod.Setting?.UpdateIntervalSeconds ?? 15);
+
+            Mod.Log.Info(
+                $"UI settings applied: ShowPanel={Mod.Setting?.ShowPanel}, " +
+                $"CompactValues={Mod.Setting?.CompactValues}, " +
+                $"ShowLabels={Mod.Setting?.ShowLabels}, " +
+                $"UpdateInterval={_updateIntervalSeconds}s");
+        }
+
+        private static int ClampUpdateInterval(int value)
+        {
+            if (value < 5) return 5;
+            if (value > 60) return 60;
+            return value;
         }
 
         private void CalculateAndUpdate()
@@ -104,7 +165,8 @@ namespace UI_Extended
             _potentialWorkforceQuery = GetEntityQuery(new EntityQueryDesc
             {
                 All = new[] { ComponentType.ReadOnly<Citizen>() },
-                None = new[] {
+                None = new[]
+                {
                     ComponentType.ReadOnly<Game.Citizens.Student>(),
                     ComponentType.ReadOnly<Deleted>(),
                     ComponentType.ReadOnly<Temp>()
@@ -113,13 +175,52 @@ namespace UI_Extended
 
             _workplaceQuery = GetEntityQuery(new EntityQueryDesc
             {
-                All = new[] { ComponentType.ReadOnly<WorkProvider>(), ComponentType.ReadOnly<PrefabRef>() },
-                Any = new[] { ComponentType.ReadOnly<PropertyRenter>(), ComponentType.ReadOnly<Building>() },
-                None = new[] { ComponentType.ReadOnly<Temp>(), ComponentType.ReadOnly<Deleted>(), ComponentType.ReadOnly<Game.Objects.UnderConstruction>() }
+                All = new[]
+                {
+                    ComponentType.ReadOnly<WorkProvider>(),
+                    ComponentType.ReadOnly<PrefabRef>()
+                },
+                Any = new[]
+                {
+                    ComponentType.ReadOnly<PropertyRenter>(),
+                    ComponentType.ReadOnly<Building>()
+                },
+                None = new[]
+                {
+                    ComponentType.ReadOnly<Temp>(),
+                    ComponentType.ReadOnly<Deleted>(),
+                    ComponentType.ReadOnly<Game.Objects.UnderConstruction>()
+                }
             });
 
-            _schoolQuery = GetEntityQuery(new EntityQueryDesc { All = new[] { ComponentType.ReadOnly<Game.Buildings.School>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.ReadOnly<UpdateFrame>() }, None = new[] { ComponentType.ReadOnly<Deleted>(), ComponentType.ReadOnly<Temp>() } });
-            _studentQuery = GetEntityQuery(new EntityQueryDesc { All = new[] { ComponentType.ReadOnly<Game.Citizens.Student>(), ComponentType.ReadOnly<Citizen>() }, None = new[] { ComponentType.ReadOnly<Deleted>(), ComponentType.ReadOnly<Temp>() } });
+            _schoolQuery = GetEntityQuery(new EntityQueryDesc
+            {
+                All = new[]
+                {
+                    ComponentType.ReadOnly<Game.Buildings.School>(),
+                    ComponentType.ReadOnly<PrefabRef>(),
+                    ComponentType.ReadOnly<UpdateFrame>()
+                },
+                None = new[]
+                {
+                    ComponentType.ReadOnly<Deleted>(),
+                    ComponentType.ReadOnly<Temp>()
+                }
+            });
+
+            _studentQuery = GetEntityQuery(new EntityQueryDesc
+            {
+                All = new[]
+                {
+                    ComponentType.ReadOnly<Game.Citizens.Student>(),
+                    ComponentType.ReadOnly<Citizen>()
+                },
+                None = new[]
+                {
+                    ComponentType.ReadOnly<Deleted>(),
+                    ComponentType.ReadOnly<Temp>()
+                }
+            });
         }
     }
 }

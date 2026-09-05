@@ -13,15 +13,28 @@ namespace UI_Extended
         {
             return new Dictionary<string, string>
             {
-                // Name des Mods in der Optionen-Liste (ersetzt den Platzhalter!)
                 { m_Setting.GetSettingsLocaleID(), "Stadt Monitor" },
                 { m_Setting.GetOptionTabLocaleID(Setting.kSection), "Allgemein" },
-                { m_Setting.GetOptionGroupLocaleID(Setting.kGeneralGroup), "Allgemein" },
 
-                // Beschriftung + Tooltip der Option
+                { m_Setting.GetOptionGroupLocaleID(Setting.kGeneralGroup), "Allgemein" },
+                { m_Setting.GetOptionGroupLocaleID(Setting.kDisplayGroup), "Anzeige" },
+                { m_Setting.GetOptionGroupLocaleID(Setting.kUpdateGroup), "Aktualisierung" },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowPanel)), "Panel anzeigen" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowPanel)),
-                    "Blendet das Stadt-Monitor-Panel im Spiel ein oder aus." },
+                    "Blendet den Stadt-Monitor inklusive Schaltfläche im Spiel ein oder aus." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CompactValues)), "Nur relevante Werte anzeigen" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.CompactValues)),
+                    "Zeigt nur die Arbeitslosenquote, die Anzahl der freien Arbeitsplätze und die freien Schulplätze. Die absolute Zahl der Arbeitslosen sowie Gesamt-/Belegungswerte werden ausgeblendet." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowLabels)), "Beschriftungen anzeigen" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowLabels)),
+                    "Zeigt neben den Symbolen die Bezeichnungen wie Quote, Offene Stellen, Grundschule, Oberschule, College und Universität an." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Aktualisierungsintervall" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
+                    "Legt fest, wie oft die Werte des Stadt-Monitors neu berechnet werden. Bereich: 5 bis 60 Sekunden. Kürzere Intervalle benötigen etwas mehr Rechenleistung." },
             };
         }
 
