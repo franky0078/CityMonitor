@@ -25,12 +25,14 @@ namespace UI_Extended
         private GetterValueBinding<bool> _compactValuesBinding;
         private GetterValueBinding<bool> _showLabelsBinding;
         private GetterValueBinding<bool> _iconOnlyModeBinding;
+        private GetterValueBinding<int> _iconOrientationBinding;
         private GetterValueBinding<bool> _iconPositionLockedBinding;
         private GetterValueBinding<bool> _iconVisibilityEditModeBinding;
         private GetterValueBinding<int> _iconBackgroundTransparencyBinding;
         private GetterValueBinding<int> _iconSizeBinding;
         private GetterValueBinding<int> _iconGapBinding;
         private GetterValueBinding<string> _hiddenIconsBinding;
+        private GetterValueBinding<string> _iconOrderBinding;
 
         private EntityQuery _potentialWorkforceQuery;
         private EntityQuery _workplaceQuery;
@@ -40,6 +42,8 @@ namespace UI_Extended
         private float _timer = 0f;
 
         private int _updateIntervalSeconds = 15;
+        private CityMonitorData _lastData;
+        private bool _hasPublishedData;
 
         protected override void OnCreate()
         {
@@ -62,6 +66,10 @@ namespace UI_Extended
 
             AddBinding(_iconOnlyModeBinding = new GetterValueBinding<bool>(
                 Group, "iconOnlyMode", () => Mod.Setting?.IconOnlyMode ?? false));
+
+            AddBinding(_iconOrientationBinding = new GetterValueBinding<int>(
+                Group, "iconOrientation",
+                () => (int)(Mod.Setting?.IconOrientation ?? IconBarOrientation.Vertical)));
 
             AddBinding(_iconPositionLockedBinding = new GetterValueBinding<bool>(
                 Group, "iconPositionLocked",
@@ -86,6 +94,10 @@ namespace UI_Extended
             AddBinding(_hiddenIconsBinding = new GetterValueBinding<string>(
                 Group, "hiddenIcons",
                 () => Mod.Setting?.HiddenIcons ?? "[]"));
+
+            AddBinding(_iconOrderBinding = new GetterValueBinding<string>(
+                Group, "iconOrder",
+                () => Mod.Setting?.IconOrder ?? "[]"));
 
             _updateIntervalSeconds = ClampUpdateInterval(Mod.Setting?.UpdateIntervalSeconds ?? 15);
 
@@ -115,6 +127,18 @@ namespace UI_Extended
                 if (Mod.Setting != null)
                 {
                     Mod.Setting.HiddenIcons = string.IsNullOrWhiteSpace(json)
+                        ? "[]"
+                        : json;
+                    Mod.Setting.ApplyAndSave();
+                }
+            }));
+
+            // Benutzerdefinierte Reihenfolge der Symbole speichern.
+            AddBinding(new TriggerBinding<string>(Group, "saveIconOrder", (json) =>
+            {
+                if (Mod.Setting != null)
+                {
+                    Mod.Setting.IconOrder = string.IsNullOrWhiteSpace(json)
                         ? "[]"
                         : json;
                     Mod.Setting.ApplyAndSave();
@@ -156,21 +180,28 @@ namespace UI_Extended
             _compactValuesBinding.Update();
             _showLabelsBinding.Update();
             _iconOnlyModeBinding.Update();
+            _iconOrientationBinding.Update();
             _iconPositionLockedBinding.Update();
             _iconVisibilityEditModeBinding.Update();
             _iconBackgroundTransparencyBinding.Update();
             _iconSizeBinding.Update();
             _iconGapBinding.Update();
             _hiddenIconsBinding.Update();
+            _iconOrderBinding.Update();
 
             _updateIntervalSeconds = ClampUpdateInterval(
                 Mod.Setting?.UpdateIntervalSeconds ?? 15);
+
+            // Änderungen an Sichtbarkeit/Ausrichtung beim nächsten Frame
+            // berücksichtigen, ohne auf das reguläre Intervall zu warten.
+            _timer = _updateIntervalSeconds;
 
             Mod.Log.Info(
                 $"UI settings applied: ShowPanel={Mod.Setting?.ShowPanel}, " +
                 $"CompactValues={Mod.Setting?.CompactValues}, " +
                 $"ShowLabels={Mod.Setting?.ShowLabels}, " +
                 $"IconOnlyMode={Mod.Setting?.IconOnlyMode}, " +
+                $"IconOrientation={Mod.Setting?.IconOrientation}, " +
                 $"IconPositionLocked={Mod.Setting?.IconPositionLocked}, " +
                 $"IconVisibilityEditMode={Mod.Setting?.IconVisibilityEditMode}, " +
                 $"IconBackgroundTransparency={ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)}%, " +
@@ -209,36 +240,153 @@ namespace UI_Extended
 
         private void CalculateAndUpdate()
         {
-            using var allCitizens = _potentialWorkforceQuery.ToEntityArray(Allocator.Temp);
-            using var workplaces = _workplaceQuery.ToEntityArray(Allocator.Temp);
-            using var schoolEntities = _schoolQuery.ToEntityArray(Allocator.Temp);
-            using var students = _studentQuery.ToComponentDataArray<Game.Citizens.Student>(Allocator.Temp);
+            // Ausgeblendete Symbole werden im kompakten Symbolmodus nicht
+            // neu berechnet. Das gilt auch im Bearbeitungsmodus: dort werden
+            // ausgeblendete Symbole nur als inaktive Vorschau dargestellt.
+            // Im normalen Panelmodus werden weiterhin alle Werte berechnet.
+            bool optimizeHiddenIcons =
+                Mod.Setting?.IconOnlyMode == true;
 
-            var wf = EmploymentCalculator.CalculateWorkforce(allCitizens, EntityManager);
-            var jobs = EmploymentCalculator.CalculateJobData(workplaces, EntityManager);
-            var cap = EmploymentCalculator.CalculateSchoolCapacities(schoolEntities, EntityManager);
-            var stud = EmploymentCalculator.CountStudents(students);
+            string hiddenIcons = Mod.Setting?.HiddenIcons ?? "[]";
 
-            var data = new CityMonitorData
+            bool updateUnemployment =
+                !optimizeHiddenIcons ||
+                !IsIconHidden(hiddenIcons, "unemployment");
+
+            bool updateJobs =
+                !optimizeHiddenIcons ||
+                !IsIconHidden(hiddenIcons, "jobs");
+
+            bool updateElementary =
+                !optimizeHiddenIcons ||
+                !IsIconHidden(hiddenIcons, "elementary");
+
+            bool updateHighSchool =
+                !optimizeHiddenIcons ||
+                !IsIconHidden(hiddenIcons, "highschool");
+
+            bool updateCollege =
+                !optimizeHiddenIcons ||
+                !IsIconHidden(hiddenIcons, "college");
+
+            bool updateUniversity =
+                !optimizeHiddenIcons ||
+                !IsIconHidden(hiddenIcons, "university");
+
+            bool updateSchools =
+                updateElementary ||
+                updateHighSchool ||
+                updateCollege ||
+                updateUniversity;
+
+            CityMonitorData data = _lastData;
+
+            if (updateUnemployment)
             {
-                UnemployedCount = wf.TotalUnemployed,
-                UnemploymentRate = wf.TotalWorkforce > 0
-                    ? (float)wf.TotalUnemployed / wf.TotalWorkforce * 100f : 0f,
-                OpenJobs = jobs.OpenSlots,
-                TotalJobSlots = jobs.TotalCapacity,
+                using var allCitizens =
+                    _potentialWorkforceQuery.ToEntityArray(Allocator.Temp);
 
-                ElementaryStudents = stud.elem,
-                ElementaryFreeSlots = EmploymentCalculator.CalculateFreeSchoolSlots(cap.elem, stud.elem),
-                HighSchoolStudents = stud.high,
-                HighSchoolFreeSlots = EmploymentCalculator.CalculateFreeSchoolSlots(cap.high, stud.high),
-                CollegeStudents = stud.college,
-                CollegeFreeSlots = EmploymentCalculator.CalculateFreeSchoolSlots(cap.college, stud.college),
-                UniversityStudents = stud.uni,
-                UniversityFreeSlots = EmploymentCalculator.CalculateFreeSchoolSlots(cap.uni, stud.uni),
-            };
+                var wf = EmploymentCalculator.CalculateWorkforce(
+                    allCitizens,
+                    EntityManager);
 
-            _dataBinding.Update(data);
+                data.UnemployedCount = wf.TotalUnemployed;
+                data.UnemploymentRate = wf.TotalWorkforce > 0
+                    ? (float)wf.TotalUnemployed / wf.TotalWorkforce * 100f
+                    : 0f;
+            }
+
+            if (updateJobs)
+            {
+                using var workplaces =
+                    _workplaceQuery.ToEntityArray(Allocator.Temp);
+
+                var jobs = EmploymentCalculator.CalculateJobData(
+                    workplaces,
+                    EntityManager);
+
+                data.OpenJobs = jobs.OpenSlots;
+                data.TotalJobSlots = jobs.TotalCapacity;
+            }
+
+            if (updateSchools)
+            {
+                using var schoolEntities =
+                    _schoolQuery.ToEntityArray(Allocator.Temp);
+                using var students =
+                    _studentQuery.ToComponentDataArray<Game.Citizens.Student>(
+                        Allocator.Temp);
+
+                var cap = EmploymentCalculator.CalculateSchoolCapacities(
+                    schoolEntities,
+                    EntityManager);
+                var stud = EmploymentCalculator.CountStudents(students);
+
+                if (updateElementary)
+                {
+                    data.ElementaryStudents = stud.elem;
+                    data.ElementaryFreeSlots =
+                        EmploymentCalculator.CalculateFreeSchoolSlots(
+                            cap.elem,
+                            stud.elem);
+                }
+
+                if (updateHighSchool)
+                {
+                    data.HighSchoolStudents = stud.high;
+                    data.HighSchoolFreeSlots =
+                        EmploymentCalculator.CalculateFreeSchoolSlots(
+                            cap.high,
+                            stud.high);
+                }
+
+                if (updateCollege)
+                {
+                    data.CollegeStudents = stud.college;
+                    data.CollegeFreeSlots =
+                        EmploymentCalculator.CalculateFreeSchoolSlots(
+                            cap.college,
+                            stud.college);
+                }
+
+                if (updateUniversity)
+                {
+                    data.UniversityStudents = stud.uni;
+                    data.UniversityFreeSlots =
+                        EmploymentCalculator.CalculateFreeSchoolSlots(
+                            cap.uni,
+                            stud.uni);
+                }
+            }
+
+            _lastData = data;
+
+            bool anyLocalValueUpdated =
+                updateUnemployment ||
+                updateJobs ||
+                updateSchools;
+
+            // Wenn ausschließlich ausgeblendete lokale Symbole vorhanden sind,
+            // muss auch die JSON-Bindung nicht jedes Intervall neu geschrieben
+            // werden. Ein Initialwert wird trotzdem einmal veröffentlicht.
+            if (anyLocalValueUpdated || !_hasPublishedData)
+            {
+                _dataBinding.Update(data);
+                _hasPublishedData = true;
+            }
         }
+
+        private static bool IsIconHidden(string hiddenIcons, string iconId)
+        {
+            if (string.IsNullOrEmpty(hiddenIcons) ||
+                string.IsNullOrEmpty(iconId))
+            {
+                return false;
+            }
+
+            return hiddenIcons.Contains($"\"{iconId}\"");
+        }
+
 
         private void SetupQueries()
         {

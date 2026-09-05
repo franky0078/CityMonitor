@@ -20,6 +20,32 @@ const ICON_GARBAGE = "Media/Game/Icons/Garbage.svg";
 const ICON_TRAFFIC = "Media/Game/Icons/Traffic.svg";
 const ICON_ELECTRICITY = "Media/Game/Icons/Electricity.svg";
 const ICON_WATER = "Media/Game/Icons/Water.svg";
+const ICON_PARKING = "Media/Game/Icons/Parking.svg";
+const ICON_BICYCLE = "Media/Game/Icons/Bicycle.svg";
+const ICON_POST = "Media/Game/Icons/PostService.svg";
+const ICON_TOURISM = "Media/Game/Icons/Tourism.svg";
+const ICON_ATTRACTIVENESS = "Media/Game/Icons/Attractions.svg";
+
+const ALL_ICON_IDS = [
+    "unemployment",
+    "jobs",
+    "elementary",
+    "highschool",
+    "college",
+    "university",
+    "fire",
+    "healthcare",
+    "cemetery",
+    "garbage",
+    "traffic",
+    "electricity",
+    "water",
+    "parkingCar",
+    "parkingBike",
+    "post",
+    "tourism",
+    "attractiveness",
+] as const;
 
 interface CityMonitorData {
     unemployedCount: number;
@@ -42,6 +68,7 @@ const showPanel$ = bindValue<boolean>("cityMonitor", "showPanel");
 const compactValues$ = bindValue<boolean>("cityMonitor", "compactValues");
 const showLabels$ = bindValue<boolean>("cityMonitor", "showLabels");
 const iconOnlyMode$ = bindValue<boolean>("cityMonitor", "iconOnlyMode");
+const iconOrientation$ = bindValue<number>("cityMonitor", "iconOrientation");
 const iconPositionLocked$ = bindValue<boolean>(
     "cityMonitor",
     "iconPositionLocked"
@@ -57,6 +84,7 @@ const iconBackgroundTransparency$ = bindValue<number>(
 const iconSize$ = bindValue<number>("cityMonitor", "iconSize");
 const iconGap$ = bindValue<number>("cityMonitor", "iconGap");
 const hiddenIcons$ = bindValue<string>("cityMonitor", "hiddenIcons");
+const iconOrder$ = bindValue<string>("cityMonitor", "iconOrder");
 
 const clamp = (v: number, min: number, max: number) =>
     Math.max(min, Math.min(max, v));
@@ -64,6 +92,8 @@ const clamp = (v: number, min: number, max: number) =>
 const STATUS_GREEN = "#7CFC00";
 const STATUS_YELLOW = "#FFD84D";
 const STATUS_RED = "#FF5A5A";
+const STATUS_INACTIVE = "#8A929A";
+const STATUS_INFO = "#4DA3FF";
 
 const indicatorPercent = (value: IndicatorValue | null | undefined) => {
     if (!value) return 0;
@@ -284,6 +314,43 @@ interface TooltipDetail {
     value: string;
 }
 
+type IconOrientationMode = "vertical" | "horizontal";
+type TooltipPlacement = "left" | "right" | "top" | "bottom";
+type HorizontalTooltipAnchor = "left" | "center" | "right";
+type Translate = (id: string, fallback: string) => string;
+type ServiceKind =
+    | "fire"
+    | "healthcare"
+    | "cemetery"
+    | "garbage"
+    | "traffic"
+    | "electricity"
+    | "water"
+    | "parkingCar"
+    | "parkingBike"
+    | "post"
+    | "tourism"
+    | "attractiveness";
+
+interface StatusIconProps {
+    iconSrc: string;
+    label: string;
+    details: TooltipDetail[];
+    ringColor: string;
+    iconOpacity: number;
+    size: number;
+    gapAfter: number;
+    orientation: IconOrientationMode;
+    canToggleVisibility?: boolean;
+    onToggleVisibility?: () => void;
+    visibilityHint?: string;
+    canReorder?: boolean;
+    reorderActive?: boolean;
+    isReordering?: boolean;
+    onReorderStart?: () => void;
+    onReorderEnter?: () => void;
+}
+
 const StatusIcon = ({
     iconSrc,
     label,
@@ -291,25 +358,24 @@ const StatusIcon = ({
     ringColor,
     iconOpacity,
     size,
-    bottomGap,
+    gapAfter,
+    orientation,
     canToggleVisibility = false,
     onToggleVisibility,
     visibilityHint,
-}: {
-    iconSrc: string;
-    label: string;
-    details: TooltipDetail[];
-    ringColor: string;
-    iconOpacity: number;
-    size: number;
-    bottomGap: number;
-    canToggleVisibility?: boolean;
-    onToggleVisibility?: () => void;
-    visibilityHint?: string;
-}) => {
+    canReorder = false,
+    reorderActive = false,
+    isReordering = false,
+    onReorderStart,
+    onReorderEnter,
+}: StatusIconProps) => {
     const [hovered, setHovered] = useState(false);
     const [tooltipSide, setTooltipSide] =
-        useState<"left" | "right">("right");
+        useState<TooltipPlacement>(
+            orientation === "horizontal" ? "bottom" : "right"
+        );
+    const [horizontalTooltipAnchor, setHorizontalTooltipAnchor] =
+        useState<HorizontalTooltipAnchor>("center");
 
     const contentSize = Math.max(10, size - 4);
     const glyphSize = Math.max(12, Math.round(size * 0.60));
@@ -318,33 +384,115 @@ const StatusIcon = ({
     // Mit Zusatzinformationen braucht der Tooltip mehr Platz.
     const tooltipMinWidth = details.length > 1 ? 160 : 118;
 
+    const horizontalAnchorStyle: React.CSSProperties =
+        horizontalTooltipAnchor === "left"
+            ? { left: 0 }
+            : horizontalTooltipAnchor === "right"
+                ? { right: 0 }
+                : {
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                };
+
+    const tooltipPositionStyle: React.CSSProperties =
+        tooltipSide === "right"
+            ? {
+                top: "50%",
+                left: tooltipOffset + "rem",
+                transform: "translateY(-50%)",
+            }
+            : tooltipSide === "left"
+                ? {
+                    top: "50%",
+                    right: tooltipOffset + "rem",
+                    transform: "translateY(-50%)",
+                }
+                : tooltipSide === "bottom"
+                    ? {
+                        top: tooltipOffset + "rem",
+                        ...horizontalAnchorStyle,
+                    }
+                    : {
+                        bottom: tooltipOffset + "rem",
+                        ...horizontalAnchorStyle,
+                    };
+
     return (
         <div
             style={{
                 position: "relative",
                 width: size + "rem",
                 height: size + "rem",
-                marginBottom: bottomGap + "rem",
+                marginBottom:
+                    orientation === "vertical"
+                        ? gapAfter + "rem"
+                        : 0,
+                marginRight:
+                    orientation === "horizontal"
+                        ? gapAfter + "rem"
+                        : 0,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                flexShrink: 0,
+                cursor: canReorder ? "move" : undefined,
             }}
             onMouseEnter={(e) => {
+                if (reorderActive) {
+                    setHovered(false);
+                    if (!isReordering && onReorderEnter) {
+                        onReorderEnter();
+                    }
+                    return;
+                }
                 const rect = e.currentTarget.getBoundingClientRect();
                 const viewportWidth =
                     document.documentElement?.clientWidth ||
                     window.innerWidth ||
                     0;
+                const viewportHeight =
+                    document.documentElement?.clientHeight ||
+                    window.innerHeight ||
+                    0;
 
-                // Auf der Seite mit mehr freiem Platz öffnen.
-                // Diese Berechnung läuft direkt beim ersten Hover, wenn das
-                // Element garantiert bereits im DOM vorhanden ist.
-                if (viewportWidth > 0) {
+                if (orientation === "horizontal") {
+                    if (viewportHeight > 0) {
+                        const spaceTop = rect.top;
+                        const spaceBottom =
+                            viewportHeight - rect.bottom;
+
+                        setTooltipSide(
+                            spaceTop > spaceBottom
+                                ? "top"
+                                : "bottom"
+                        );
+                    }
+
+                    // An den Bildschirmrändern nicht mittig ausrichten,
+                    // damit der Tooltip nicht aus dem Viewport läuft.
+                    if (viewportWidth > 0) {
+                        const centerX =
+                            rect.left + rect.width / 2;
+
+                        if (centerX < viewportWidth * 0.25) {
+                            setHorizontalTooltipAnchor("left");
+                        } else if (
+                            centerX > viewportWidth * 0.75
+                        ) {
+                            setHorizontalTooltipAnchor("right");
+                        } else {
+                            setHorizontalTooltipAnchor("center");
+                        }
+                    }
+                } else if (viewportWidth > 0) {
                     const spaceLeft = rect.left;
-                    const spaceRight = viewportWidth - rect.right;
+                    const spaceRight =
+                        viewportWidth - rect.right;
 
                     setTooltipSide(
-                        spaceLeft > spaceRight ? "left" : "right"
+                        spaceLeft > spaceRight
+                            ? "left"
+                            : "right"
                     );
                 }
 
@@ -352,12 +500,22 @@ const StatusIcon = ({
             }}
             onMouseLeave={() => setHovered(false)}
             onMouseDown={(e) => {
-                // Rechtsklick: nur ausblenden, wenn die Leiste nicht fixiert ist.
+                if (e.button === 0 && canReorder && onReorderStart) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setHovered(false);
+                    onReorderStart();
+                    return;
+                }
+
                 if (e.button === 2) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    if (canToggleVisibility && onToggleVisibility) {
+                    if (
+                        canToggleVisibility &&
+                        onToggleVisibility
+                    ) {
                         onToggleVisibility();
                     }
                 }
@@ -386,20 +544,14 @@ const StatusIcon = ({
                 <Icon src={iconSrc} size={glyphSize} />
             </div>
 
-            {hovered && (
+            {hovered && !reorderActive && (
                 <div
                     style={{
                         position: "absolute",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        ...(tooltipSide === "right"
-                            ? { left: tooltipOffset + "rem" }
-                            : { right: tooltipOffset + "rem" }),
+                        ...tooltipPositionStyle,
                         minWidth: tooltipMinWidth + "rem",
                         padding: "6rem 9rem",
                         borderRadius: "6rem",
-                        // Näher am dunklen Standard-Tooltip des Spiels,
-                        // aber etwas transparenter.
                         backgroundColor: "rgba(15, 20, 25, 0.86)",
                         border: "1rem solid rgba(255,255,255,0.12)",
                         color: "#fff",
@@ -419,6 +571,7 @@ const StatusIcon = ({
                     >
                         {label}
                     </div>
+
                     {details.map((detail, index) => (
                         <div
                             key={index}
@@ -429,7 +582,10 @@ const StatusIcon = ({
                                     ? "space-between"
                                     : "flex-start",
                                 width: "100%",
-                                marginTop: index === 0 ? 0 : "2rem",
+                                marginTop:
+                                    index === 0
+                                        ? 0
+                                        : "2rem",
                                 whiteSpace: "nowrap",
                             }}
                         >
@@ -445,6 +601,7 @@ const StatusIcon = ({
                                     {detail.label}
                                 </span>
                             )}
+
                             <span
                                 style={{
                                     color: "#fff",
@@ -457,6 +614,7 @@ const StatusIcon = ({
                             </span>
                         </div>
                     ))}
+
                     {canToggleVisibility && visibilityHint && (
                         <div
                             style={{
@@ -478,6 +636,633 @@ const StatusIcon = ({
     );
 };
 
+interface ServiceStatusIconProps
+    extends Omit<
+        StatusIconProps,
+        "details" | "ringColor"
+    > {
+    compactValues: boolean;
+    t: Translate;
+}
+
+const FireStatusIcon = (props: ServiceStatusIconProps) => {
+    const fireHazard =
+        useValue(infoview.averageFireHazard$);
+    const percent = indicatorPercent(fireHazard);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    label: props.compactValues
+                        ? undefined
+                        : props.t(
+                            "UI_Extended.CityMonitor.FireHazard",
+                            "Brandgefahr"
+                        ),
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={fireHazardStatusColor(percent)}
+        />
+    );
+};
+
+const HealthcareStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const availability =
+        useValue(infoview.healthcareAvailability$);
+    const percent = indicatorPercent(availability);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    label: props.compactValues
+                        ? undefined
+                        : props.t(
+                            "UI_Extended.CityMonitor.Availability",
+                            "Verfügbarkeit"
+                        ),
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={availabilityStatusColor(percent)}
+        />
+    );
+};
+
+const CemeteryStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const availability =
+        useValue(infoview.cemeteryAvailability$);
+    const percent = indicatorPercent(availability);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    label: props.compactValues
+                        ? undefined
+                        : props.t(
+                            "UI_Extended.CityMonitor.Availability",
+                            "Verfügbarkeit"
+                        ),
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={availabilityStatusColor(percent)}
+        />
+    );
+};
+
+const GarbageStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const landfillAvailability =
+        useValue(infoview.landfillAvailability$);
+    const garbageProductionRate =
+        useValue(infoview.garbageProductionRate$);
+    const garbageProcessingRate =
+        useValue(infoview.garbageProcessingRate$);
+
+    const landfillPercent =
+        indicatorPercent(landfillAvailability);
+
+    const processingPercent =
+        garbageProductionRate > 0
+            ? clamp(
+                (
+                    garbageProcessingRate /
+                    garbageProductionRate
+                ) * 100,
+                0,
+                100
+            )
+            : 100;
+
+    const overallPercent = Math.min(
+        processingPercent,
+        landfillPercent
+    );
+
+    return (
+        <StatusIcon
+            {...props}
+            details={
+                props.compactValues
+                    ? [
+                        {
+                            value:
+                                overallPercent.toFixed(0) +
+                                " %",
+                        },
+                    ]
+                    : [
+                        {
+                            label: props.t(
+                                "UI_Extended.CityMonitor.Processing",
+                                "Verarbeitung"
+                            ),
+                            value:
+                                processingPercent.toFixed(0) +
+                                " %",
+                        },
+                        {
+                            label: props.t(
+                                "UI_Extended.CityMonitor.Landfill",
+                                "Deponie frei"
+                            ),
+                            value:
+                                landfillPercent.toFixed(0) +
+                                " %",
+                        },
+                    ]
+            }
+            ringColor={
+                availabilityStatusColor(overallPercent)
+            }
+        />
+    );
+};
+
+const TrafficStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const trafficFlow = useValue(infoview.trafficFlow$);
+
+    const values = Array.isArray(trafficFlow)
+        ? trafficFlow
+            .slice(0, 4)
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value))
+        : [];
+
+    let percent =
+        values.length > 0
+            ? values.reduce(
+                (sum, value) => sum + value,
+                0
+            ) / values.length
+            : 0;
+
+    // Sicherheitsfallback für Versionen, die 0..1 statt 0..100 liefern.
+    if (
+        values.length > 0 &&
+        values.every(
+            (value) => value >= 0 && value <= 1
+        )
+    ) {
+        percent *= 100;
+    }
+
+    percent = clamp(percent, 0, 100);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={trafficStatusColor(percent)}
+        />
+    );
+};
+
+const ElectricityStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const availability =
+        useValue(infoview.electricityAvailability$);
+    const percent = indicatorPercent(availability);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    label: props.compactValues
+                        ? undefined
+                        : props.t(
+                            "UI_Extended.CityMonitor.Availability",
+                            "Verfügbarkeit"
+                        ),
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={availabilityStatusColor(percent)}
+        />
+    );
+};
+
+const WaterStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const waterAvailability =
+        useValue(infoview.waterAvailability$);
+    const sewageAvailability =
+        useValue(infoview.sewageAvailability$);
+
+    const waterPercent =
+        indicatorPercent(waterAvailability);
+    const sewagePercent =
+        indicatorPercent(sewageAvailability);
+    const overallPercent =
+        Math.min(waterPercent, sewagePercent);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={
+                props.compactValues
+                    ? [
+                        {
+                            value:
+                                overallPercent.toFixed(0) +
+                                " %",
+                        },
+                    ]
+                    : [
+                        {
+                            label: props.t(
+                                "UI_Extended.CityMonitor.Water",
+                                "Wasser"
+                            ),
+                            value:
+                                waterPercent.toFixed(0) +
+                                " %",
+                        },
+                        {
+                            label: props.t(
+                                "UI_Extended.CityMonitor.Sewage",
+                                "Abwasser"
+                            ),
+                            value:
+                                sewagePercent.toFixed(0) +
+                                " %",
+                        },
+                    ]
+            }
+            ringColor={
+                availabilityStatusColor(overallPercent)
+            }
+        />
+    );
+};
+
+
+const ParkingCarStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const availability =
+        useValue(infoview.parkingAvailability$);
+    const percent = indicatorPercent(availability);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    label: props.compactValues
+                        ? undefined
+                        : props.t(
+                            "UI_Extended.CityMonitor.Availability",
+                            "Verfügbarkeit"
+                        ),
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={availabilityStatusColor(percent)}
+        />
+    );
+};
+
+const ParkingBikeStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const availability =
+        useValue(infoview.bikeParkingAvailability$);
+    const percent = indicatorPercent(availability);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    label: props.compactValues
+                        ? undefined
+                        : props.t(
+                            "UI_Extended.CityMonitor.Availability",
+                            "Verfügbarkeit"
+                        ),
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={availabilityStatusColor(percent)}
+        />
+    );
+};
+
+const PostStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const availability =
+        useValue(infoview.postServiceAvailability$);
+    const percent = indicatorPercent(availability);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    label: props.compactValues
+                        ? undefined
+                        : props.t(
+                            "UI_Extended.CityMonitor.Availability",
+                            "Verfügbarkeit"
+                        ),
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={availabilityStatusColor(percent)}
+        />
+    );
+};
+
+const TourismStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const tourists = useValue(infoview.tourismRate$);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    label: props.compactValues
+                        ? undefined
+                        : props.t(
+                            "UI_Extended.CityMonitor.Tourists",
+                            "Touristen"
+                        ),
+                    value: String(Math.max(0, Math.round(Number(tourists) || 0))),
+                },
+            ]}
+            ringColor={STATUS_INFO}
+        />
+    );
+};
+
+const AttractivenessStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const attractiveness =
+        useValue(infoview.attractiveness$);
+    const percent = indicatorPercent(attractiveness);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={availabilityStatusColor(percent)}
+        />
+    );
+};
+
+const ServiceStatusIcon = ({
+    service,
+    ...props
+}: ServiceStatusIconProps & {
+    service: ServiceKind;
+}) => {
+    switch (service) {
+        case "fire":
+            return <FireStatusIcon {...props} />;
+
+        case "healthcare":
+            return <HealthcareStatusIcon {...props} />;
+
+        case "cemetery":
+            return <CemeteryStatusIcon {...props} />;
+
+        case "garbage":
+            return <GarbageStatusIcon {...props} />;
+
+        case "traffic":
+            return <TrafficStatusIcon {...props} />;
+
+        case "electricity":
+            return <ElectricityStatusIcon {...props} />;
+
+        case "water":
+            return <WaterStatusIcon {...props} />;
+
+        case "parkingCar":
+            return <ParkingCarStatusIcon {...props} />;
+
+        case "parkingBike":
+            return <ParkingBikeStatusIcon {...props} />;
+
+        case "post":
+            return <PostStatusIcon {...props} />;
+
+        case "tourism":
+            return <TourismStatusIcon {...props} />;
+
+        case "attractiveness":
+            return <AttractivenessStatusIcon {...props} />;
+    }
+};
+
+
+interface NormalServiceRowsProps {
+    compactValues: boolean;
+    showText: boolean;
+    t: Translate;
+}
+
+const NormalServiceRows = ({
+    compactValues,
+    showText,
+    t,
+}: NormalServiceRowsProps) => {
+    const fireHazard = useValue(infoview.averageFireHazard$);
+    const healthcare = useValue(infoview.healthcareAvailability$);
+    const cemetery = useValue(infoview.cemeteryAvailability$);
+    const landfill = useValue(infoview.landfillAvailability$);
+    const garbageProduction = useValue(infoview.garbageProductionRate$);
+    const garbageProcessing = useValue(infoview.garbageProcessingRate$);
+    const trafficFlow = useValue(infoview.trafficFlow$);
+    const electricity = useValue(infoview.electricityAvailability$);
+    const water = useValue(infoview.waterAvailability$);
+    const sewage = useValue(infoview.sewageAvailability$);
+    const parkingCar = useValue(infoview.parkingAvailability$);
+    const parkingBike = useValue(infoview.bikeParkingAvailability$);
+    const post = useValue(infoview.postServiceAvailability$);
+    const tourists = useValue(infoview.tourismRate$);
+    const attractiveness = useValue(infoview.attractiveness$);
+
+    const firePercent = indicatorPercent(fireHazard);
+    const healthcarePercent = indicatorPercent(healthcare);
+    const cemeteryPercent = indicatorPercent(cemetery);
+    const landfillPercent = indicatorPercent(landfill);
+    const electricityPercent = indicatorPercent(electricity);
+    const waterPercent = indicatorPercent(water);
+    const sewagePercent = indicatorPercent(sewage);
+    const parkingCarPercent = indicatorPercent(parkingCar);
+    const parkingBikePercent = indicatorPercent(parkingBike);
+    const postPercent = indicatorPercent(post);
+    const attractivenessPercent = indicatorPercent(attractiveness);
+
+    const garbageProcessingPercent =
+        garbageProduction > 0
+            ? clamp((garbageProcessing / garbageProduction) * 100, 0, 100)
+            : 100;
+    const garbagePercent = Math.min(
+        garbageProcessingPercent,
+        landfillPercent
+    );
+
+    const trafficValues = Array.isArray(trafficFlow)
+        ? trafficFlow
+            .slice(0, 4)
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value))
+        : [];
+    let trafficPercent =
+        trafficValues.length > 0
+            ? trafficValues.reduce((sum, value) => sum + value, 0) /
+              trafficValues.length
+            : 0;
+    if (
+        trafficValues.length > 0 &&
+        trafficValues.every((value) => value >= 0 && value <= 1)
+    ) {
+        trafficPercent *= 100;
+    }
+    trafficPercent = clamp(trafficPercent, 0, 100);
+
+    const waterSewagePercent = Math.min(waterPercent, sewagePercent);
+
+    return (
+        <>
+            <div
+                style={{
+                    height: "1rem",
+                    background: "rgba(255,255,255,0.1)",
+                    margin: "6rem 0",
+                }}
+            />
+
+            <Row
+                iconSrc={ICON_FIRE}
+                label={t("UI_Extended.CityMonitor.Fire", "Feuerwehr")}
+                value={firePercent.toFixed(0) + " %"}
+                color={fireHazardStatusColor(firePercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_HEALTHCARE}
+                label={t("UI_Extended.CityMonitor.Healthcare", "Krankenhaus")}
+                value={healthcarePercent.toFixed(0) + " %"}
+                color={availabilityStatusColor(healthcarePercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_CEMETERY}
+                label={t("UI_Extended.CityMonitor.Cemetery", "Friedhof")}
+                value={cemeteryPercent.toFixed(0) + " %"}
+                color={availabilityStatusColor(cemeteryPercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_GARBAGE}
+                label={t("UI_Extended.CityMonitor.Garbage", "Müll")}
+                value={
+                    compactValues
+                        ? garbagePercent.toFixed(0) + " %"
+                        : garbageProcessingPercent.toFixed(0) + " / " +
+                          landfillPercent.toFixed(0) + " %"
+                }
+                color={availabilityStatusColor(garbagePercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_TRAFFIC}
+                label={t("UI_Extended.CityMonitor.TrafficFlow", "Verkehrsfluss")}
+                value={trafficPercent.toFixed(0) + " %"}
+                color={trafficStatusColor(trafficPercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_ELECTRICITY}
+                label={t("UI_Extended.CityMonitor.Electricity", "Strom")}
+                value={electricityPercent.toFixed(0) + " %"}
+                color={availabilityStatusColor(electricityPercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_WATER}
+                label={t("UI_Extended.CityMonitor.WaterSewage", "Wasser / Abwasser")}
+                value={
+                    compactValues
+                        ? waterSewagePercent.toFixed(0) + " %"
+                        : waterPercent.toFixed(0) + " / " +
+                          sewagePercent.toFixed(0) + " %"
+                }
+                color={availabilityStatusColor(waterSewagePercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_PARKING}
+                label={t("UI_Extended.CityMonitor.CarParking", "Parkplätze Auto")}
+                value={parkingCarPercent.toFixed(0) + " %"}
+                color={availabilityStatusColor(parkingCarPercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_BICYCLE}
+                label={t("UI_Extended.CityMonitor.BikeParking", "Parkplätze Fahrrad")}
+                value={parkingBikePercent.toFixed(0) + " %"}
+                color={availabilityStatusColor(parkingBikePercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_POST}
+                label={t("UI_Extended.CityMonitor.Post", "Post")}
+                value={postPercent.toFixed(0) + " %"}
+                color={availabilityStatusColor(postPercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_TOURISM}
+                label={t("UI_Extended.CityMonitor.Tourism", "Tourismus")}
+                value={String(Math.max(0, Math.round(Number(tourists) || 0)))}
+                color={STATUS_INFO}
+                showText={showText}
+            />
+            <Row
+                iconSrc={ICON_ATTRACTIVENESS}
+                label={t("UI_Extended.CityMonitor.Attractiveness", "Stadtattraktivität")}
+                value={attractivenessPercent.toFixed(0) + " %"}
+                color={availabilityStatusColor(attractivenessPercent)}
+                showText={showText}
+            />
+        </>
+    );
+};
+
 export const CityMonitorComponent = () => {
     const localization = useLocalization();
     const t = (id: string, fallback: string) =>
@@ -486,29 +1271,18 @@ export const CityMonitorComponent = () => {
     const data = useValue(data$);
     const savedRaw = useValue(uiState$);
 
-    // Vanilla Infoview-Daten. Durch die Subscription werden die jeweiligen
-    // UISysteme des Spiels automatisch aktiv gehalten.
-    const fireHazard = useValue(infoview.averageFireHazard$);
-    const healthcareAvailability = useValue(infoview.healthcareAvailability$);
-    const cemeteryAvailability = useValue(infoview.cemeteryAvailability$);
-    const landfillAvailability = useValue(infoview.landfillAvailability$);
-    const garbageProductionRate = useValue(infoview.garbageProductionRate$);
-    const garbageProcessingRate = useValue(infoview.garbageProcessingRate$);
-    const trafficFlow = useValue(infoview.trafficFlow$);
-    const electricityAvailability = useValue(infoview.electricityAvailability$);
-    const waterAvailability = useValue(infoview.waterAvailability$);
-    const sewageAvailability = useValue(infoview.sewageAvailability$);
-
     const showPanelSetting = useValue(showPanel$);
     const compactValues = useValue(compactValues$);
     const showText = useValue(showLabels$);
     const iconOnlyMode = useValue(iconOnlyMode$);
+    const iconOrientationSetting = useValue(iconOrientation$);
     const iconPositionLocked = useValue(iconPositionLocked$);
     const iconVisibilityEditMode = useValue(iconVisibilityEditMode$);
     const iconBackgroundTransparency = useValue(iconBackgroundTransparency$);
     const iconSizeSetting = useValue(iconSize$);
     const iconGapSetting = useValue(iconGap$);
     const hiddenIconsRaw = useValue(hiddenIcons$);
+    const iconOrderRaw = useValue(iconOrder$);
 
     const [hiddenIconIds, setHiddenIconIds] =
         useState<Set<string>>(new Set());
@@ -534,62 +1308,79 @@ export const CityMonitorComponent = () => {
         }
     }, [hiddenIconsRaw]);
 
+    const normalizeIconOrder = (ids: string[]) => {
+        const validIds = new Set<string>(ALL_ICON_IDS);
+        const seen = new Set<string>();
+        const result: string[] = [];
+
+        for (const id of ids) {
+            if (validIds.has(id) && !seen.has(id)) {
+                seen.add(id);
+                result.push(id);
+            }
+        }
+
+        for (const id of ALL_ICON_IDS) {
+            if (!seen.has(id)) {
+                result.push(id);
+            }
+        }
+
+        return result;
+    };
+
+    const [iconOrderIds, setIconOrderIds] =
+        useState<string[]>([...ALL_ICON_IDS]);
+    const iconOrderRef = useRef<string[]>([...ALL_ICON_IDS]);
+
+    useEffect(() => {
+        try {
+            const parsed = JSON.parse(iconOrderRaw || "[]");
+            const next = normalizeIconOrder(
+                Array.isArray(parsed)
+                    ? parsed.filter(
+                          (item): item is string =>
+                              typeof item === "string"
+                      )
+                    : []
+            );
+            iconOrderRef.current = next;
+            setIconOrderIds(next);
+        } catch {
+            const next = [...ALL_ICON_IDS];
+            iconOrderRef.current = next;
+            setIconOrderIds(next);
+        }
+    }, [iconOrderRaw]);
+
+    const [reorderingIconId, setReorderingIconId] =
+        useState<string | null>(null);
+
     const iconSize = clamp(iconSizeSetting ?? 30, 22, 50);
     const iconGap = clamp(iconGapSetting ?? 5, 0, 20);
+    const iconOrientation: IconOrientationMode =
+        iconOrientationSetting === 1
+            ? "horizontal"
+            : "vertical";
+
+    const displayedIconIdCount = iconVisibilityEditMode
+        ? ALL_ICON_IDS.length
+        : ALL_ICON_IDS.filter(
+            (id) => !hiddenIconIds.has(id)
+        ).length;
+
+    const iconBarLengthRem =
+        displayedIconIdCount > 0
+            ? displayedIconIdCount * iconSize +
+              Math.max(0, displayedIconIdCount - 1) *
+                  iconGap
+            : 0;
 
     // Der Slider steuert jetzt die Transparenz des kompletten Symbols:
     // Icon, Ring und dunkle Kreisfläche.
     // 0 % = vollständig sichtbar, 100 % = maximal transparent.
     const iconOpacity =
         1 - clamp(iconBackgroundTransparency ?? 40, 0, 100) / 100;
-
-    const fireHazardPercent = indicatorPercent(fireHazard);
-    const healthcarePercent = indicatorPercent(healthcareAvailability);
-    const cemeteryPercent = indicatorPercent(cemeteryAvailability);
-    const landfillPercent = indicatorPercent(landfillAvailability);
-    const electricityPercent = indicatorPercent(electricityAvailability);
-    const waterPercent = indicatorPercent(waterAvailability);
-    const sewagePercent = indicatorPercent(sewageAvailability);
-
-    const garbageProcessingPercent =
-        garbageProductionRate > 0
-            ? clamp(
-                (garbageProcessingRate / garbageProductionRate) * 100,
-                0,
-                100
-            )
-            : 100;
-
-    // Für Müll zählt der schlechtere Zustand aus Verarbeitung und Deponie.
-    const garbageOverallPercent = Math.min(
-        garbageProcessingPercent,
-        landfillPercent
-    );
-
-    const trafficValues = Array.isArray(trafficFlow)
-        ? trafficFlow
-            .slice(0, 4)
-            .map((v) => Number(v))
-            .filter((v) => Number.isFinite(v))
-        : [];
-
-    let trafficPercent =
-        trafficValues.length > 0
-            ? trafficValues.reduce((sum, value) => sum + value, 0) /
-            trafficValues.length
-            : 0;
-
-    // Sicherheitsfallback für Versionen, die 0..1 statt 0..100 liefern.
-    if (
-        trafficValues.length > 0 &&
-        trafficValues.every((value) => value >= 0 && value <= 1)
-    ) {
-        trafficPercent *= 100;
-    }
-
-    trafficPercent = clamp(trafficPercent, 0, 100);
-
-    const waterSewagePercent = Math.min(waterPercent, sewagePercent);
 
     const [pos, setPos] = useState({ x: 50, y: 100 });
     const posRef = useRef(pos);
@@ -637,23 +1428,25 @@ export const CityMonitorComponent = () => {
             ? 170
             : 215
         : compactValues
-            ? 76
-            : 102;
+          ? 76
+          : 102;
 
     const MIN_W = showText
         ? compactValues
             ? 155
             : 190
         : compactValues
-            ? 72
-            : 96;
+          ? 72
+          : 96;
 
     // Im Symbolmodus ist das "Panel" nur noch ein transparenter Icon-Streifen.
     const widthRem = iconOnlyMode
-        ? iconSize
+        ? iconOrientation === "horizontal"
+            ? Math.max(iconSize, iconBarLengthRem)
+            : iconSize
         : minimized
-            ? 52
-            : clamp(userWidth ?? DEFAULT_W, MIN_W, 400);
+          ? 52
+          : clamp(userWidth ?? DEFAULT_W, MIN_W, 400);
 
     // Gespeicherten UI-Zustand einmalig anwenden.
     const applied = useRef(false);
@@ -668,8 +1461,8 @@ export const CityMonitorComponent = () => {
 
             let p =
                 s.pos &&
-                    typeof s.pos.x === "number" &&
-                    typeof s.pos.y === "number"
+                typeof s.pos.x === "number" &&
+                typeof s.pos.y === "number"
                     ? s.pos
                     : { x: 50, y: 100 };
 
@@ -729,6 +1522,94 @@ export const CityMonitorComponent = () => {
             // UI-State ist Komfortfunktion; Fehler hier dürfen das Panel nicht stoppen.
         }
     };
+
+    // Bei einem Wechsel zwischen senkrecht/waagrecht oder bei einer
+    // geänderten Icon-Anzahl kann sich die Leiste stark verbreitern bzw.
+    // verlängern. Danach die gespeicherte Position erneut in den Viewport
+    // klemmen, damit die Leiste nicht außerhalb des Bildschirms liegt.
+    useEffect(() => {
+        if (
+            !iconOnlyMode ||
+            !visible ||
+            !panelRef.current
+        ) {
+            return;
+        }
+
+        const rect =
+            panelRef.current.getBoundingClientRect();
+        const viewportWidth =
+            document.documentElement?.clientWidth ||
+            window.innerWidth ||
+            0;
+        const viewportHeight =
+            document.documentElement?.clientHeight ||
+            window.innerHeight ||
+            0;
+
+        if (
+            viewportWidth <= 0 ||
+            viewportHeight <= 0 ||
+            rect.width <= 0 ||
+            rect.height <= 0
+        ) {
+            return;
+        }
+
+        const pxPerRem =
+            widthRem > 0
+                ? rect.width / widthRem
+                : 1;
+
+        if (pxPerRem <= 0) {
+            return;
+        }
+
+        let nx = posRef.current.x;
+        let ny = posRef.current.y;
+
+        if (rect.right > viewportWidth) {
+            nx -=
+                (rect.right - viewportWidth) /
+                pxPerRem;
+        }
+
+        if (rect.bottom > viewportHeight) {
+            ny -=
+                (rect.bottom - viewportHeight) /
+                pxPerRem;
+        }
+
+        if (rect.left < 0) {
+            nx += -rect.left / pxPerRem;
+        }
+
+        if (rect.top < 0) {
+            ny += -rect.top / pxPerRem;
+        }
+
+        nx = Math.max(0, nx);
+        ny = Math.max(0, ny);
+
+        if (
+            Math.abs(nx - posRef.current.x) > 0.01 ||
+            Math.abs(ny - posRef.current.y) > 0.01
+        ) {
+            const nextPos = { x: nx, y: ny };
+            posRef.current = nextPos;
+            setPos(nextPos);
+            save({ pos: nextPos });
+        }
+    }, [
+        iconOnlyMode,
+        iconOrientation,
+        displayedIconIdCount,
+        iconSize,
+        iconGap,
+        visible,
+        widthRem,
+        data,
+    ]);
 
     // Wenn eine Anzeigeoption geändert wird, die Breite automatisch passend setzen.
     const previousLayout = useRef({ compactValues, showText, iconOnlyMode });
@@ -919,399 +1800,393 @@ export const CityMonitorComponent = () => {
         }
     };
 
+
+    const startIconReorder = (id: string) => {
+        if (!iconVisibilityEditMode) {
+            return;
+        }
+        setReorderingIconId(id);
+    };
+
+    const moveReorderingIcon = (targetId: string) => {
+        const sourceId = reorderingIconId;
+        if (!sourceId || sourceId === targetId) {
+            return;
+        }
+
+        const current = [...iconOrderRef.current];
+        const sourceIndex = current.indexOf(sourceId);
+        const targetIndex = current.indexOf(targetId);
+
+        if (sourceIndex < 0 || targetIndex < 0) {
+            return;
+        }
+
+        current.splice(sourceIndex, 1);
+        current.splice(targetIndex, 0, sourceId);
+        iconOrderRef.current = current;
+        setIconOrderIds(current);
+    };
+
+    const finishIconReorder = useCallback(() => {
+        if (!reorderingIconId) {
+            return;
+        }
+
+        setReorderingIconId(null);
+
+        try {
+            trigger(
+                "cityMonitor",
+                "saveIconOrder",
+                JSON.stringify(iconOrderRef.current)
+            );
+        } catch {
+            // Reihenfolge ist eine Komfortfunktion.
+        }
+    }, [reorderingIconId]);
+
+    useEffect(() => {
+        if (!reorderingIconId) {
+            return;
+        }
+
+        const onMouseUp = () => finishIconReorder();
+        window.addEventListener("mouseup", onMouseUp);
+        return () => window.removeEventListener("mouseup", onMouseUp);
+    }, [reorderingIconId, finishIconReorder]);
+
     type IconItem = {
         id: string;
         iconSrc: string;
         label: string;
-        details: TooltipDetail[];
-        ringColor: string;
+        details?: TooltipDetail[];
+        ringColor?: string;
+        service?: ServiceKind;
     };
 
     const iconItems: IconItem[] = data
         ? [
-            {
-                id: "unemployment",
-                iconSrc: stat,
-                label: t(
-                    "UI_Extended.CityMonitor.Unemployment",
-                    "Arbeitslosigkeit"
-                ),
-                details: compactValues
-                    ? [
-                        {
-                            value:
-                                data.unemploymentRate.toFixed(1) + " %",
-                        },
-                    ]
-                    : [
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.UnemploymentRate",
-                                "Quote"
-                            ),
-                            value:
-                                data.unemploymentRate.toFixed(1) + " %",
-                        },
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Unemployed",
-                                "Arbeitslose"
-                            ),
-                            value: String(data.unemployedCount),
-                        },
-                    ],
-                ringColor: unemploymentStatusColor(
-                    data.unemploymentRate
-                ),
-            },
-            {
-                id: "jobs",
-                iconSrc: work,
-                label: t(
-                    "UI_Extended.CityMonitor.Jobs",
-                    "Arbeitsplätze"
-                ),
-                details: compactValues
-                    ? [{ value: String(data.openJobs) }]
-                    : [
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Open",
-                                "Offen"
-                            ),
-                            value: String(data.openJobs),
-                        },
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Total",
-                                "Gesamt"
-                            ),
-                            value: String(data.totalJobSlots),
-                        },
-                    ],
-                ringColor: openJobsStatusColor(
-                    data.openJobs,
-                    data.totalJobSlots
-                ),
-            },
-            {
-                id: "elementary",
-                iconSrc: edu1,
-                label: t(
-                    "UI_Extended.CityMonitor.ElementarySchool",
-                    "Grundschule"
-                ),
-                details: compactValues
-                    ? [{ value: String(data.elementaryFreeSlots) }]
-                    : [
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Free",
-                                "Frei"
-                            ),
-                            value: String(data.elementaryFreeSlots),
-                        },
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Total",
-                                "Gesamt"
-                            ),
-                            value: String(
-                                data.elementaryStudents +
-                                data.elementaryFreeSlots
-                            ),
-                        },
-                    ],
-                ringColor: schoolStatusColor(
-                    data.elementaryFreeSlots,
-                    data.elementaryStudents
-                ),
-            },
-            {
-                id: "highschool",
-                iconSrc: edu2,
-                label: t(
-                    "UI_Extended.CityMonitor.HighSchool",
-                    "Oberschule"
-                ),
-                details: compactValues
-                    ? [{ value: String(data.highFreeSlots) }]
-                    : [
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Free",
-                                "Frei"
-                            ),
-                            value: String(data.highFreeSlots),
-                        },
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Total",
-                                "Gesamt"
-                            ),
-                            value: String(
-                                data.highStudents +
-                                data.highFreeSlots
-                            ),
-                        },
-                    ],
-                ringColor: schoolStatusColor(
-                    data.highFreeSlots,
-                    data.highStudents
-                ),
-            },
-            {
-                id: "college",
-                iconSrc: edu3,
-                label: t(
-                    "UI_Extended.CityMonitor.College",
-                    "College"
-                ),
-                details: compactValues
-                    ? [{ value: String(data.collegeFreeSlots) }]
-                    : [
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Free",
-                                "Frei"
-                            ),
-                            value: String(data.collegeFreeSlots),
-                        },
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Total",
-                                "Gesamt"
-                            ),
-                            value: String(
-                                data.collegeStudents +
-                                data.collegeFreeSlots
-                            ),
-                        },
-                    ],
-                ringColor: schoolStatusColor(
-                    data.collegeFreeSlots,
-                    data.collegeStudents
-                ),
-            },
-            {
-                id: "university",
-                iconSrc: edu4,
-                label: t(
-                    "UI_Extended.CityMonitor.University",
-                    "Universität"
-                ),
-                details: compactValues
-                    ? [{ value: String(data.uniFreeSlots) }]
-                    : [
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Free",
-                                "Frei"
-                            ),
-                            value: String(data.uniFreeSlots),
-                        },
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Total",
-                                "Gesamt"
-                            ),
-                            value: String(
-                                data.uniStudents +
-                                data.uniFreeSlots
-                            ),
-                        },
-                    ],
-                ringColor: schoolStatusColor(
-                    data.uniFreeSlots,
-                    data.uniStudents
-                ),
-            },
+              {
+                  id: "unemployment",
+                  iconSrc: stat,
+                  label: t(
+                      "UI_Extended.CityMonitor.Unemployment",
+                      "Arbeitslosigkeit"
+                  ),
+                  details: compactValues
+                      ? [
+                            {
+                                value:
+                                    data.unemploymentRate.toFixed(1) + " %",
+                            },
+                        ]
+                      : [
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.UnemploymentRate",
+                                    "Quote"
+                                ),
+                                value:
+                                    data.unemploymentRate.toFixed(1) + " %",
+                            },
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Unemployed",
+                                    "Arbeitslose"
+                                ),
+                                value: String(data.unemployedCount),
+                            },
+                        ],
+                  ringColor: unemploymentStatusColor(
+                      data.unemploymentRate
+                  ),
+              },
+              {
+                  id: "jobs",
+                  iconSrc: work,
+                  label: t(
+                      "UI_Extended.CityMonitor.Jobs",
+                      "Arbeitsplätze"
+                  ),
+                  details: compactValues
+                      ? [{ value: String(data.openJobs) }]
+                      : [
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Open",
+                                    "Offen"
+                                ),
+                                value: String(data.openJobs),
+                            },
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Total",
+                                    "Gesamt"
+                                ),
+                                value: String(data.totalJobSlots),
+                            },
+                        ],
+                  ringColor: openJobsStatusColor(
+                      data.openJobs,
+                      data.totalJobSlots
+                  ),
+              },
+              {
+                  id: "elementary",
+                  iconSrc: edu1,
+                  label: t(
+                      "UI_Extended.CityMonitor.ElementarySchool",
+                      "Grundschule"
+                  ),
+                  details: compactValues
+                      ? [{ value: String(data.elementaryFreeSlots) }]
+                      : [
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Free",
+                                    "Frei"
+                                ),
+                                value: String(data.elementaryFreeSlots),
+                            },
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Total",
+                                    "Gesamt"
+                                ),
+                                value: String(
+                                    data.elementaryStudents +
+                                        data.elementaryFreeSlots
+                                ),
+                            },
+                        ],
+                  ringColor: schoolStatusColor(
+                      data.elementaryFreeSlots,
+                      data.elementaryStudents
+                  ),
+              },
+              {
+                  id: "highschool",
+                  iconSrc: edu2,
+                  label: t(
+                      "UI_Extended.CityMonitor.HighSchool",
+                      "Oberschule"
+                  ),
+                  details: compactValues
+                      ? [{ value: String(data.highFreeSlots) }]
+                      : [
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Free",
+                                    "Frei"
+                                ),
+                                value: String(data.highFreeSlots),
+                            },
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Total",
+                                    "Gesamt"
+                                ),
+                                value: String(
+                                    data.highStudents +
+                                        data.highFreeSlots
+                                ),
+                            },
+                        ],
+                  ringColor: schoolStatusColor(
+                      data.highFreeSlots,
+                      data.highStudents
+                  ),
+              },
+              {
+                  id: "college",
+                  iconSrc: edu3,
+                  label: t(
+                      "UI_Extended.CityMonitor.College",
+                      "College"
+                  ),
+                  details: compactValues
+                      ? [{ value: String(data.collegeFreeSlots) }]
+                      : [
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Free",
+                                    "Frei"
+                                ),
+                                value: String(data.collegeFreeSlots),
+                            },
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Total",
+                                    "Gesamt"
+                                ),
+                                value: String(
+                                    data.collegeStudents +
+                                        data.collegeFreeSlots
+                                ),
+                            },
+                        ],
+                  ringColor: schoolStatusColor(
+                      data.collegeFreeSlots,
+                      data.collegeStudents
+                  ),
+              },
+              {
+                  id: "university",
+                  iconSrc: edu4,
+                  label: t(
+                      "UI_Extended.CityMonitor.University",
+                      "Universität"
+                  ),
+                  details: compactValues
+                      ? [{ value: String(data.uniFreeSlots) }]
+                      : [
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Free",
+                                    "Frei"
+                                ),
+                                value: String(data.uniFreeSlots),
+                            },
+                            {
+                                label: t(
+                                    "UI_Extended.CityMonitor.Total",
+                                    "Gesamt"
+                                ),
+                                value: String(
+                                    data.uniStudents +
+                                        data.uniFreeSlots
+                                ),
+                            },
+                        ],
+                  ringColor: schoolStatusColor(
+                      data.uniFreeSlots,
+                      data.uniStudents
+                  ),
+              },
 
-            // Neue Stadtservice-Symbole
-            {
-                id: "fire",
-                iconSrc: ICON_FIRE,
-                label: t(
-                    "UI_Extended.CityMonitor.Fire",
-                    "Feuerwehr"
-                ),
-                details: [
-                    {
-                        label: compactValues
-                            ? undefined
-                            : t(
-                                "UI_Extended.CityMonitor.FireHazard",
-                                "Brandgefahr"
-                            ),
-                        value:
-                            fireHazardPercent.toFixed(0) + " %",
-                    },
-                ],
-                ringColor:
-                    fireHazardStatusColor(fireHazardPercent),
-            },
-            {
-                id: "healthcare",
-                iconSrc: ICON_HEALTHCARE,
-                label: t(
-                    "UI_Extended.CityMonitor.Healthcare",
-                    "Krankenhaus"
-                ),
-                details: [
-                    {
-                        label: compactValues
-                            ? undefined
-                            : t(
-                                "UI_Extended.CityMonitor.Availability",
-                                "Verfügbarkeit"
-                            ),
-                        value:
-                            healthcarePercent.toFixed(0) + " %",
-                    },
-                ],
-                ringColor:
-                    availabilityStatusColor(healthcarePercent),
-            },
-            {
-                id: "cemetery",
-                iconSrc: ICON_CEMETERY,
-                label: t(
-                    "UI_Extended.CityMonitor.Cemetery",
-                    "Friedhof"
-                ),
-                details: [
-                    {
-                        label: compactValues
-                            ? undefined
-                            : t(
-                                "UI_Extended.CityMonitor.Availability",
-                                "Verfügbarkeit"
-                            ),
-                        value:
-                            cemeteryPercent.toFixed(0) + " %",
-                    },
-                ],
-                ringColor:
-                    availabilityStatusColor(cemeteryPercent),
-            },
-            {
-                id: "garbage",
-                iconSrc: ICON_GARBAGE,
-                label: t(
-                    "UI_Extended.CityMonitor.Garbage",
-                    "Müll"
-                ),
-                details: compactValues
-                    ? [
-                        {
-                            value:
-                                garbageOverallPercent.toFixed(0) +
-                                " %",
-                        },
-                    ]
-                    : [
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Processing",
-                                "Verarbeitung"
-                            ),
-                            value:
-                                garbageProcessingPercent.toFixed(0) +
-                                " %",
-                        },
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Landfill",
-                                "Deponie frei"
-                            ),
-                            value:
-                                landfillPercent.toFixed(0) + " %",
-                        },
-                    ],
-                ringColor:
-                    availabilityStatusColor(
-                        garbageOverallPercent
-                    ),
-            },
-            {
-                id: "traffic",
-                iconSrc: ICON_TRAFFIC,
-                label: t(
-                    "UI_Extended.CityMonitor.TrafficFlow",
-                    "Verkehrsfluss"
-                ),
-                details: [
-                    {
-                        value: trafficPercent.toFixed(0) + " %",
-                    },
-                ],
-                ringColor: trafficStatusColor(trafficPercent),
-            },
-            {
-                id: "electricity",
-                iconSrc: ICON_ELECTRICITY,
-                label: t(
-                    "UI_Extended.CityMonitor.Electricity",
-                    "Strom"
-                ),
-                details: [
-                    {
-                        label: compactValues
-                            ? undefined
-                            : t(
-                                "UI_Extended.CityMonitor.Availability",
-                                "Verfügbarkeit"
-                            ),
-                        value:
-                            electricityPercent.toFixed(0) + " %",
-                    },
-                ],
-                ringColor:
-                    availabilityStatusColor(electricityPercent),
-            },
-            {
-                id: "water",
-                iconSrc: ICON_WATER,
-                label: t(
-                    "UI_Extended.CityMonitor.WaterSewage",
-                    "Wasser / Abwasser"
-                ),
-                details: compactValues
-                    ? [
-                        {
-                            value:
-                                waterSewagePercent.toFixed(0) +
-                                " %",
-                        },
-                    ]
-                    : [
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Water",
-                                "Wasser"
-                            ),
-                            value: waterPercent.toFixed(0) + " %",
-                        },
-                        {
-                            label: t(
-                                "UI_Extended.CityMonitor.Sewage",
-                                "Abwasser"
-                            ),
-                            value:
-                                sewagePercent.toFixed(0) + " %",
-                        },
-                    ],
-                ringColor:
-                    availabilityStatusColor(waterSewagePercent),
-            },
-        ]
+              // Stadtservice-Symbole: Die eigentlichen Vanilla-Bindings
+              // werden erst in der jeweiligen Service-Komponente abonniert.
+              {
+                  id: "fire",
+                  service: "fire",
+                  iconSrc: ICON_FIRE,
+                  label: t(
+                      "UI_Extended.CityMonitor.Fire",
+                      "Feuerwehr"
+                  ),
+              },
+              {
+                  id: "healthcare",
+                  service: "healthcare",
+                  iconSrc: ICON_HEALTHCARE,
+                  label: t(
+                      "UI_Extended.CityMonitor.Healthcare",
+                      "Krankenhaus"
+                  ),
+              },
+              {
+                  id: "cemetery",
+                  service: "cemetery",
+                  iconSrc: ICON_CEMETERY,
+                  label: t(
+                      "UI_Extended.CityMonitor.Cemetery",
+                      "Friedhof"
+                  ),
+              },
+              {
+                  id: "garbage",
+                  service: "garbage",
+                  iconSrc: ICON_GARBAGE,
+                  label: t(
+                      "UI_Extended.CityMonitor.Garbage",
+                      "Müll"
+                  ),
+              },
+              {
+                  id: "traffic",
+                  service: "traffic",
+                  iconSrc: ICON_TRAFFIC,
+                  label: t(
+                      "UI_Extended.CityMonitor.TrafficFlow",
+                      "Verkehrsfluss"
+                  ),
+              },
+              {
+                  id: "electricity",
+                  service: "electricity",
+                  iconSrc: ICON_ELECTRICITY,
+                  label: t(
+                      "UI_Extended.CityMonitor.Electricity",
+                      "Strom"
+                  ),
+              },
+              {
+                  id: "water",
+                  service: "water",
+                  iconSrc: ICON_WATER,
+                  label: t(
+                      "UI_Extended.CityMonitor.WaterSewage",
+                      "Wasser / Abwasser"
+                  ),
+              },
+              {
+                  id: "parkingCar",
+                  service: "parkingCar",
+                  iconSrc: ICON_PARKING,
+                  label: t(
+                      "UI_Extended.CityMonitor.CarParking",
+                      "Parkplätze Auto"
+                  ),
+              },
+              {
+                  id: "parkingBike",
+                  service: "parkingBike",
+                  iconSrc: ICON_BICYCLE,
+                  label: t(
+                      "UI_Extended.CityMonitor.BikeParking",
+                      "Parkplätze Fahrrad"
+                  ),
+              },
+              {
+                  id: "post",
+                  service: "post",
+                  iconSrc: ICON_POST,
+                  label: t(
+                      "UI_Extended.CityMonitor.Post",
+                      "Post"
+                  ),
+              },
+              {
+                  id: "tourism",
+                  service: "tourism",
+                  iconSrc: ICON_TOURISM,
+                  label: t(
+                      "UI_Extended.CityMonitor.Tourism",
+                      "Tourismus"
+                  ),
+              },
+              {
+                  id: "attractiveness",
+                  service: "attractiveness",
+                  iconSrc: ICON_ATTRACTIVENESS,
+                  label: t(
+                      "UI_Extended.CityMonitor.Attractiveness",
+                      "Stadtattraktivität"
+                  ),
+              },
+          ]
         : [];
 
+    const orderedIconItems = iconOrderIds
+        .map((id) => iconItems.find((item) => item.id === id))
+        .filter((item): item is IconItem => item !== undefined);
+
     // Im Bearbeitungsmodus bleiben auch ausgeblendete Symbole sichtbar,
-    // damit sie per Rechtsklick wieder aktiviert werden können.
+    // damit sie per Rechtsklick wieder aktiviert und verschoben werden können.
     const displayedIconItems = iconVisibilityEditMode
-        ? iconItems
-        : iconItems.filter((item) => !hiddenIconIds.has(item.id));
+        ? orderedIconItems
+        : orderedIconItems.filter((item) => !hiddenIconIds.has(item.id));
 
     const rateColor =
         data && data.unemploymentRate > 10 ? "#ff6b6b" : "#7CFC00";
@@ -1419,18 +2294,31 @@ export const CityMonitorComponent = () => {
                                 title={
                                     iconPositionLocked
                                         ? t(
-                                            "UI_Extended.CityMonitor.PositionLocked",
-                                            "Position fixiert"
-                                        )
+                                              "UI_Extended.CityMonitor.PositionLocked",
+                                              "Position fixiert"
+                                          )
                                         : t(
-                                            "UI_Extended.CityMonitor.Drag",
-                                            "Zum Verschieben ziehen"
-                                        )
+                                              "UI_Extended.CityMonitor.Drag",
+                                              "Zum Verschieben ziehen"
+                                          )
                                 }
                                 style={{
-                                    width: iconSize + "rem",
+                                    width:
+                                        (iconOrientation === "horizontal"
+                                            ? Math.max(
+                                                iconSize,
+                                                iconBarLengthRem
+                                            )
+                                            : iconSize) + "rem",
+                                    height:
+                                        iconOrientation === "horizontal"
+                                            ? iconSize + "rem"
+                                            : undefined,
                                     display: "flex",
-                                    flexDirection: "column",
+                                    flexDirection:
+                                        iconOrientation === "horizontal"
+                                            ? "row"
+                                            : "column",
                                     alignItems: "center",
                                     padding: 0,
                                     cursor: iconPositionLocked
@@ -1444,11 +2332,10 @@ export const CityMonitorComponent = () => {
                                         const isHidden =
                                             hiddenIconIds.has(item.id);
 
-                                        // Bearbeitungsmodus:
-                                        // sichtbar = 0 % transparent (100 % deckend)
-                                        // ausgeblendet = 75 % transparent (25 % deckend)
-                                        // Außerhalb des Bearbeitungsmodus gilt wieder
-                                        // die normale Icon-Transparenz aus den Optionen.
+                                        // Im Bearbeitungsmodus:
+                                        // sichtbar = 0 % transparent
+                                        // ausgeblendet = 60 % transparent
+                                        // (Opacity 0.4).
                                         const currentIconOpacity =
                                             iconVisibilityEditMode
                                                 ? isHidden
@@ -1456,22 +2343,154 @@ export const CityMonitorComponent = () => {
                                                     : 1
                                                 : iconOpacity;
 
+                                        const gapAfter =
+                                            index <
+                                            displayedIconItems.length - 1
+                                                ? iconGap
+                                                : 0;
+
+                                        const visibilityAction =
+                                            isHidden
+                                                ? t(
+                                                    "UI_Extended.CityMonitor.ShowIcon",
+                                                    "Rechtsklick: Symbol einblenden"
+                                                )
+                                                : t(
+                                                    "UI_Extended.CityMonitor.HideIcon",
+                                                    "Rechtsklick: Symbol ausblenden"
+                                                );
+                                        const visibilityHint =
+                                            t(
+                                                "UI_Extended.CityMonitor.ReorderIcon",
+                                                "Ziehen: Reihenfolge ändern"
+                                            ) + " · " + visibilityAction;
+
+                                        // Ausgeblendete Symbole im Bearbeitungsmodus
+                                        // bleiben sichtbar, abonnieren aber keine
+                                        // Service-Bindings und zeigen bewusst keinen
+                                        // aktuellen Statuswert.
+                                        if (
+                                            isHidden &&
+                                            iconVisibilityEditMode
+                                        ) {
+                                            return (
+                                                <StatusIcon
+                                                    key={item.id}
+                                                    iconSrc={item.iconSrc}
+                                                    label={item.label}
+                                                    details={[
+                                                        {
+                                                            value: t(
+                                                                "UI_Extended.CityMonitor.Hidden",
+                                                                "Ausgeblendet"
+                                                            ),
+                                                        },
+                                                    ]}
+                                                    ringColor={STATUS_INACTIVE}
+                                                    iconOpacity={
+                                                        currentIconOpacity
+                                                    }
+                                                    size={iconSize}
+                                                    gapAfter={gapAfter}
+                                                    orientation={
+                                                        iconOrientation
+                                                    }
+                                                    canToggleVisibility
+                                                    onToggleVisibility={() =>
+                                                        toggleIconVisibility(
+                                                            item.id
+                                                        )
+                                                    }
+                                                    visibilityHint={
+                                                        visibilityHint
+                                                    }
+                                                    canReorder={
+                                                        iconVisibilityEditMode
+                                                    }
+                                                    reorderActive={
+                                                        reorderingIconId !== null
+                                                    }
+                                                    isReordering={
+                                                        reorderingIconId === item.id
+                                                    }
+                                                    onReorderStart={() =>
+                                                        startIconReorder(item.id)
+                                                    }
+                                                    onReorderEnter={() =>
+                                                        moveReorderingIcon(item.id)
+                                                    }
+                                                />
+                                            );
+                                        }
+
+                                        if (item.service) {
+                                            return (
+                                                <ServiceStatusIcon
+                                                    key={item.id}
+                                                    service={item.service}
+                                                    iconSrc={item.iconSrc}
+                                                    label={item.label}
+                                                    compactValues={
+                                                        compactValues
+                                                    }
+                                                    t={t}
+                                                    iconOpacity={
+                                                        currentIconOpacity
+                                                    }
+                                                    size={iconSize}
+                                                    gapAfter={gapAfter}
+                                                    orientation={
+                                                        iconOrientation
+                                                    }
+                                                    canToggleVisibility={
+                                                        iconVisibilityEditMode
+                                                    }
+                                                    onToggleVisibility={() =>
+                                                        toggleIconVisibility(
+                                                            item.id
+                                                        )
+                                                    }
+                                                    visibilityHint={
+                                                        visibilityHint
+                                                    }
+                                                    canReorder={
+                                                        iconVisibilityEditMode
+                                                    }
+                                                    reorderActive={
+                                                        reorderingIconId !== null
+                                                    }
+                                                    isReordering={
+                                                        reorderingIconId === item.id
+                                                    }
+                                                    onReorderStart={() =>
+                                                        startIconReorder(item.id)
+                                                    }
+                                                    onReorderEnter={() =>
+                                                        moveReorderingIcon(item.id)
+                                                    }
+                                                />
+                                            );
+                                        }
+
                                         return (
                                             <StatusIcon
                                                 key={item.id}
                                                 iconSrc={item.iconSrc}
                                                 label={item.label}
-                                                details={item.details}
-                                                ringColor={item.ringColor}
+                                                details={
+                                                    item.details ?? []
+                                                }
+                                                ringColor={
+                                                    item.ringColor ??
+                                                    STATUS_INACTIVE
+                                                }
                                                 iconOpacity={
                                                     currentIconOpacity
                                                 }
                                                 size={iconSize}
-                                                bottomGap={
-                                                    index <
-                                                        displayedIconItems.length - 1
-                                                        ? iconGap
-                                                        : 0
+                                                gapAfter={gapAfter}
+                                                orientation={
+                                                    iconOrientation
                                                 }
                                                 canToggleVisibility={
                                                     iconVisibilityEditMode
@@ -1482,15 +2501,22 @@ export const CityMonitorComponent = () => {
                                                     )
                                                 }
                                                 visibilityHint={
-                                                    isHidden
-                                                        ? t(
-                                                            "UI_Extended.CityMonitor.ShowIcon",
-                                                            "Rechtsklick: Symbol einblenden"
-                                                        )
-                                                        : t(
-                                                            "UI_Extended.CityMonitor.HideIcon",
-                                                            "Rechtsklick: Symbol ausblenden"
-                                                        )
+                                                    visibilityHint
+                                                }
+                                                canReorder={
+                                                    iconVisibilityEditMode
+                                                }
+                                                reorderActive={
+                                                    reorderingIconId !== null
+                                                }
+                                                isReordering={
+                                                    reorderingIconId === item.id
+                                                }
+                                                onReorderStart={() =>
+                                                    startIconReorder(item.id)
+                                                }
+                                                onReorderEnter={() =>
+                                                    moveReorderingIcon(item.id)
                                                 }
                                             />
                                         );
@@ -1594,6 +2620,12 @@ export const CityMonitorComponent = () => {
                                             free={data.uniFreeSlots}
                                             showText={showText}
                                             compactValues={compactValues}
+                                        />
+
+                                        <NormalServiceRows
+                                            compactValues={compactValues}
+                                            showText={showText}
+                                            t={t}
                                         />
                                     </div>
                                 )}

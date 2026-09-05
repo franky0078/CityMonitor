@@ -31,23 +31,29 @@ namespace UI_Extended
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CompactValues)), "Show relevant values only" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.CompactValues)),
-                    "Shows only the unemployment rate, the number of open jobs, and free school slots. In compact icon mode, this also applies to the hover tooltips. When disabled, the tooltips additionally show the number of unemployed citizens or the total number of slots." },
+                    "Reduces multi-value indicators to their most relevant values. This applies to unemployment, jobs, schools, and combined service indicators such as garbage and water/sewage. In compact icon mode, the same setting also applies to hover tooltips." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowLabels)), "Show labels" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowLabels)),
-                    "Shows labels next to the icons, such as Rate, Open Jobs, Elementary School, High School, College, and University." },
+                    "Shows the names of indicators and city services next to their icons." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconOnlyMode)), "Compact icon mode" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconOnlyMode)),
                     "Shows only the status icons without the panel background or header. A colored ring indicates the current status, and values are shown on hover." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconOrientation)), "Icon bar orientation" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconOrientation)),
+                    "Sets whether the icon bar is displayed vertically or horizontally." },
+                { m_Setting.GetEnumValueLocaleID(IconBarOrientation.Vertical), "Vertical" },
+                { m_Setting.GetEnumValueLocaleID(IconBarOrientation.Horizontal), "Horizontal" },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconPositionLocked)), "Lock icon bar" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconPositionLocked)),
                     "Locks the icon bar at its current position. When disabled, the bar can be moved with the mouse." },
 
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Show / hide icons" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Edit icons" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconVisibilityEditMode)),
-                    "Enables icon visibility editing. Visible icons are shown fully opaque, while hidden icons are shown with 75% transparency. Right-click an icon to hide it or make it visible again. When editing is disabled, hidden icons disappear and visible icons return to the configured icon transparency." },
+                    "Enables icon bar editing. Drag icons with the left mouse button to change their order and right-click an icon to hide it or make it visible again. Visible icons are shown fully opaque, while hidden icons are shown with 60% transparency. When editing is disabled, hidden icons disappear and visible icons return to the configured icon transparency." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundTransparency)), "Icon transparency (%)" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
@@ -59,15 +65,19 @@ namespace UI_Extended
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconGap)), "Icon spacing" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconGap)),
-                    "Sets the vertical spacing between status icons in compact icon mode. Range: 0 to 20." },
+                    "Sets the spacing between status icons in compact icon mode. Range: 0 to 20." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowAllIcons)), "Show all icons" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowAllIcons)),
                     "Restores all icons that were hidden with a right-click in compact icon mode." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ResetIconOrder)), "Reset icon order" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ResetIconOrder)),
+                    "Restores the default icon order in compact icon mode." },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Update interval" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
-                    "Sets how often the City Monitor values are recalculated. Range: 5 to 60 seconds. Shorter intervals require slightly more processing time." },
+                    "Sets how often unemployment, jobs, and school values are recalculated. Range: 5 to 60 seconds. Service indicators use the game bindings directly. Hidden icons are not recalculated or subscribed." },
 
                 // Runtime UI
                 { "UI_Extended.CityMonitor.Toggle", "Toggle City Monitor" },
@@ -93,6 +103,8 @@ namespace UI_Extended
 
                 { "UI_Extended.CityMonitor.HideIcon", "Right-click: hide icon" },
                 { "UI_Extended.CityMonitor.ShowIcon", "Right-click: show icon" },
+                { "UI_Extended.CityMonitor.ReorderIcon", "Drag: change order" },
+                { "UI_Extended.CityMonitor.Hidden", "Hidden" },
                 { "UI_Extended.CityMonitor.Fire", "Fire & Rescue" },
                 { "UI_Extended.CityMonitor.FireHazard", "Fire hazard" },
                 { "UI_Extended.CityMonitor.Healthcare", "Healthcare" },
@@ -106,6 +118,12 @@ namespace UI_Extended
                 { "UI_Extended.CityMonitor.Water", "Water" },
                 { "UI_Extended.CityMonitor.Sewage", "Sewage" },
                 { "UI_Extended.CityMonitor.Availability", "Availability" },
+                { "UI_Extended.CityMonitor.CarParking", "Car parking" },
+                { "UI_Extended.CityMonitor.BikeParking", "Bicycle parking" },
+                { "UI_Extended.CityMonitor.Post", "Post service" },
+                { "UI_Extended.CityMonitor.Tourism", "Tourism" },
+                { "UI_Extended.CityMonitor.Tourists", "Tourists" },
+                { "UI_Extended.CityMonitor.Attractiveness", "City attractiveness" },
             };
         }
 

@@ -4,6 +4,12 @@ using Game.Settings;
 
 namespace UI_Extended
 {
+    public enum IconBarOrientation
+    {
+        Vertical = 0,
+        Horizontal = 1
+    }
+
     [FileLocation(nameof(UI_Extended))]
     [SettingsUIGroupOrder(
         kGeneralGroup,
@@ -28,6 +34,10 @@ namespace UI_Extended
         [SettingsUIHidden]
         public string HiddenIcons { get; set; } = "[]";
 
+        // Persistente Reihenfolge der Symbole im kompakten Symbolmodus.
+        [SettingsUIHidden]
+        public string IconOrder { get; set; } = "[]";
+
         public Setting(IMod mod) : base(mod) { }
 
         [SettingsUISection(kSection, kGeneralGroup)]
@@ -41,6 +51,11 @@ namespace UI_Extended
 
         [SettingsUISection(kSection, kDisplayGroup)]
         public bool IconOnlyMode { get; set; } = false;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public IconBarOrientation IconOrientation { get; set; } =
+            IconBarOrientation.Vertical;
 
         [SettingsUISection(kSection, kDisplayGroup)]
         [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
@@ -77,6 +92,18 @@ namespace UI_Extended
             }
         }
 
+        [SettingsUIButton]
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool ResetIconOrder
+        {
+            set
+            {
+                IconOrder = "[]";
+                ApplyAndSave();
+            }
+        }
+
         [SettingsUISection(kSection, kUpdateGroup)]
         [SettingsUISlider(min = 5, max = 60, step = 1)]
         public int UpdateIntervalSeconds { get; set; } = 15;
@@ -92,12 +119,14 @@ namespace UI_Extended
             CompactValues = false;
             ShowLabels = false;
             IconOnlyMode = false;
+            IconOrientation = IconBarOrientation.Vertical;
             IconPositionLocked = false;
             IconVisibilityEditMode = false;
             IconBackgroundTransparency = 40;
             IconSize = 30;
             IconGap = 5;
             HiddenIcons = "[]";
+            IconOrder = "[]";
             UpdateIntervalSeconds = 15;
         }
     }
