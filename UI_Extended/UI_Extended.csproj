@@ -2,71 +2,41 @@
 
 	<PropertyGroup>
 		<Configurations>Debug;Release</Configurations>
-	
-		<!--The file where mod information which is required for publishing mod on PDX mods are stored-->
+
+		<AssemblyName>UI_Extended</AssemblyName>
+		<RootNamespace>UI_Extended</RootNamespace>
+
 		<PublishConfigurationPath>Properties\PublishConfiguration.xml</PublishConfigurationPath>
+
+		<UIProjectDirectory>$(MSBuildProjectDirectory)\Frontend</UIProjectDirectory>
+		<EnableUIExtendedUIBuild Condition="'$(EnableUIExtendedUIBuild)' == ''">true</EnableUIExtendedUIBuild>
+
+		<DefaultItemExcludes>Frontend\node_modules\**;$(DefaultItemExcludes)</DefaultItemExcludes>
+		<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
 	</PropertyGroup>
-	
-	<!--Imports must be after PropertyGroup block-->
+
 	<Import Project="$([System.Environment]::GetEnvironmentVariable('CSII_TOOLPATH', 'EnvironmentVariableTarget.User'))\Mod.props" />
 	<Import Project="$([System.Environment]::GetEnvironmentVariable('CSII_TOOLPATH', 'EnvironmentVariableTarget.User'))\Mod.targets" />
 
 	<ItemGroup>
-		<Reference Include="cohtml.Net">
-			<HintPath>D:\Clients\Steam\steamapps\common\Cities Skylines II\Cities2_Data\Managed\cohtml.Net.dll</HintPath>
-			<Private>false</Private>
-			<SpecificVersion>false</SpecificVersion>
-		</Reference>
-		<Reference Include="Colossal.UI">
-			<HintPath>D:\Clients\Steam\steamapps\common\Cities Skylines II\Cities2_Data\Managed\Colossal.UI.dll</HintPath>
-			<Private>false</Private>
-			<SpecificVersion>false</SpecificVersion>
-		</Reference>
-		<Reference Include="Game">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Colossal.Core">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Colossal.Logging">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Colossal.IO.AssetDatabase">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Colossal.UI.Binding">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="UnityEngine.CoreModule">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Unity.Burst">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Unity.Collections">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Unity.Entities">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Unity.Mathematics">
-			<Private>false</Private>
-		</Reference>
+		<Reference Include="Game"><Private>false</Private></Reference>
+		<Reference Include="Colossal.Core"><Private>false</Private></Reference>
+		<Reference Include="Colossal.Logging"><Private>false</Private></Reference>
+		<Reference Include="Colossal.IO.AssetDatabase"><Private>false</Private></Reference>
+		<Reference Include="Colossal.UI"><Private>false</Private></Reference>
+		<Reference Include="Colossal.UI.Binding"><Private>false</Private></Reference>
+		<Reference Include="Colossal.Localization"><Private>false</Private></Reference>
+		<Reference Include="UnityEngine.CoreModule"><Private>false</Private></Reference>
+		<Reference Include="Unity.Burst"><Private>false</Private></Reference>
+		<Reference Include="Unity.Collections"><Private>false</Private></Reference>
+		<Reference Include="Unity.Entities"><Private>false</Private></Reference>
+		<Reference Include="Unity.Mathematics"><Private>false</Private></Reference>
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Update="System">
-			<Private>false</Private>
-		</Reference>
-		<Reference Update="System.Core">
-			<Private>false</Private>
-		</Reference>
-		<Reference Update="System.Data">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Colossal.Localization">
-			<Private>false</Private>
-		</Reference>
+		<Reference Update="System"><Private>false</Private></Reference>
+		<Reference Update="System.Core"><Private>false</Private></Reference>
+		<Reference Update="System.Data"><Private>false</Private></Reference>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -74,9 +44,53 @@
 		<None Include="$(ModTargetsFile)" Link="Properties\Mod.targets" />
 	</ItemGroup>
 
-	<Target Name="BuildUI" AfterTargets="Build">
-		<Message Importance="high" Text="Baue UI mit npm run build ..." />
-		<Exec Command="npm run build" WorkingDirectory="$(ProjectDir).." />
+	<ItemGroup>
+		<UpToDateCheckInput
+			Include="Frontend\src\**\*.ts;Frontend\src\**\*.tsx;Frontend\src\**\*.css;Frontend\src\**\*.scss;Frontend\src\**\*.png;Frontend\src\**\*.jpg;Frontend\src\**\*.jpeg;Frontend\src\**\*.gif;Frontend\src\**\*.svg"
+			Exclude="Frontend\node_modules\**" />
+		<UpToDateCheckInput Include="Frontend\types\**\*.ts" />
+		<UpToDateCheckInput Include="Frontend\tools\**\*.js" />
+		<UpToDateCheckInput Include="Frontend\mod.json" />
+		<UpToDateCheckInput Include="Frontend\package.json" />
+		<UpToDateCheckInput Include="Frontend\package-lock.json" />
+		<UpToDateCheckInput Include="Frontend\tsconfig.json" />
+		<UpToDateCheckInput Include="Frontend\webpack.config.js" />
+	</ItemGroup>
+
+	<Target
+		Name="RestoreUIExtendedUI"
+		Condition="'$(EnableUIExtendedUIBuild)' == 'true'"
+		Inputs="$(UIProjectDirectory)\package.json;$(UIProjectDirectory)\package-lock.json"
+		Outputs="$(UIProjectDirectory)\node_modules\.ui-extended-restored">
+
+		<Message Text="Restoring UI Extended frontend dependencies..." Importance="high" />
+
+		<Exec
+			Command="npm install --no-audit --no-fund"
+			WorkingDirectory="$(UIProjectDirectory)"
+			ConsoleToMSBuild="true"
+			StandardOutputImportance="high"
+			StandardErrorImportance="high" />
+
+		<Touch
+			Files="$(UIProjectDirectory)\node_modules\.ui-extended-restored"
+			AlwaysCreate="true" />
+	</Target>
+
+	<Target
+		Name="BuildUIExtendedUI"
+		AfterTargets="AfterBuild"
+		DependsOnTargets="RestoreUIExtendedUI"
+		Condition="'$(EnableUIExtendedUIBuild)' == 'true'">
+
+		<Message Text="Building UI Extended frontend..." Importance="high" />
+
+		<Exec
+			Command="npm run build"
+			WorkingDirectory="$(UIProjectDirectory)"
+			ConsoleToMSBuild="true"
+			StandardOutputImportance="high"
+			StandardErrorImportance="high" />
 	</Target>
 
 </Project>
