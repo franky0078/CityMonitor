@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using Colossal;
 
 namespace UI_Extended
@@ -35,6 +35,18 @@ namespace UI_Extended
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconOnlyMode)), "Kompakter Symbolmodus" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconOnlyMode)),
                     "Zeigt nur die Status-Symbole ohne Panel-Hintergrund und Kopfzeile. Ein farbiger Ring zeigt den Zustand an; die aktuellen Werte erscheinen beim Überfahren mit der Maus. Beschriftungen und die normale Wertdarstellung werden in diesem Modus ignoriert." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundTransparency)), "Icon-Transparenz (%)" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
+                    "Steuert die Transparenz des kompletten Symbols im kompakten Symbolmodus. 0 % = vollständig sichtbar, 100 % = maximal transparent. Betroffen sind Symbol, farbiger Ring und die dunkle Kreisfläche; der Hover-Tooltip bleibt normal sichtbar." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconSize)), "Icon-Größe" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconSize)),
+                    "Legt die Größe der runden Status-Symbole im kompakten Symbolmodus fest. Bereich: 22 bis 50." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconGap)), "Icon-Abstand" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconGap)),
+                    "Legt den vertikalen Abstand zwischen den Status-Symbolen im kompakten Symbolmodus fest. Bereich: 0 bis 20." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Aktualisierungsintervall" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),

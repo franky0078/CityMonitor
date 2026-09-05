@@ -25,6 +25,9 @@ namespace UI_Extended
         private GetterValueBinding<bool> _compactValuesBinding;
         private GetterValueBinding<bool> _showLabelsBinding;
         private GetterValueBinding<bool> _iconOnlyModeBinding;
+        private GetterValueBinding<int> _iconBackgroundTransparencyBinding;
+        private GetterValueBinding<int> _iconSizeBinding;
+        private GetterValueBinding<int> _iconGapBinding;
 
         private EntityQuery _potentialWorkforceQuery;
         private EntityQuery _workplaceQuery;
@@ -56,6 +59,18 @@ namespace UI_Extended
 
             AddBinding(_iconOnlyModeBinding = new GetterValueBinding<bool>(
                 Group, "iconOnlyMode", () => Mod.Setting?.IconOnlyMode ?? false));
+
+            AddBinding(_iconBackgroundTransparencyBinding = new GetterValueBinding<int>(
+                Group, "iconBackgroundTransparency",
+                () => ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)));
+
+            AddBinding(_iconSizeBinding = new GetterValueBinding<int>(
+                Group, "iconSize",
+                () => ClampIconSize(Mod.Setting?.IconSize ?? 30)));
+
+            AddBinding(_iconGapBinding = new GetterValueBinding<int>(
+                Group, "iconGap",
+                () => ClampIconGap(Mod.Setting?.IconGap ?? 5)));
 
             _updateIntervalSeconds = ClampUpdateInterval(Mod.Setting?.UpdateIntervalSeconds ?? 15);
 
@@ -114,6 +129,9 @@ namespace UI_Extended
             _compactValuesBinding.Update();
             _showLabelsBinding.Update();
             _iconOnlyModeBinding.Update();
+            _iconBackgroundTransparencyBinding.Update();
+            _iconSizeBinding.Update();
+            _iconGapBinding.Update();
 
             _updateIntervalSeconds = ClampUpdateInterval(
                 Mod.Setting?.UpdateIntervalSeconds ?? 15);
@@ -123,6 +141,9 @@ namespace UI_Extended
                 $"CompactValues={Mod.Setting?.CompactValues}, " +
                 $"ShowLabels={Mod.Setting?.ShowLabels}, " +
                 $"IconOnlyMode={Mod.Setting?.IconOnlyMode}, " +
+                $"IconBackgroundTransparency={ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)}%, " +
+                $"IconSize={ClampIconSize(Mod.Setting?.IconSize ?? 30)}, " +
+                $"IconGap={ClampIconGap(Mod.Setting?.IconGap ?? 5)}, " +
                 $"UpdateInterval={_updateIntervalSeconds}s");
         }
 
@@ -130,6 +151,27 @@ namespace UI_Extended
         {
             if (value < 5) return 5;
             if (value > 60) return 60;
+            return value;
+        }
+
+        private static int ClampPercent(int value)
+        {
+            if (value < 0) return 0;
+            if (value > 100) return 100;
+            return value;
+        }
+
+        private static int ClampIconSize(int value)
+        {
+            if (value < 22) return 22;
+            if (value > 50) return 50;
+            return value;
+        }
+
+        private static int ClampIconGap(int value)
+        {
+            if (value < 0) return 0;
+            if (value > 20) return 20;
             return value;
         }
 

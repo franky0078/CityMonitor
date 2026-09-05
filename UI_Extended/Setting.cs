@@ -38,9 +38,29 @@ namespace UI_Extended
         [SettingsUISection(kSection, kDisplayGroup)]
         public bool IconOnlyMode { get; set; } = false;
 
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        [SettingsUISlider(min = 0, max = 100, step = 5)]
+        public int IconBackgroundTransparency { get; set; } = 40;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        [SettingsUISlider(min = 22, max = 50, step = 2)]
+        public int IconSize { get; set; } = 30;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        [SettingsUISlider(min = 0, max = 20, step = 1)]
+        public int IconGap { get; set; } = 5;
+
         [SettingsUISection(kSection, kUpdateGroup)]
         [SettingsUISlider(min = 5, max = 60, step = 1)]
         public int UpdateIntervalSeconds { get; set; } = 15;
+
+        public bool IsIconOnlyModeDisabled()
+        {
+            return !IconOnlyMode;
+        }
 
         public override void SetDefaults()
         {
@@ -48,6 +68,9 @@ namespace UI_Extended
             CompactValues = false;
             ShowLabels = false;
             IconOnlyMode = false;
+            IconBackgroundTransparency = 40;
+            IconSize = 30;
+            IconGap = 5;
             UpdateIntervalSeconds = 15;
         }
     }

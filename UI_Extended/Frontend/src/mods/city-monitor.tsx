@@ -30,6 +30,12 @@ const showPanel$ = bindValue<boolean>("cityMonitor", "showPanel");
 const compactValues$ = bindValue<boolean>("cityMonitor", "compactValues");
 const showLabels$ = bindValue<boolean>("cityMonitor", "showLabels");
 const iconOnlyMode$ = bindValue<boolean>("cityMonitor", "iconOnlyMode");
+const iconBackgroundTransparency$ = bindValue<number>(
+    "cityMonitor",
+    "iconBackgroundTransparency"
+);
+const iconSize$ = bindValue<number>("cityMonitor", "iconSize");
+const iconGap$ = bindValue<number>("cityMonitor", "iconGap");
 
 const clamp = (v: number, min: number, max: number) =>
     Math.max(min, Math.min(max, v));
@@ -221,21 +227,32 @@ const StatusIcon = ({
     value,
     ringColor,
     hoverSide,
+    iconOpacity,
+    size,
+    bottomGap,
 }: {
     iconSrc: string;
     label: string;
     value: string;
     ringColor: string;
     hoverSide: "left" | "right";
+    iconOpacity: number;
+    size: number;
+    bottomGap: number;
 }) => {
     const [hovered, setHovered] = useState(false);
+
+    const contentSize = Math.max(10, size - 4);
+    const glyphSize = Math.max(12, Math.round(size * 0.60));
+    const tooltipOffset = size + 6;
 
     return (
         <div
             style={{
                 position: "relative",
-                width: "30rem",
-                height: "30rem",
+                width: size + "rem",
+                height: size + "rem",
+                marginBottom: bottomGap + "rem",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -243,24 +260,24 @@ const StatusIcon = ({
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
-            <Tooltip tooltip={label}>
-                <div
-                    style={{
-                        width: "30rem",
-                        height: "30rem",
-                        borderRadius: "50%",
-                        border: `2rem solid ${ringColor}`,
-                        backgroundColor: "rgba(15, 20, 25, 0.58)",
-                        boxShadow: `0 0 7rem ${ringColor}`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxSizing: "border-box",
-                    }}
-                >
-                    <Icon src={iconSrc} size={18} />
-                </div>
-            </Tooltip>
+            <div
+                style={{
+                    // Cohtml unterstützt box-sizing nicht zuverlässig.
+                    // Inhaltsgröße + 2rem Rand je Seite = gewünschte Gesamtgröße.
+                    width: contentSize + "rem",
+                    height: contentSize + "rem",
+                    borderRadius: "50%",
+                    border: `2rem solid ${ringColor}`,
+                    backgroundColor: "rgba(15, 20, 25, 0.58)",
+                    opacity: iconOpacity,
+                    boxShadow: `0 0 7rem ${ringColor}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+                <Icon src={iconSrc} size={glyphSize} />
+            </div>
 
             {hovered && (
                 <div
@@ -269,24 +286,41 @@ const StatusIcon = ({
                         top: "50%",
                         transform: "translateY(-50%)",
                         ...(hoverSide === "right"
-                            ? { left: "35rem" }
-                            : { right: "35rem" }),
-                        minWidth: "42rem",
-                        padding: "4rem 7rem",
-                        borderRadius: "5rem",
-                        backgroundColor: "rgba(15, 20, 25, 0.92)",
-                        border: `1rem solid ${ringColor}`,
+                            ? { left: tooltipOffset + "rem" }
+                            : { right: tooltipOffset + "rem" }),
+                        minWidth: "118rem",
+                        padding: "6rem 9rem",
+                        borderRadius: "6rem",
+                        backgroundColor: "rgba(66, 72, 82, 0.97)",
+                        border: "1rem solid rgba(255,255,255,0.16)",
                         color: "#fff",
-                        fontSize: "13rem",
-                        fontWeight: "bold",
-                        whiteSpace: "nowrap",
-                        textAlign: "center",
                         pointerEvents: "none",
-                        boxShadow: "0 3rem 10rem rgba(0,0,0,0.45)",
+                        boxShadow: "0 4rem 12rem rgba(0,0,0,0.35)",
                         zIndex: 20,
                     }}
                 >
-                    {value}
+                    <div
+                        style={{
+                            color: "rgba(255,255,255,0.72)",
+                            fontSize: "11rem",
+                            lineHeight: "14rem",
+                            whiteSpace: "nowrap",
+                            marginBottom: "2rem",
+                        }}
+                    >
+                        {label}
+                    </div>
+                    <div
+                        style={{
+                            color: "#fff",
+                            fontSize: "14rem",
+                            lineHeight: "17rem",
+                            fontWeight: "bold",
+                            whiteSpace: "nowrap",
+                        }}
+                    >
+                        {value}
+                    </div>
                 </div>
             )}
         </div>
@@ -301,8 +335,26 @@ export const CityMonitorComponent = () => {
     const compactValues = useValue(compactValues$);
     const showText = useValue(showLabels$);
     const iconOnlyMode = useValue(iconOnlyMode$);
+    const iconBackgroundTransparency = useValue(iconBackgroundTransparency$);
+    const iconSizeSetting = useValue(iconSize$);
+    const iconGapSetting = useValue(iconGap$);
+
+    const iconSize = clamp(iconSizeSetting ?? 30, 22, 50);
+    const iconGap = clamp(iconGapSetting ?? 5, 0, 20);
+
+    // Der Slider steuert jetzt die Transparenz des kompletten Symbols:
+    // Icon, Ring und dunkle Kreisfläche.
+    // 0 % = vollständig sichtbar, 100 % = maximal transparent.
+    const iconOpacity =
+        1 - clamp(iconBackgroundTransparency ?? 40, 0, 100) / 100;
 
     const [pos, setPos] = useState({ x: 50, y: 100 });
+    const posRef = useRef(pos);
+
+    useEffect(() => {
+        posRef.current = pos;
+    }, [pos]);
+
     const [minimized, setMinimized] = useState(false);
     const [visible, setVisible] = useState(true);
     const [dragging, setDragging] = useState(false);
@@ -342,23 +394,23 @@ export const CityMonitorComponent = () => {
             ? 170
             : 215
         : compactValues
-          ? 76
-          : 102;
+            ? 76
+            : 102;
 
     const MIN_W = showText
         ? compactValues
             ? 155
             : 190
         : compactValues
-          ? 72
-          : 96;
+            ? 72
+            : 96;
 
     // Im Symbolmodus ist das "Panel" nur noch ein transparenter Icon-Streifen.
     const widthRem = iconOnlyMode
-        ? 30
+        ? iconSize
         : minimized
-          ? 52
-          : clamp(userWidth ?? DEFAULT_W, MIN_W, 400);
+            ? 52
+            : clamp(userWidth ?? DEFAULT_W, MIN_W, 400);
 
     // Gespeicherten UI-Zustand einmalig anwenden.
     const applied = useRef(false);
@@ -373,15 +425,24 @@ export const CityMonitorComponent = () => {
 
             let p =
                 s.pos &&
-                typeof s.pos.x === "number" &&
-                typeof s.pos.y === "number"
+                    typeof s.pos.x === "number" &&
+                    typeof s.pos.y === "number"
                     ? s.pos
                     : { x: 50, y: 100 };
 
-            if (p.x < 0 || p.y < 0 || p.x > 1900 || p.y > 1050) {
+            // Keine festen 1920x1080-Grenzen verwenden.
+            // Auf 2560x1440 liegt eine korrekt am rechten Rand gespeicherte
+            // Position deutlich über x=1900 und wurde früher deshalb verworfen.
+            if (
+                !Number.isFinite(p.x) ||
+                !Number.isFinite(p.y) ||
+                p.x < 0 ||
+                p.y < 0
+            ) {
                 p = { x: 50, y: 100 };
             }
 
+            posRef.current = p;
             setPos(p);
 
             if (typeof s.minimized === "boolean") {
@@ -513,7 +574,9 @@ export const CityMonitorComponent = () => {
             ny = clamp(ny, 0, maxY);
         }
 
-        setPos({ x: nx, y: ny });
+        const nextPos = { x: nx, y: ny };
+        posRef.current = nextPos;
+        setPos(nextPos);
     };
 
     const startResize =
@@ -564,7 +627,7 @@ export const CityMonitorComponent = () => {
 
     const onOverlayUp = () => {
         setDragging(false);
-        save({ pos });
+        save({ pos: posRef.current });
     };
 
     const toggleMin = () =>
@@ -582,7 +645,15 @@ export const CityMonitorComponent = () => {
         });
 
     // Hover-Werte im Symbolmodus nach Möglichkeit auf der freien Bildschirmseite anzeigen.
-    const hoverSide: "left" | "right" = pos.x > 960 ? "left" : "right";
+    // Tooltip automatisch auf der Seite mit mehr Platz anzeigen.
+    // panelRef liefert Pixelkoordinaten; dadurch funktioniert das unabhängig
+    // von Auflösung und UI-Skalierung.
+    const panelRect = panelRef.current?.getBoundingClientRect();
+    const hoverSide: "left" | "right" =
+        panelRect &&
+            panelRect.left + panelRect.width / 2 > (window.innerWidth || 0) / 2
+            ? "left"
+            : "right";
 
     const rateColor =
         data && data.unemploymentRate > 10 ? "#ff6b6b" : "#7CFC00";
@@ -656,8 +727,12 @@ export const CityMonitorComponent = () => {
                             position: "absolute",
                             top: pos.y + "rem",
                             left: pos.x + "rem",
-                            width: widthRem + "rem",
-                            boxSizing: "border-box",
+                            // Ohne box-sizing: im normalen Modus 2rem für den
+                            // linken + rechten 1rem-Rand vom Inhaltsmaß abziehen.
+                            width:
+                                (iconOnlyMode
+                                    ? widthRem
+                                    : Math.max(0, widthRem - 2)) + "rem",
                             backgroundColor: iconOnlyMode
                                 ? "transparent"
                                 : "rgba(20, 28, 35, 0.95)",
@@ -681,13 +756,11 @@ export const CityMonitorComponent = () => {
                                 onMouseDown={onHeaderDown}
                                 title="Zum Verschieben ziehen"
                                 style={{
-                                    width: "30rem",
+                                    width: iconSize + "rem",
                                     display: "flex",
                                     flexDirection: "column",
                                     alignItems: "center",
-                                    gap: "5rem",
                                     padding: 0,
-                                    boxSizing: "border-box",
                                     cursor: "move",
                                     overflow: "visible",
                                 }}
@@ -698,6 +771,9 @@ export const CityMonitorComponent = () => {
                                     value={data.unemploymentRate.toFixed(1) + " %"}
                                     ringColor={unemploymentStatusColor(data.unemploymentRate)}
                                     hoverSide={hoverSide}
+                                    iconOpacity={iconOpacity}
+                                    size={iconSize}
+                                    bottomGap={iconGap}
                                 />
 
                                 <StatusIcon
@@ -706,6 +782,9 @@ export const CityMonitorComponent = () => {
                                     value={String(data.openJobs)}
                                     ringColor={openJobsStatusColor(data.openJobs, data.totalJobSlots)}
                                     hoverSide={hoverSide}
+                                    iconOpacity={iconOpacity}
+                                    size={iconSize}
+                                    bottomGap={iconGap}
                                 />
 
                                 <StatusIcon
@@ -714,6 +793,9 @@ export const CityMonitorComponent = () => {
                                     value={String(data.elementaryFreeSlots)}
                                     ringColor={schoolStatusColor(data.elementaryFreeSlots, data.elementaryStudents)}
                                     hoverSide={hoverSide}
+                                    iconOpacity={iconOpacity}
+                                    size={iconSize}
+                                    bottomGap={iconGap}
                                 />
 
                                 <StatusIcon
@@ -722,6 +804,9 @@ export const CityMonitorComponent = () => {
                                     value={String(data.highFreeSlots)}
                                     ringColor={schoolStatusColor(data.highFreeSlots, data.highStudents)}
                                     hoverSide={hoverSide}
+                                    iconOpacity={iconOpacity}
+                                    size={iconSize}
+                                    bottomGap={iconGap}
                                 />
 
                                 <StatusIcon
@@ -730,6 +815,9 @@ export const CityMonitorComponent = () => {
                                     value={String(data.collegeFreeSlots)}
                                     ringColor={schoolStatusColor(data.collegeFreeSlots, data.collegeStudents)}
                                     hoverSide={hoverSide}
+                                    iconOpacity={iconOpacity}
+                                    size={iconSize}
+                                    bottomGap={iconGap}
                                 />
 
                                 <StatusIcon
@@ -738,6 +826,9 @@ export const CityMonitorComponent = () => {
                                     value={String(data.uniFreeSlots)}
                                     ringColor={schoolStatusColor(data.uniFreeSlots, data.uniStudents)}
                                     hoverSide={hoverSide}
+                                    iconOpacity={iconOpacity}
+                                    size={iconSize}
+                                    bottomGap={0}
                                 />
                             </div>
                         ) : (
