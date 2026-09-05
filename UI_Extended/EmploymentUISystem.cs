@@ -24,6 +24,7 @@ namespace UI_Extended
         private GetterValueBinding<bool> _showPanelBinding;
         private GetterValueBinding<bool> _compactValuesBinding;
         private GetterValueBinding<bool> _showLabelsBinding;
+        private GetterValueBinding<bool> _iconOnlyModeBinding;
 
         private EntityQuery _potentialWorkforceQuery;
         private EntityQuery _workplaceQuery;
@@ -52,6 +53,9 @@ namespace UI_Extended
 
             AddBinding(_showLabelsBinding = new GetterValueBinding<bool>(
                 Group, "showLabels", () => Mod.Setting?.ShowLabels ?? false));
+
+            AddBinding(_iconOnlyModeBinding = new GetterValueBinding<bool>(
+                Group, "iconOnlyMode", () => Mod.Setting?.IconOnlyMode ?? false));
 
             _updateIntervalSeconds = ClampUpdateInterval(Mod.Setting?.UpdateIntervalSeconds ?? 15);
 
@@ -109,6 +113,7 @@ namespace UI_Extended
             _showPanelBinding.Update();
             _compactValuesBinding.Update();
             _showLabelsBinding.Update();
+            _iconOnlyModeBinding.Update();
 
             _updateIntervalSeconds = ClampUpdateInterval(
                 Mod.Setting?.UpdateIntervalSeconds ?? 15);
@@ -117,6 +122,7 @@ namespace UI_Extended
                 $"UI settings applied: ShowPanel={Mod.Setting?.ShowPanel}, " +
                 $"CompactValues={Mod.Setting?.CompactValues}, " +
                 $"ShowLabels={Mod.Setting?.ShowLabels}, " +
+                $"IconOnlyMode={Mod.Setting?.IconOnlyMode}, " +
                 $"UpdateInterval={_updateIntervalSeconds}s");
         }
 

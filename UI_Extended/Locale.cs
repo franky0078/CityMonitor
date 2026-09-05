@@ -32,6 +32,10 @@ namespace UI_Extended
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowLabels)),
                     "Zeigt neben den Symbolen die Bezeichnungen wie Quote, Offene Stellen, Grundschule, Oberschule, College und Universität an." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconOnlyMode)), "Kompakter Symbolmodus" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconOnlyMode)),
+                    "Zeigt nur die Status-Symbole ohne Panel-Hintergrund und Kopfzeile. Ein farbiger Ring zeigt den Zustand an; die aktuellen Werte erscheinen beim Überfahren mit der Maus. Beschriftungen und die normale Wertdarstellung werden in diesem Modus ignoriert." },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Aktualisierungsintervall" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
                     "Legt fest, wie oft die Werte des Stadt-Monitors neu berechnet werden. Bereich: 5 bis 60 Sekunden. Kürzere Intervalle benötigen etwas mehr Rechenleistung." },

@@ -35,6 +35,9 @@ namespace UI_Extended
         [SettingsUISection(kSection, kDisplayGroup)]
         public bool ShowLabels { get; set; } = false;
 
+        [SettingsUISection(kSection, kDisplayGroup)]
+        public bool IconOnlyMode { get; set; } = false;
+
         [SettingsUISection(kSection, kUpdateGroup)]
         [SettingsUISlider(min = 5, max = 60, step = 1)]
         public int UpdateIntervalSeconds { get; set; } = 15;
@@ -44,6 +47,7 @@ namespace UI_Extended
             ShowPanel = true;
             CompactValues = false;
             ShowLabels = false;
+            IconOnlyMode = false;
             UpdateIntervalSeconds = 15;
         }
     }
