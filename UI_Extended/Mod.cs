@@ -25,7 +25,7 @@ namespace UI_Extended
                 Log.Info($"Mod wurde geladen von: {asset.path}");
             }
 
-            // Settings und Lokalisierung einrichten
+            // Einstellungen und Lokalisierung registrieren
             Setting = new Setting(this);
             Setting.RegisterInOptionsUI();
 
@@ -42,7 +42,7 @@ namespace UI_Extended
                 Setting,
                 new Setting(this));
 
-            // System registrieren
+            // UI-System registrieren
             _uiSystem = new EmploymentUISystem();
             updateSystem.UpdateAt<EmploymentUISystem>(
                 SystemUpdatePhase.UIUpdate);

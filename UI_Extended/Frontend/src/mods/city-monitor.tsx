@@ -11,8 +11,7 @@ import work from "./images/Workers.png";
 import stat from "./images/CompanyProfit.png";
 import alos from "./images/Population.png";
 
-// Vanilla Cities: Skylines II service icons.
-// No extra image files are required for these.
+// Vanilla-Service-Icons
 const ICON_FIRE = "Media/Game/Icons/FireSafety.svg";
 const ICON_HEALTHCARE = "Media/Game/Icons/Healthcare.svg";
 const ICON_CEMETERY = "Media/Game/Icons/Deathcare.svg";
@@ -351,6 +350,7 @@ interface StatusIconProps {
     onReorderEnter?: () => void;
 }
 
+// Statussymbol mit Tooltip und Bearbeitungsfunktionen
 const StatusIcon = ({
     iconSrc,
     label,
@@ -381,7 +381,6 @@ const StatusIcon = ({
     const glyphSize = Math.max(12, Math.round(size * 0.60));
     const tooltipOffset = size + 6;
 
-    // Mit Zusatzinformationen braucht der Tooltip mehr Platz.
     const tooltipMinWidth = details.length > 1 ? 160 : 118;
 
     const horizontalAnchorStyle: React.CSSProperties =
@@ -468,8 +467,6 @@ const StatusIcon = ({
                         );
                     }
 
-                    // An den Bildschirmrändern nicht mittig ausrichten,
-                    // damit der Tooltip nicht aus dem Viewport läuft.
                     if (viewportWidth > 0) {
                         const centerX =
                             rect.left + rect.width / 2;
@@ -527,8 +524,6 @@ const StatusIcon = ({
         >
             <div
                 style={{
-                    // Cohtml unterstützt box-sizing nicht zuverlässig.
-                    // Inhaltsgröße + 2rem Rand je Seite = gewünschte Gesamtgröße.
                     width: contentSize + "rem",
                     height: contentSize + "rem",
                     borderRadius: "50%",
@@ -645,6 +640,7 @@ interface ServiceStatusIconProps
     t: Translate;
 }
 
+// Servicewerte werden nur für aktive Symbole abonniert
 const FireStatusIcon = (props: ServiceStatusIconProps) => {
     const fireHazard =
         useValue(infoview.averageFireHazard$);
@@ -811,7 +807,6 @@ const TrafficStatusIcon = (
             ) / values.length
             : 0;
 
-    // Sicherheitsfallback für Versionen, die 0..1 statt 0..100 liefern.
     if (
         values.length > 0 &&
         values.every(
@@ -1092,6 +1087,7 @@ interface NormalServiceRowsProps {
     t: Translate;
 }
 
+// Servicewerte für den normalen Panelmodus
 const NormalServiceRows = ({
     compactValues,
     showText,
@@ -1263,6 +1259,7 @@ const NormalServiceRows = ({
     );
 };
 
+// Hauptkomponente und persistenter UI-Zustand
 export const CityMonitorComponent = () => {
     const localization = useLocalization();
     const t = (id: string, fallback: string) =>
@@ -1376,9 +1373,6 @@ export const CityMonitorComponent = () => {
                   iconGap
             : 0;
 
-    // Der Slider steuert jetzt die Transparenz des kompletten Symbols:
-    // Icon, Ring und dunkle Kreisfläche.
-    // 0 % = vollständig sichtbar, 100 % = maximal transparent.
     const iconOpacity =
         1 - clamp(iconBackgroundTransparency ?? 40, 0, 100) / 100;
 
@@ -1420,9 +1414,6 @@ export const CityMonitorComponent = () => {
         side: "r",
     });
 
-    // Automatische Breite passend zur aktuell gewählten Darstellung.
-    // Ein manueller Resize bleibt möglich, wird aber beim Wechsel des
-    // Darstellungsmodus wieder auf die passende Standardbreite gesetzt.
     const DEFAULT_W = showText
         ? compactValues
             ? 170
@@ -1439,7 +1430,6 @@ export const CityMonitorComponent = () => {
           ? 72
           : 96;
 
-    // Im Symbolmodus ist das "Panel" nur noch ein transparenter Icon-Streifen.
     const widthRem = iconOnlyMode
         ? iconOrientation === "horizontal"
             ? Math.max(iconSize, iconBarLengthRem)
@@ -1448,7 +1438,7 @@ export const CityMonitorComponent = () => {
           ? 52
           : clamp(userWidth ?? DEFAULT_W, MIN_W, 400);
 
-    // Gespeicherten UI-Zustand einmalig anwenden.
+    // Gespeicherten UI-Zustand laden
     const applied = useRef(false);
 
     useEffect(() => {
@@ -1466,9 +1456,6 @@ export const CityMonitorComponent = () => {
                     ? s.pos
                     : { x: 50, y: 100 };
 
-            // Keine festen 1920x1080-Grenzen verwenden.
-            // Auf 2560x1440 liegt eine korrekt am rechten Rand gespeicherte
-            // Position deutlich über x=1900 und wurde früher deshalb verworfen.
             if (
                 !Number.isFinite(p.x) ||
                 !Number.isFinite(p.y) ||
@@ -1489,13 +1476,10 @@ export const CityMonitorComponent = () => {
                 setVisible(s.visible);
             }
 
-            // Alte gespeicherte Breiten stammen noch vom breiteren Layout.
-            // Erst Breiten ab Layout-Version 2 wiederverwenden.
             if (s.layoutVersion === 2 && typeof s.width === "number") {
                 setUserWidth(s.width);
             }
         } catch {
-            // Defaults beibehalten.
         }
     }, [savedRaw]);
 
@@ -1519,14 +1503,9 @@ export const CityMonitorComponent = () => {
         try {
             trigger("cityMonitor", "saveUiState", JSON.stringify(s));
         } catch {
-            // UI-State ist Komfortfunktion; Fehler hier dürfen das Panel nicht stoppen.
         }
     };
 
-    // Bei einem Wechsel zwischen senkrecht/waagrecht oder bei einer
-    // geänderten Icon-Anzahl kann sich die Leiste stark verbreitern bzw.
-    // verlängern. Danach die gespeicherte Position erneut in den Viewport
-    // klemmen, damit die Leiste nicht außerhalb des Bildschirms liegt.
     useEffect(() => {
         if (
             !iconOnlyMode ||
@@ -1611,7 +1590,6 @@ export const CityMonitorComponent = () => {
         data,
     ]);
 
-    // Wenn eine Anzeigeoption geändert wird, die Breite automatisch passend setzen.
     const previousLayout = useRef({ compactValues, showText, iconOnlyMode });
 
     useEffect(() => {
@@ -1630,7 +1608,6 @@ export const CityMonitorComponent = () => {
 
     const onHeaderDown = useCallback(
         (e: React.MouseEvent) => {
-            // Rechtsklick gehört im Iconmodus zum Ausblenden von Symbolen.
             if (e.button !== 0) {
                 return;
             }
@@ -1774,6 +1751,7 @@ export const CityMonitorComponent = () => {
         });
 
 
+    // Sichtbarkeit und Reihenfolge der Symbole bearbeiten
     const toggleIconVisibility = (id: string) => {
         if (!iconVisibilityEditMode) {
             return;
@@ -1796,7 +1774,6 @@ export const CityMonitorComponent = () => {
                 JSON.stringify(Array.from(next))
             );
         } catch {
-            // Sichtbarkeit ist Komfortfunktion; UI darf dadurch nicht stoppen.
         }
     };
 
@@ -1842,7 +1819,6 @@ export const CityMonitorComponent = () => {
                 JSON.stringify(iconOrderRef.current)
             );
         } catch {
-            // Reihenfolge ist eine Komfortfunktion.
         }
     }, [reorderingIconId]);
 
@@ -2065,8 +2041,6 @@ export const CityMonitorComponent = () => {
                   ),
               },
 
-              // Stadtservice-Symbole: Die eigentlichen Vanilla-Bindings
-              // werden erst in der jeweiligen Service-Komponente abonniert.
               {
                   id: "fire",
                   service: "fire",
@@ -2182,8 +2156,7 @@ export const CityMonitorComponent = () => {
         .map((id) => iconItems.find((item) => item.id === id))
         .filter((item): item is IconItem => item !== undefined);
 
-    // Im Bearbeitungsmodus bleiben auch ausgeblendete Symbole sichtbar,
-    // damit sie per Rechtsklick wieder aktiviert und verschoben werden können.
+    // Ausgeblendete Symbole bleiben nur im Bearbeitungsmodus sichtbar
     const displayedIconItems = iconVisibilityEditMode
         ? orderedIconItems
         : orderedIconItems.filter((item) => !hiddenIconIds.has(item.id));
@@ -2260,8 +2233,6 @@ export const CityMonitorComponent = () => {
                             position: "absolute",
                             top: pos.y + "rem",
                             left: pos.x + "rem",
-                            // Ohne box-sizing: im normalen Modus 2rem für den
-                            // linken + rechten 1rem-Rand vom Inhaltsmaß abziehen.
                             width:
                                 (iconOnlyMode
                                     ? widthRem
@@ -2332,10 +2303,6 @@ export const CityMonitorComponent = () => {
                                         const isHidden =
                                             hiddenIconIds.has(item.id);
 
-                                        // Im Bearbeitungsmodus:
-                                        // sichtbar = 0 % transparent
-                                        // ausgeblendet = 60 % transparent
-                                        // (Opacity 0.4).
                                         const currentIconOpacity =
                                             iconVisibilityEditMode
                                                 ? isHidden
@@ -2365,10 +2332,6 @@ export const CityMonitorComponent = () => {
                                                 "Ziehen: Reihenfolge ändern"
                                             ) + " · " + visibilityAction;
 
-                                        // Ausgeblendete Symbole im Bearbeitungsmodus
-                                        // bleiben sichtbar, abonnieren aber keine
-                                        // Service-Bindings und zeigen bewusst keinen
-                                        // aktuellen Statuswert.
                                         if (
                                             isHidden &&
                                             iconVisibilityEditMode

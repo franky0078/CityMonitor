@@ -29,23 +29,19 @@ namespace UI_Extended.Logic
             public int OpenSlots => Math.Max(0, TotalCapacity - TotalOccupied);
         }
 
-        // --- TEIL A: BÜRGER (ARBEITSLOSIGKEIT) ---
-        // Exakte InfoLoom-Logik
+        // Arbeitslosigkeit nach Einwohnerstatus berechnen
         public static WorkforceData CalculateWorkforce(NativeArray<Entity> allCitizens, EntityManager entityManager)
         {
             WorkforceData result = new WorkforceData();
 
             foreach (var entity in allCitizens)
             {
-                // 1. Basis-Check
                 if (!entityManager.HasComponent<Citizen>(entity)) continue;
                 var citizen = entityManager.GetComponentData<Citizen>(entity);
 
-                // 2. Alter: Nur Kinder und Senioren ignorieren (Teens zählen zur Workforce!)
                 CitizenAge age = citizen.GetAge();
                 if (age == CitizenAge.Child || age == CitizenAge.Elderly) continue;
 
-                // 3. Status: Tote, Touristen und Pendler ignorieren
                 if ((citizen.m_State & (CitizenFlags.Tourist | CitizenFlags.Commuter)) != 0) continue;
 
                 if (entityManager.HasComponent<HealthProblem>(entity))
@@ -54,8 +50,6 @@ namespace UI_Extended.Logic
                     if ((health.m_Flags & HealthProblemFlags.Dead) != 0) continue;
                 }
 
-                // 4. Haushalt prüfen (Streng nach InfoLoom)
-                // Jeder gültige Einwohner muss Teil eines Haushalts sein, der "MovedIn" ist.
                 if (!entityManager.HasComponent<HouseholdMember>(entity)) continue;
 
                 var member = entityManager.GetComponentData<HouseholdMember>(entity);
@@ -64,12 +58,9 @@ namespace UI_Extended.Logic
                 if (!entityManager.HasComponent<Household>(householdEntity)) continue;
                 var household = entityManager.GetComponentData<Household>(householdEntity);
 
-                // INFO-LOOM CHECK: 
-                // Haushalt muss "MovedIn" sein UND darf nicht "MovingAway" sein.
                 if ((household.m_Flags & HouseholdFlags.MovedIn) == 0) continue;
                 if (entityManager.HasComponent<MovingAway>(householdEntity)) continue;
 
-                // 5. Zählung
                 if (entityManager.HasComponent<Worker>(entity))
                 {
                     result.TotalWorkers++;
@@ -83,7 +74,7 @@ namespace UI_Extended.Logic
             return result;
         }
 
-        /// --- TEIL B: GEBÄUDE (OFFENE STELLEN) ---
+        // Offene Arbeitsplätze aus WorkProvider-Daten berechnen
         public static JobData CalculateJobData(NativeArray<Entity> workplaces, EntityManager entityManager)
         {
             JobData result = new JobData();
@@ -107,7 +98,7 @@ namespace UI_Extended.Logic
             return result;
         }
 
-        // --- TEIL C: BILDUNG ---
+        // Schulkapazitäten und Schülerzahlen berechnen
         public static (int elem, int high, int college, int uni) CalculateSchoolCapacities(NativeArray<Entity> schools, EntityManager entityManager)
         {
             int c1 = 0, c2 = 0, c3 = 0, c4 = 0;

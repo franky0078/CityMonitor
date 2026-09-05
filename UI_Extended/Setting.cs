@@ -29,15 +29,13 @@ namespace UI_Extended
         public const string kUpdateGroup = "Aktualisierung";
         public const string kAboutGroup = "About";
 
-        // Interner Zustand des verschiebbaren Panels. Nicht in den Optionen anzeigen.
+        // Interner UI-Zustand
         [SettingsUIHidden]
         public string UiState { get; set; } = "";
 
-        // JSON-Array mit den per Rechtsklick ausgeblendeten Symbol-IDs.
         [SettingsUIHidden]
         public string HiddenIcons { get; set; } = "[]";
 
-        // Persistente Reihenfolge der Symbole im kompakten Symbolmodus.
         [SettingsUIHidden]
         public string IconOrder { get; set; } = "[]";
 
@@ -111,8 +109,7 @@ namespace UI_Extended
         [SettingsUISlider(min = 5, max = 60, step = 1)]
         public int UpdateIntervalSeconds { get; set; } = 15;
 
-        // Read-only version shown in the options menu.
-        // The value comes from the assembly version configured in UI_Extended.csproj.
+        // Versionsanzeige aus der Assembly
         [SettingsUISection(kSection, kAboutGroup)]
         public string ModVersion =>
             typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";

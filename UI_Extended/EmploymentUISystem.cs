@@ -101,17 +101,14 @@ namespace UI_Extended
 
             _updateIntervalSeconds = ClampUpdateInterval(Mod.Setting?.UpdateIntervalSeconds ?? 15);
 
-            // Änderungen aus dem normalen Cities-Skylines-Optionenmenü werden
-            // von ModSetting.ApplyAndSave() über dieses Event gemeldet.
             if (Mod.Setting != null)
             {
                 Mod.Setting.onSettingsApplied += OnSettingsApplied;
             }
 
-            // Gespeicherten UI-Zustand an die Oberfläche geben
+            // Persistenter UI-Zustand und Symbolkonfiguration
             AddBinding(new ValueBinding<string>(Group, "uiState", Mod.Setting?.UiState ?? ""));
 
-            // Änderungen aus der UI entgegennehmen und speichern
             AddBinding(new TriggerBinding<string>(Group, "saveUiState", (json) =>
             {
                 if (Mod.Setting != null)
@@ -121,7 +118,6 @@ namespace UI_Extended
                 }
             }));
 
-            // Per Rechtsklick ausgeblendete Symbole speichern.
             AddBinding(new TriggerBinding<string>(Group, "saveHiddenIcons", (json) =>
             {
                 if (Mod.Setting != null)
@@ -133,7 +129,6 @@ namespace UI_Extended
                 }
             }));
 
-            // Benutzerdefinierte Reihenfolge der Symbole speichern.
             AddBinding(new TriggerBinding<string>(Group, "saveIconOrder", (json) =>
             {
                 if (Mod.Setting != null)
@@ -172,10 +167,9 @@ namespace UI_Extended
             base.OnDestroy();
         }
 
+        // Änderungen aus den Optionen sofort übernehmen
         private void OnSettingsApplied(Game.Settings.Setting setting)
         {
-            // GetterValueBinding liest beim Update direkt die aktuellen Werte
-            // aus der tatsächlich angewendeten ModSetting-Instanz.
             _showPanelBinding.Update();
             _compactValuesBinding.Update();
             _showLabelsBinding.Update();
@@ -192,8 +186,6 @@ namespace UI_Extended
             _updateIntervalSeconds = ClampUpdateInterval(
                 Mod.Setting?.UpdateIntervalSeconds ?? 15);
 
-            // Änderungen an Sichtbarkeit/Ausrichtung beim nächsten Frame
-            // berücksichtigen, ohne auf das reguläre Intervall zu warten.
             _timer = _updateIntervalSeconds;
 
             Mod.Log.Info(
@@ -238,12 +230,9 @@ namespace UI_Extended
             return value;
         }
 
+        // Nur sichtbare lokale Kennzahlen neu berechnen
         private void CalculateAndUpdate()
         {
-            // Ausgeblendete Symbole werden im kompakten Symbolmodus nicht
-            // neu berechnet. Das gilt auch im Bearbeitungsmodus: dort werden
-            // ausgeblendete Symbole nur als inaktive Vorschau dargestellt.
-            // Im normalen Panelmodus werden weiterhin alle Werte berechnet.
             bool optimizeHiddenIcons =
                 Mod.Setting?.IconOnlyMode == true;
 
@@ -366,9 +355,6 @@ namespace UI_Extended
                 updateJobs ||
                 updateSchools;
 
-            // Wenn ausschließlich ausgeblendete lokale Symbole vorhanden sind,
-            // muss auch die JSON-Bindung nicht jedes Intervall neu geschrieben
-            // werden. Ein Initialwert wird trotzdem einmal veröffentlicht.
             if (anyLocalValueUpdated || !_hasPublishedData)
             {
                 _dataBinding.Update(data);
@@ -388,6 +374,7 @@ namespace UI_Extended
         }
 
 
+        // ECS-Abfragen für Arbeit und Bildung
         private void SetupQueries()
         {
             _potentialWorkforceQuery = GetEntityQuery(new EntityQueryDesc

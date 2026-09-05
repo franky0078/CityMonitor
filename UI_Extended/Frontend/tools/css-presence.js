@@ -14,7 +14,7 @@ exports.CSSPresencePlugin = class CSSPresencePlugin {
           );
           const hasCSS = cssFiles.length > 0;
 
-          // Inject the `hasCSS` export into the main module source
+          // CSS-Status in das gebaute UI-Modul schreiben
           for (const chunk of compilation.chunks) {
             for (const file of chunk.files) {
               if (file.endsWith(".mjs")) {
@@ -25,7 +25,6 @@ exports.CSSPresencePlugin = class CSSPresencePlugin {
                   `const hasCSS = ${hasCSS}; export { hasCSS, `
                 );
 
-                // Generate a new source map for the modified source
                 const newSourceAndMap = {
                   sources: [file],
                   mappings: "",
