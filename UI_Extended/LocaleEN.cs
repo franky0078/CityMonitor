@@ -24,6 +24,7 @@ namespace UI_Extended
                 { m_Setting.GetOptionGroupLocaleID(Setting.kGeneralGroup), "General" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.kDisplayGroup), "Display" },
                 { m_Setting.GetOptionGroupLocaleID(Setting.kUpdateGroup), "Update" },
+                { m_Setting.GetOptionGroupLocaleID(Setting.kAboutGroup), "About" },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowPanel)), "Show panel" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowPanel)),
@@ -78,6 +79,10 @@ namespace UI_Extended
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Update interval" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
                     "Sets how often unemployment, jobs, and school values are recalculated. Range: 5 to 60 seconds. Service indicators use the game bindings directly. Hidden icons are not recalculated or subscribed." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ModVersion)), "Version" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ModVersion)),
+                    "Currently installed version of City Monitor." },
 
                 // Runtime UI
                 { "UI_Extended.CityMonitor.Toggle", "Toggle City Monitor" },

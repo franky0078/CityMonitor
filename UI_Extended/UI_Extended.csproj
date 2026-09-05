@@ -6,6 +6,11 @@
 		<AssemblyName>UI_Extended</AssemblyName>
 		<RootNamespace>UI_Extended</RootNamespace>
 
+		<!-- Keep synchronized with PublishConfiguration.xml. -->
+		<Version>1.0.0</Version>
+		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<FileVersion>1.0.0.0</FileVersion>
+
 		<PublishConfigurationPath>Properties\PublishConfiguration.xml</PublishConfigurationPath>
 
 		<UIProjectDirectory>$(MSBuildProjectDirectory)\Frontend</UIProjectDirectory>

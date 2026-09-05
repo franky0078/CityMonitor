@@ -14,17 +14,20 @@ namespace UI_Extended
     [SettingsUIGroupOrder(
         kGeneralGroup,
         kDisplayGroup,
-        kUpdateGroup)]
+        kUpdateGroup,
+        kAboutGroup)]
     [SettingsUIShowGroupName(
         kGeneralGroup,
         kDisplayGroup,
-        kUpdateGroup)]
+        kUpdateGroup,
+        kAboutGroup)]
     public class Setting : ModSetting
     {
         public const string kSection = "MainSection";
         public const string kGeneralGroup = "Allgemein";
         public const string kDisplayGroup = "Anzeige";
         public const string kUpdateGroup = "Aktualisierung";
+        public const string kAboutGroup = "About";
 
         // Interner Zustand des verschiebbaren Panels. Nicht in den Optionen anzeigen.
         [SettingsUIHidden]
@@ -107,6 +110,12 @@ namespace UI_Extended
         [SettingsUISection(kSection, kUpdateGroup)]
         [SettingsUISlider(min = 5, max = 60, step = 1)]
         public int UpdateIntervalSeconds { get; set; } = 15;
+
+        // Read-only version shown in the options menu.
+        // The value comes from the assembly version configured in UI_Extended.csproj.
+        [SettingsUISection(kSection, kAboutGroup)]
+        public string ModVersion =>
+            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
 
         public bool IsIconOnlyModeDisabled()
         {
