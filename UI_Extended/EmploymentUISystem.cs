@@ -25,6 +25,7 @@ namespace UI_Extended
         private GetterValueBinding<bool> _compactValuesBinding;
         private GetterValueBinding<bool> _showLabelsBinding;
         private GetterValueBinding<bool> _iconOnlyModeBinding;
+        private GetterValueBinding<bool> _iconPositionLockedBinding;
         private GetterValueBinding<int> _iconBackgroundTransparencyBinding;
         private GetterValueBinding<int> _iconSizeBinding;
         private GetterValueBinding<int> _iconGapBinding;
@@ -59,6 +60,10 @@ namespace UI_Extended
 
             AddBinding(_iconOnlyModeBinding = new GetterValueBinding<bool>(
                 Group, "iconOnlyMode", () => Mod.Setting?.IconOnlyMode ?? false));
+
+            AddBinding(_iconPositionLockedBinding = new GetterValueBinding<bool>(
+                Group, "iconPositionLocked",
+                () => Mod.Setting?.IconPositionLocked ?? false));
 
             AddBinding(_iconBackgroundTransparencyBinding = new GetterValueBinding<int>(
                 Group, "iconBackgroundTransparency",
@@ -129,6 +134,7 @@ namespace UI_Extended
             _compactValuesBinding.Update();
             _showLabelsBinding.Update();
             _iconOnlyModeBinding.Update();
+            _iconPositionLockedBinding.Update();
             _iconBackgroundTransparencyBinding.Update();
             _iconSizeBinding.Update();
             _iconGapBinding.Update();
@@ -141,6 +147,7 @@ namespace UI_Extended
                 $"CompactValues={Mod.Setting?.CompactValues}, " +
                 $"ShowLabels={Mod.Setting?.ShowLabels}, " +
                 $"IconOnlyMode={Mod.Setting?.IconOnlyMode}, " +
+                $"IconPositionLocked={Mod.Setting?.IconPositionLocked}, " +
                 $"IconBackgroundTransparency={ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)}%, " +
                 $"IconSize={ClampIconSize(Mod.Setting?.IconSize ?? 30)}, " +
                 $"IconGap={ClampIconGap(Mod.Setting?.IconGap ?? 5)}, " +

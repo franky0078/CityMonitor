@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { bindValue, trigger, useValue } from "cs2/api";
 import { Portal, Tooltip } from "cs2/ui";
+import { useLocalization } from "cs2/l10n";
 import edu1 from "./images/Edu1.svg";
 import edu2 from "./images/Edu2.svg";
 import edu3 from "./images/Edu3.svg";
@@ -30,6 +31,10 @@ const showPanel$ = bindValue<boolean>("cityMonitor", "showPanel");
 const compactValues$ = bindValue<boolean>("cityMonitor", "compactValues");
 const showLabels$ = bindValue<boolean>("cityMonitor", "showLabels");
 const iconOnlyMode$ = bindValue<boolean>("cityMonitor", "iconOnlyMode");
+const iconPositionLocked$ = bindValue<boolean>(
+    "cityMonitor",
+    "iconPositionLocked"
+);
 const iconBackgroundTransparency$ = bindValue<number>(
     "cityMonitor",
     "iconBackgroundTransparency"
@@ -221,30 +226,38 @@ const schoolStatusColor = (free: number, students: number) => {
     return STATUS_RED;
 };
 
+interface TooltipDetail {
+    label?: string;
+    value: string;
+}
+
 const StatusIcon = ({
     iconSrc,
     label,
-    value,
+    details,
     ringColor,
-    hoverSide,
     iconOpacity,
     size,
     bottomGap,
 }: {
     iconSrc: string;
     label: string;
-    value: string;
+    details: TooltipDetail[];
     ringColor: string;
-    hoverSide: "left" | "right";
     iconOpacity: number;
     size: number;
     bottomGap: number;
 }) => {
     const [hovered, setHovered] = useState(false);
+    const [tooltipSide, setTooltipSide] =
+        useState<"left" | "right">("right");
 
     const contentSize = Math.max(10, size - 4);
     const glyphSize = Math.max(12, Math.round(size * 0.60));
     const tooltipOffset = size + 6;
+
+    // Mit Zusatzinformationen braucht der Tooltip mehr Platz.
+    const tooltipMinWidth = details.length > 1 ? 160 : 118;
 
     return (
         <div
@@ -257,7 +270,27 @@ const StatusIcon = ({
                 alignItems: "center",
                 justifyContent: "center",
             }}
-            onMouseEnter={() => setHovered(true)}
+            onMouseEnter={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const viewportWidth =
+                    document.documentElement?.clientWidth ||
+                    window.innerWidth ||
+                    0;
+
+                // Auf der Seite mit mehr freiem Platz öffnen.
+                // Diese Berechnung läuft direkt beim ersten Hover, wenn das
+                // Element garantiert bereits im DOM vorhanden ist.
+                if (viewportWidth > 0) {
+                    const spaceLeft = rect.left;
+                    const spaceRight = viewportWidth - rect.right;
+
+                    setTooltipSide(
+                        spaceLeft > spaceRight ? "left" : "right"
+                    );
+                }
+
+                setHovered(true);
+            }}
             onMouseLeave={() => setHovered(false)}
         >
             <div
@@ -285,17 +318,19 @@ const StatusIcon = ({
                         position: "absolute",
                         top: "50%",
                         transform: "translateY(-50%)",
-                        ...(hoverSide === "right"
+                        ...(tooltipSide === "right"
                             ? { left: tooltipOffset + "rem" }
                             : { right: tooltipOffset + "rem" }),
-                        minWidth: "118rem",
+                        minWidth: tooltipMinWidth + "rem",
                         padding: "6rem 9rem",
                         borderRadius: "6rem",
-                        backgroundColor: "rgba(66, 72, 82, 0.97)",
-                        border: "1rem solid rgba(255,255,255,0.16)",
+                        // Näher am dunklen Standard-Tooltip des Spiels,
+                        // aber etwas transparenter.
+                        backgroundColor: "rgba(15, 20, 25, 0.86)",
+                        border: "1rem solid rgba(255,255,255,0.12)",
                         color: "#fff",
                         pointerEvents: "none",
-                        boxShadow: "0 4rem 12rem rgba(0,0,0,0.35)",
+                        boxShadow: "0 4rem 12rem rgba(0,0,0,0.40)",
                         zIndex: 20,
                     }}
                 >
@@ -310,17 +345,44 @@ const StatusIcon = ({
                     >
                         {label}
                     </div>
-                    <div
-                        style={{
-                            color: "#fff",
-                            fontSize: "14rem",
-                            lineHeight: "17rem",
-                            fontWeight: "bold",
-                            whiteSpace: "nowrap",
-                        }}
-                    >
-                        {value}
-                    </div>
+                    {details.map((detail, index) => (
+                        <div
+                            key={index}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: detail.label
+                                    ? "space-between"
+                                    : "flex-start",
+                                width: "100%",
+                                marginTop: index === 0 ? 0 : "2rem",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            {detail.label && (
+                                <span
+                                    style={{
+                                        color: "rgba(255,255,255,0.68)",
+                                        fontSize: "11rem",
+                                        lineHeight: "16rem",
+                                        marginRight: "10rem",
+                                    }}
+                                >
+                                    {detail.label}
+                                </span>
+                            )}
+                            <span
+                                style={{
+                                    color: "#fff",
+                                    fontSize: "14rem",
+                                    lineHeight: "17rem",
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                {detail.value}
+                            </span>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
@@ -328,6 +390,10 @@ const StatusIcon = ({
 };
 
 export const CityMonitorComponent = () => {
+    const localization = useLocalization();
+    const t = (id: string, fallback: string) =>
+        localization.translate(id, fallback) ?? fallback;
+
     const data = useValue(data$);
     const savedRaw = useValue(uiState$);
 
@@ -335,6 +401,7 @@ export const CityMonitorComponent = () => {
     const compactValues = useValue(compactValues$);
     const showText = useValue(showLabels$);
     const iconOnlyMode = useValue(iconOnlyMode$);
+    const iconPositionLocked = useValue(iconPositionLocked$);
     const iconBackgroundTransparency = useValue(iconBackgroundTransparency$);
     const iconSizeSetting = useValue(iconSize$);
     const iconGapSetting = useValue(iconGap$);
@@ -644,16 +711,6 @@ export const CityMonitorComponent = () => {
             return n;
         });
 
-    // Hover-Werte im Symbolmodus nach Möglichkeit auf der freien Bildschirmseite anzeigen.
-    // Tooltip automatisch auf der Seite mit mehr Platz anzeigen.
-    // panelRef liefert Pixelkoordinaten; dadurch funktioniert das unabhängig
-    // von Auflösung und UI-Skalierung.
-    const panelRect = panelRef.current?.getBoundingClientRect();
-    const hoverSide: "left" | "right" =
-        panelRect &&
-            panelRect.left + panelRect.width / 2 > (window.innerWidth || 0) / 2
-            ? "left"
-            : "right";
 
     const rateColor =
         data && data.unemploymentRate > 10 ? "#ff6b6b" : "#7CFC00";
@@ -676,7 +733,7 @@ export const CityMonitorComponent = () => {
         <>
             <button
                 onClick={toggleVisible}
-                title="Stadt Monitor ein-/ausblenden"
+                title={t("UI_Extended.CityMonitor.Toggle", "Stadt Monitor ein-/ausblenden")}
                 style={{
                     display: "flex",
                     alignItems: "center",
@@ -753,24 +810,71 @@ export const CityMonitorComponent = () => {
                     >
                         {iconOnlyMode ? (
                             <div
-                                onMouseDown={onHeaderDown}
-                                title="Zum Verschieben ziehen"
+                                onMouseDown={
+                                    iconPositionLocked
+                                        ? undefined
+                                        : onHeaderDown
+                                }
+                                title={
+                                    iconPositionLocked
+                                        ? t(
+                                            "UI_Extended.CityMonitor.PositionLocked",
+                                            "Position fixiert"
+                                        )
+                                        : t(
+                                            "UI_Extended.CityMonitor.Drag",
+                                            "Zum Verschieben ziehen"
+                                        )
+                                }
                                 style={{
                                     width: iconSize + "rem",
                                     display: "flex",
                                     flexDirection: "column",
                                     alignItems: "center",
                                     padding: 0,
-                                    cursor: "move",
+                                    cursor: iconPositionLocked
+                                        ? "default"
+                                        : "move",
                                     overflow: "visible",
                                 }}
                             >
                                 <StatusIcon
                                     iconSrc={stat}
-                                    label="Arbeitslosenquote"
-                                    value={data.unemploymentRate.toFixed(1) + " %"}
+                                    label={t(
+                                        "UI_Extended.CityMonitor.Unemployment",
+                                        "Arbeitslosigkeit"
+                                    )}
+                                    details={
+                                        compactValues
+                                            ? [
+                                                {
+                                                    value:
+                                                        data.unemploymentRate.toFixed(1) +
+                                                        " %",
+                                                },
+                                            ]
+                                            : [
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.UnemploymentRate",
+                                                        "Quote"
+                                                    ),
+                                                    value:
+                                                        data.unemploymentRate.toFixed(1) +
+                                                        " %",
+                                                },
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Unemployed",
+                                                        "Arbeitslose"
+                                                    ),
+                                                    value: String(
+                                                        data.unemployedCount
+                                                    ),
+                                                },
+                                            ]
+                                    }
                                     ringColor={unemploymentStatusColor(data.unemploymentRate)}
-                                    hoverSide={hoverSide}
                                     iconOpacity={iconOpacity}
                                     size={iconSize}
                                     bottomGap={iconGap}
@@ -778,10 +882,35 @@ export const CityMonitorComponent = () => {
 
                                 <StatusIcon
                                     iconSrc={work}
-                                    label="Freie Arbeitsplätze"
-                                    value={String(data.openJobs)}
+                                    label={t(
+                                        "UI_Extended.CityMonitor.Jobs",
+                                        "Arbeitsplätze"
+                                    )}
+                                    details={
+                                        compactValues
+                                            ? [{ value: String(data.openJobs) }]
+                                            : [
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Open",
+                                                        "Offen"
+                                                    ),
+                                                    value: String(
+                                                        data.openJobs
+                                                    ),
+                                                },
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Total",
+                                                        "Gesamt"
+                                                    ),
+                                                    value: String(
+                                                        data.totalJobSlots
+                                                    ),
+                                                },
+                                            ]
+                                    }
                                     ringColor={openJobsStatusColor(data.openJobs, data.totalJobSlots)}
-                                    hoverSide={hoverSide}
                                     iconOpacity={iconOpacity}
                                     size={iconSize}
                                     bottomGap={iconGap}
@@ -789,10 +918,42 @@ export const CityMonitorComponent = () => {
 
                                 <StatusIcon
                                     iconSrc={edu1}
-                                    label="Freie Grundschulplätze"
-                                    value={String(data.elementaryFreeSlots)}
+                                    label={t(
+                                        "UI_Extended.CityMonitor.ElementarySchool",
+                                        "Grundschule"
+                                    )}
+                                    details={
+                                        compactValues
+                                            ? [
+                                                {
+                                                    value: String(
+                                                        data.elementaryFreeSlots
+                                                    ),
+                                                },
+                                            ]
+                                            : [
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Free",
+                                                        "Frei"
+                                                    ),
+                                                    value: String(
+                                                        data.elementaryFreeSlots
+                                                    ),
+                                                },
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Total",
+                                                        "Gesamt"
+                                                    ),
+                                                    value: String(
+                                                        data.elementaryStudents +
+                                                        data.elementaryFreeSlots
+                                                    ),
+                                                },
+                                            ]
+                                    }
                                     ringColor={schoolStatusColor(data.elementaryFreeSlots, data.elementaryStudents)}
-                                    hoverSide={hoverSide}
                                     iconOpacity={iconOpacity}
                                     size={iconSize}
                                     bottomGap={iconGap}
@@ -800,10 +961,42 @@ export const CityMonitorComponent = () => {
 
                                 <StatusIcon
                                     iconSrc={edu2}
-                                    label="Freie Oberschulplätze"
-                                    value={String(data.highFreeSlots)}
+                                    label={t(
+                                        "UI_Extended.CityMonitor.HighSchool",
+                                        "Oberschule"
+                                    )}
+                                    details={
+                                        compactValues
+                                            ? [
+                                                {
+                                                    value: String(
+                                                        data.highFreeSlots
+                                                    ),
+                                                },
+                                            ]
+                                            : [
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Free",
+                                                        "Frei"
+                                                    ),
+                                                    value: String(
+                                                        data.highFreeSlots
+                                                    ),
+                                                },
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Total",
+                                                        "Gesamt"
+                                                    ),
+                                                    value: String(
+                                                        data.highStudents +
+                                                        data.highFreeSlots
+                                                    ),
+                                                },
+                                            ]
+                                    }
                                     ringColor={schoolStatusColor(data.highFreeSlots, data.highStudents)}
-                                    hoverSide={hoverSide}
                                     iconOpacity={iconOpacity}
                                     size={iconSize}
                                     bottomGap={iconGap}
@@ -811,10 +1004,42 @@ export const CityMonitorComponent = () => {
 
                                 <StatusIcon
                                     iconSrc={edu3}
-                                    label="Freie Collegeplätze"
-                                    value={String(data.collegeFreeSlots)}
+                                    label={t(
+                                        "UI_Extended.CityMonitor.College",
+                                        "College"
+                                    )}
+                                    details={
+                                        compactValues
+                                            ? [
+                                                {
+                                                    value: String(
+                                                        data.collegeFreeSlots
+                                                    ),
+                                                },
+                                            ]
+                                            : [
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Free",
+                                                        "Frei"
+                                                    ),
+                                                    value: String(
+                                                        data.collegeFreeSlots
+                                                    ),
+                                                },
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Total",
+                                                        "Gesamt"
+                                                    ),
+                                                    value: String(
+                                                        data.collegeStudents +
+                                                        data.collegeFreeSlots
+                                                    ),
+                                                },
+                                            ]
+                                    }
                                     ringColor={schoolStatusColor(data.collegeFreeSlots, data.collegeStudents)}
-                                    hoverSide={hoverSide}
                                     iconOpacity={iconOpacity}
                                     size={iconSize}
                                     bottomGap={iconGap}
@@ -822,10 +1047,42 @@ export const CityMonitorComponent = () => {
 
                                 <StatusIcon
                                     iconSrc={edu4}
-                                    label="Freie Universitätsplätze"
-                                    value={String(data.uniFreeSlots)}
+                                    label={t(
+                                        "UI_Extended.CityMonitor.University",
+                                        "Universität"
+                                    )}
+                                    details={
+                                        compactValues
+                                            ? [
+                                                {
+                                                    value: String(
+                                                        data.uniFreeSlots
+                                                    ),
+                                                },
+                                            ]
+                                            : [
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Free",
+                                                        "Frei"
+                                                    ),
+                                                    value: String(
+                                                        data.uniFreeSlots
+                                                    ),
+                                                },
+                                                {
+                                                    label: t(
+                                                        "UI_Extended.CityMonitor.Total",
+                                                        "Gesamt"
+                                                    ),
+                                                    value: String(
+                                                        data.uniStudents +
+                                                        data.uniFreeSlots
+                                                    ),
+                                                },
+                                            ]
+                                    }
                                     ringColor={schoolStatusColor(data.uniFreeSlots, data.uniStudents)}
-                                    hoverSide={hoverSide}
                                     iconOpacity={iconOpacity}
                                     size={iconSize}
                                     bottomGap={0}
@@ -849,7 +1106,7 @@ export const CityMonitorComponent = () => {
                                     <button
                                         onClick={toggleMin}
                                         onMouseDown={(e) => e.stopPropagation()}
-                                        title="Ein-/ausklappen"
+                                        title={t("UI_Extended.CityMonitor.CollapseExpand", "Ein-/ausklappen")}
                                         style={headerBtnStyle}
                                     >
                                         {minimized ? "▼" : "▲"}
@@ -861,7 +1118,7 @@ export const CityMonitorComponent = () => {
                                         {!compactValues && (
                                             <Row
                                                 iconSrc={alos}
-                                                label="Arbeitslose"
+                                                label={t("UI_Extended.CityMonitor.Unemployed", "Arbeitslose")}
                                                 value={String(data.unemployedCount)}
                                                 showText={showText}
                                             />
@@ -869,7 +1126,7 @@ export const CityMonitorComponent = () => {
 
                                         <Row
                                             iconSrc={stat}
-                                            label="Quote"
+                                            label={t("UI_Extended.CityMonitor.UnemploymentRate", "Quote")}
                                             value={data.unemploymentRate.toFixed(1) + " %"}
                                             color={rateColor}
                                             showText={showText}
@@ -877,7 +1134,7 @@ export const CityMonitorComponent = () => {
 
                                         <Row
                                             iconSrc={work}
-                                            label="Offene Stellen"
+                                            label={t("UI_Extended.CityMonitor.OpenJobs", "Offene Stellen")}
                                             value={
                                                 compactValues
                                                     ? String(data.openJobs)
@@ -896,7 +1153,7 @@ export const CityMonitorComponent = () => {
 
                                         <SchoolRow
                                             iconSrc={edu1}
-                                            label="Grundschule"
+                                            label={t("UI_Extended.CityMonitor.ElementarySchool", "Grundschule")}
                                             students={data.elementaryStudents}
                                             free={data.elementaryFreeSlots}
                                             showText={showText}
@@ -905,7 +1162,7 @@ export const CityMonitorComponent = () => {
 
                                         <SchoolRow
                                             iconSrc={edu2}
-                                            label="Oberschule"
+                                            label={t("UI_Extended.CityMonitor.HighSchool", "Oberschule")}
                                             students={data.highStudents}
                                             free={data.highFreeSlots}
                                             showText={showText}
@@ -914,7 +1171,7 @@ export const CityMonitorComponent = () => {
 
                                         <SchoolRow
                                             iconSrc={edu3}
-                                            label="College"
+                                            label={t("UI_Extended.CityMonitor.College", "College")}
                                             students={data.collegeStudents}
                                             free={data.collegeFreeSlots}
                                             showText={showText}
@@ -923,7 +1180,7 @@ export const CityMonitorComponent = () => {
 
                                         <SchoolRow
                                             iconSrc={edu4}
-                                            label="Universität"
+                                            label={t("UI_Extended.CityMonitor.University", "Universität")}
                                             students={data.uniStudents}
                                             free={data.uniFreeSlots}
                                             showText={showText}
@@ -938,7 +1195,7 @@ export const CityMonitorComponent = () => {
                                             onMouseDown={startResize("l")}
                                             onMouseEnter={() => setResizeHover("l")}
                                             onMouseLeave={() => setResizeHover(null)}
-                                            title="Breite ziehen"
+                                            title={t("UI_Extended.CityMonitor.Resize", "Breite ziehen")}
                                             style={{
                                                 position: "absolute",
                                                 top: 0,
@@ -959,7 +1216,7 @@ export const CityMonitorComponent = () => {
                                             onMouseDown={startResize("r")}
                                             onMouseEnter={() => setResizeHover("r")}
                                             onMouseLeave={() => setResizeHover(null)}
-                                            title="Breite ziehen"
+                                            title={t("UI_Extended.CityMonitor.Resize", "Breite ziehen")}
                                             style={{
                                                 position: "absolute",
                                                 top: 0,

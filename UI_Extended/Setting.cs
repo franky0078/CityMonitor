@@ -40,6 +40,10 @@ namespace UI_Extended
 
         [SettingsUISection(kSection, kDisplayGroup)]
         [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool IconPositionLocked { get; set; } = false;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
         [SettingsUISlider(min = 0, max = 100, step = 5)]
         public int IconBackgroundTransparency { get; set; } = 40;
 
@@ -68,6 +72,7 @@ namespace UI_Extended
             CompactValues = false;
             ShowLabels = false;
             IconOnlyMode = false;
+            IconPositionLocked = false;
             IconBackgroundTransparency = 40;
             IconSize = 30;
             IconGap = 5;
