@@ -4,17 +4,23 @@ on:
   push:
     branches:
       - rename-city-monitor
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   rename:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: rename-city-monitor
           fetch-depth: 0
 
       - name: Rename project and identifiers
