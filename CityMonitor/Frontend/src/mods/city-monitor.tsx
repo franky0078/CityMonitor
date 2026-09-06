@@ -164,7 +164,24 @@ const homelessStatusColor = (percent: number) => {
     return STATUS_RED;
 };
 
-const P_CHART = "M4 13h3v7H4v-7zm6.5-6h3v13h-3V7zM17 10h3v10h-3V10z";
+// City Monitor App-Icon als direkt gezeichneter Ingame-SVG-Pfad
+const P_CITY_MONITOR =
+    "M 3.84,10.00 7.54,7.50 6.86,6.50 3.16,9.00 Z " +
+    "M 6.92,7.53 10.32,9.33 10.88,8.27 7.48,6.47 Z " +
+    "M 11.01,9.24 14.51,5.94 13.69,5.06 10.19,8.36 Z " +
+    "M 13.78,6.01 16.78,7.91 17.42,6.89 14.42,4.99 Z " +
+    "M 17.52,7.82 19.62,5.72 18.78,4.88 16.68,6.98 Z " +
+    "M 2.72,9.50 a 0.78,0.78 0 1,0 1.56,0 a 0.78,0.78 0 1,0 -1.56,0 " +
+    "M 6.42,7.00 a 0.78,0.78 0 1,0 1.56,0 a 0.78,0.78 0 1,0 -1.56,0 " +
+    "M 9.82,8.80 a 0.78,0.78 0 1,0 1.56,0 a 0.78,0.78 0 1,0 -1.56,0 " +
+    "M 13.32,5.50 a 0.78,0.78 0 1,0 1.56,0 a 0.78,0.78 0 1,0 -1.56,0 " +
+    "M 16.32,7.40 a 0.78,0.78 0 1,0 1.56,0 a 0.78,0.78 0 1,0 -1.56,0 " +
+    "M 18.1,3.8 L 21.5,3.2 L 20.9,6.6 L 19.9,5.6 L 18.8,6.7 " +
+    "L 17.8,5.7 L 19.0,4.6 Z " +
+    "M 2.8,21.5 L 2.8,16.4 L 6.0,16.4 L 6.0,21.5 L 7.2,21.5 " +
+    "L 7.2,13.0 L 11.0,13.0 L 11.0,21.5 L 12.2,21.5 L 12.2,15.0 " +
+    "L 16.0,15.0 L 16.0,21.5 L 17.2,21.5 L 17.2,17.1 L 21.0,17.1 " +
+    "L 21.0,21.5 L 22.0,21.5 L 22.0,22.5 L 2.0,22.5 L 2.0,21.5 Z";
 
 const Icon = ({
     path,
@@ -2815,16 +2832,24 @@ export const CityMonitorComponent = () => {
                     width: "36rem",
                     height: "36rem",
                     margin: "0 4rem",
+                    padding: 0,
                     borderRadius: "4rem",
                     border: "none",
                     cursor: "pointer",
                     color: "#fff",
                     backgroundColor: visible
-                        ? "rgba(80,160,220,0.9)"
-                        : "rgba(60,70,80,0.9)",
+                        ? "rgba(76,188,226,0.95)"
+                        : "rgba(60,76,86,0.92)",
+                    opacity: visible ? 1 : 0.68,
+                    transition:
+                        "background-color 120ms ease, opacity 120ms ease",
                 }}
             >
-                <Icon path={P_CHART} size={22} />
+                <Icon
+                    path={P_CITY_MONITOR}
+                    size={40}
+                    color="#fff"
+                />
             </button>
 
             {visible && data && (

@@ -1,6 +1,7 @@
 using Colossal.IO.AssetDatabase;
 using Game.Modding;
 using Game.Settings;
+using Game.UI;
 
 namespace CityMonitor
 {
@@ -106,8 +107,13 @@ namespace CityMonitor
         }
 
         [SettingsUISection(kSection, kUpdateGroup)]
-        [SettingsUISlider(min = 5, max = 60, step = 1)]
-        public int UpdateIntervalSeconds { get; set; } = 15;
+        [SettingsUISlider(
+            min = 0.5f,
+            max = 60f,
+            step = 0.5f,
+            scalarMultiplier = 1f,
+            unit = Unit.kFloatSingleFraction)]
+        public float UpdateIntervalSeconds { get; set; } = 15f;
 
         // Versionsanzeige aus der Assembly
         [SettingsUISection(kSection, kAboutGroup)]
@@ -133,7 +139,7 @@ namespace CityMonitor
             IconGap = 5;
             HiddenIcons = "[]";
             IconOrder = "[]";
-            UpdateIntervalSeconds = 15;
+            UpdateIntervalSeconds = 15f;
         }
     }
 }

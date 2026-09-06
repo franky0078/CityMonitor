@@ -41,7 +41,7 @@ namespace CityMonitor
 
         private float _timer = 0f;
 
-        private int _updateIntervalSeconds = 15;
+        private float _updateIntervalSeconds = 15f;
         private CityMonitorData _lastData;
         private bool _hasPublishedData;
 
@@ -69,7 +69,7 @@ namespace CityMonitor
 
             AddBinding(_iconOrientationBinding = new GetterValueBinding<int>(
                 Group, "iconOrientation",
-                () => (int)(Mod.Setting?.IconOrientation ?? IconBarOrientation.Vertical)));
+                () => (int)(Mod.Setting?.IconOrientation ?? IconBarOrientation.Horizontal)));
 
             AddBinding(_iconPositionLockedBinding = new GetterValueBinding<bool>(
                 Group, "iconPositionLocked",
@@ -99,7 +99,7 @@ namespace CityMonitor
                 Group, "iconOrder",
                 () => Mod.Setting?.IconOrder ?? "[]"));
 
-            _updateIntervalSeconds = ClampUpdateInterval(Mod.Setting?.UpdateIntervalSeconds ?? 15);
+            _updateIntervalSeconds = ClampUpdateInterval(Mod.Setting?.UpdateIntervalSeconds ?? 15f);
 
             if (Mod.Setting != null)
             {
@@ -184,7 +184,7 @@ namespace CityMonitor
             _iconOrderBinding.Update();
 
             _updateIntervalSeconds = ClampUpdateInterval(
-                Mod.Setting?.UpdateIntervalSeconds ?? 15);
+                Mod.Setting?.UpdateIntervalSeconds ?? 15f);
 
             _timer = _updateIntervalSeconds;
 
@@ -202,10 +202,10 @@ namespace CityMonitor
                 $"UpdateInterval={_updateIntervalSeconds}s");
         }
 
-        private static int ClampUpdateInterval(int value)
+        private static float ClampUpdateInterval(float value)
         {
-            if (value < 5) return 5;
-            if (value > 60) return 60;
+            if (value < 0.5f) return 0.5f;
+            if (value > 60f) return 60f;
             return value;
         }
 

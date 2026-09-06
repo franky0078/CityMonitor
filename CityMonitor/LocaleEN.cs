@@ -78,7 +78,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Update interval" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
-                    "Sets how often unemployment, jobs, and school values are recalculated. Range: 5 to 60 seconds. Service indicators use the game bindings directly. Hidden icons are not recalculated or subscribed." },
+                    "Sets how often unemployment, jobs, and school values are recalculated. Range: 0.5 to 60 seconds. Service indicators use the game bindings directly. Hidden icons are not recalculated or subscribed." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ModVersion)), "Version" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ModVersion)),

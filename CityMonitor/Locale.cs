@@ -78,7 +78,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Aktualisierungsintervall" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
-                    "Legt fest, wie oft Arbeitslosigkeit, Arbeitsplätze und Schulwerte neu berechnet werden. Bereich: 5 bis 60 Sekunden. Die Serviceanzeigen verwenden die Spiel-Bindings direkt. Ausgeblendete Symbole werden nicht neu berechnet bzw. nicht abonniert." },
+                    "Legt fest, wie oft Arbeitslosigkeit, Arbeitsplätze und Schulwerte neu berechnet werden. Bereich: 0,5 bis 60 Sekunden. Die Serviceanzeigen verwenden die Spiel-Bindings direkt. Ausgeblendete Symbole werden nicht neu berechnet bzw. nicht abonniert." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ModVersion)), "Version" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ModVersion)),
