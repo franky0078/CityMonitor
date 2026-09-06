@@ -56,7 +56,7 @@ namespace CityMonitor
         [SettingsUISection(kSection, kDisplayGroup)]
         [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
         public IconBarOrientation IconOrientation { get; set; } =
-            IconBarOrientation.Vertical;
+            IconBarOrientation.Horizontal;
 
         [SettingsUISection(kSection, kDisplayGroup)]
         [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
@@ -125,7 +125,7 @@ namespace CityMonitor
             CompactValues = false;
             ShowLabels = false;
             IconOnlyMode = false;
-            IconOrientation = IconBarOrientation.Vertical;
+            IconOrientation = IconBarOrientation.Horizontal;
             IconPositionLocked = false;
             IconVisibilityEditMode = false;
             IconBackgroundTransparency = 40;

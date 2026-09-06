@@ -32,7 +32,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CompactValues)), "Show relevant values only" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.CompactValues)),
-                    "Reduces multi-value indicators to their most relevant values. This applies to unemployment, jobs, schools, and combined service indicators such as garbage and water/sewage. In compact icon mode, the same setting also applies to hover tooltips." },
+                    "Reduces multi-value indicators to their most relevant values. This applies to unemployment, homelessness, jobs, schools, and combined service indicators such as water/sewage. In compact icon mode, the same setting also applies to hover tooltips." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowLabels)), "Show labels" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowLabels)),
@@ -54,7 +54,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Edit icons" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconVisibilityEditMode)),
-                    "Enables icon bar editing. Drag icons with the left mouse button to change their order and right-click an icon to hide it or make it visible again. Visible icons are shown fully opaque, while hidden icons are shown with 60% transparency. When editing is disabled, hidden icons disappear and visible icons return to the configured icon transparency." },
+                    "Enables icon bar editing. Drag icons with the left mouse button to change their order and right-click an icon to hide it or make it visible again. Visible icons are shown fully opaque, while hidden icons are shown with 55% transparency. When editing is disabled, hidden icons disappear and visible icons return to the configured icon transparency." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundTransparency)), "Icon transparency (%)" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
@@ -86,7 +86,7 @@ namespace CityMonitor
 
                 // Runtime UI
                 { "CityMonitor.Toggle", "Toggle City Monitor" },
-                { "CityMonitor.Drag", "Drag to move" },
+                { "CityMonitor.Drag", "Drag handle to move icon bar" },
                 { "CityMonitor.PositionLocked", "Position locked" },
                 { "CityMonitor.CollapseExpand", "Collapse / expand" },
                 { "CityMonitor.Resize", "Drag to resize" },
@@ -94,6 +94,9 @@ namespace CityMonitor
                 { "CityMonitor.Unemployment", "Unemployment" },
                 { "CityMonitor.UnemploymentRate", "Rate" },
                 { "CityMonitor.Unemployed", "Unemployed" },
+                { "CityMonitor.Homeless", "Homelessness" },
+                { "CityMonitor.HomelessRate", "Rate" },
+                { "CityMonitor.HomelessPeople", "Homeless people" },
 
                 { "CityMonitor.Jobs", "Jobs" },
                 { "CityMonitor.OpenJobs", "Open jobs" },
@@ -114,9 +117,18 @@ namespace CityMonitor
                 { "CityMonitor.FireHazard", "Fire hazard" },
                 { "CityMonitor.Healthcare", "Healthcare" },
                 { "CityMonitor.Cemetery", "Cemetery" },
+                { "CityMonitor.Crematorium", "Crematorium" },
                 { "CityMonitor.Garbage", "Garbage" },
+                { "CityMonitor.GarbageProcessing", "Garbage processing" },
+                { "CityMonitor.GarbageProduction", "Garbage" },
                 { "CityMonitor.Processing", "Processing" },
-                { "CityMonitor.Landfill", "Landfill free" },
+                { "CityMonitor.ProcessingRate", "Processing" },
+                { "CityMonitor.Status", "Status" },
+                { "CityMonitor.Landfill", "Landfill" },
+                { "CityMonitor.Police", "Police" },
+                { "CityMonitor.CrimeProbability", "Crime probability" },
+                { "CityMonitor.JailAvailability", "Jail availability" },
+                { "CityMonitor.CrimePerMonth", "Crimes / month" },
                 { "CityMonitor.TrafficFlow", "Traffic flow" },
                 { "CityMonitor.Electricity", "Electricity" },
                 { "CityMonitor.WaterSewage", "Water / Sewage" },

@@ -32,7 +32,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CompactValues)), "Nur relevante Werte anzeigen" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.CompactValues)),
-                    "Reduziert Mehrfachwerte auf die wichtigsten Kennzahlen. Das betrifft Arbeitslosigkeit, Arbeitsplätze, Schulen sowie kombinierte Servicewerte wie Müll und Wasser/Abwasser. Im kompakten Symbolmodus gilt die Auswahl auch für die Hover-Tooltips." },
+                    "Reduziert Mehrfachwerte auf die wichtigsten Kennzahlen. Das betrifft Arbeitslosigkeit, Obdachlosigkeit, Arbeitsplätze, Schulen sowie kombinierte Servicewerte wie Wasser/Abwasser. Im kompakten Symbolmodus gilt die Auswahl auch für die Hover-Tooltips." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowLabels)), "Beschriftungen anzeigen" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowLabels)),
@@ -54,7 +54,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Symbole bearbeiten" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconVisibilityEditMode)),
-                    "Aktiviert den Bearbeitungsmodus für die Symbolleiste. Symbole können mit gedrückter linker Maustaste in eine neue Reihenfolge gezogen und mit Rechtsklick ein- oder ausgeblendet werden. Sichtbare Symbole werden vollständig deckend dargestellt, ausgeblendete Symbole mit 60 % Transparenz. Nach dem Deaktivieren werden ausgeblendete Symbole verborgen und für sichtbare Symbole wieder die eingestellte Icon-Transparenz verwendet." },
+                    "Aktiviert den Bearbeitungsmodus für die Symbolleiste. Symbole können mit gedrückter linker Maustaste in eine neue Reihenfolge gezogen und mit Rechtsklick ein- oder ausgeblendet werden. Sichtbare Symbole werden vollständig deckend dargestellt, ausgeblendete Symbole mit 55 % Transparenz. Nach dem Deaktivieren werden ausgeblendete Symbole verborgen und für sichtbare Symbole wieder die eingestellte Icon-Transparenz verwendet." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundTransparency)), "Icon-Transparenz (%)" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
@@ -86,7 +86,7 @@ namespace CityMonitor
 
                 // Laufzeit-UI
                 { "CityMonitor.Toggle", "City Monitor ein-/ausblenden" },
-                { "CityMonitor.Drag", "Zum Verschieben ziehen" },
+                { "CityMonitor.Drag", "Griff ziehen, um Leiste zu verschieben" },
                 { "CityMonitor.PositionLocked", "Position fixiert" },
                 { "CityMonitor.CollapseExpand", "Ein-/ausklappen" },
                 { "CityMonitor.Resize", "Breite ziehen" },
@@ -94,6 +94,9 @@ namespace CityMonitor
                 { "CityMonitor.Unemployment", "Arbeitslosigkeit" },
                 { "CityMonitor.UnemploymentRate", "Quote" },
                 { "CityMonitor.Unemployed", "Arbeitslose" },
+                { "CityMonitor.Homeless", "Obdachlosigkeit" },
+                { "CityMonitor.HomelessRate", "Quote" },
+                { "CityMonitor.HomelessPeople", "Obdachlose" },
 
                 { "CityMonitor.Jobs", "Arbeitsplätze" },
                 { "CityMonitor.OpenJobs", "Offene Stellen" },
@@ -114,9 +117,18 @@ namespace CityMonitor
                 { "CityMonitor.FireHazard", "Brandgefahr" },
                 { "CityMonitor.Healthcare", "Krankenhaus" },
                 { "CityMonitor.Cemetery", "Friedhof" },
+                { "CityMonitor.Crematorium", "Krematorium" },
                 { "CityMonitor.Garbage", "Müll" },
+                { "CityMonitor.GarbageProcessing", "Müllverarbeitung" },
+                { "CityMonitor.GarbageProduction", "Müll" },
                 { "CityMonitor.Processing", "Verarbeitung" },
-                { "CityMonitor.Landfill", "Deponie frei" },
+                { "CityMonitor.ProcessingRate", "Verarbeitung" },
+                { "CityMonitor.Status", "Status" },
+                { "CityMonitor.Landfill", "Deponie" },
+                { "CityMonitor.Police", "Polizei" },
+                { "CityMonitor.CrimeProbability", "Kriminalitätsrisiko" },
+                { "CityMonitor.JailAvailability", "Gefängnis frei" },
+                { "CityMonitor.CrimePerMonth", "Straftaten / Monat" },
                 { "CityMonitor.TrafficFlow", "Verkehrsfluss" },
                 { "CityMonitor.Electricity", "Strom" },
                 { "CityMonitor.WaterSewage", "Wasser / Abwasser" },

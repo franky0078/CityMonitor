@@ -10,6 +10,10 @@ import edu4 from "./images/Edu4.svg";
 import work from "./images/Workers.png";
 import stat from "./images/CompanyProfit.png";
 import alos from "./images/Population.png";
+import crematoriumIcon from "./images/Crematorium.svg";
+import landfillIcon from "./images/Landfill.svg";
+import policeIcon from "./images/Police.svg";
+import homelessIcon from "./images/Homeless.svg";
 
 // Vanilla-Service-Icons
 const ICON_FIRE = "Media/Game/Icons/FireSafety.svg";
@@ -27,6 +31,7 @@ const ICON_ATTRACTIVENESS = "Media/Game/Icons/Attractions.svg";
 
 const ALL_ICON_IDS = [
     "unemployment",
+    "homeless",
     "jobs",
     "elementary",
     "highschool",
@@ -35,7 +40,10 @@ const ALL_ICON_IDS = [
     "fire",
     "healthcare",
     "cemetery",
-    "garbage",
+    "crematorium",
+    "garbageProcessing",
+    "landfill",
+    "police",
     "traffic",
     "electricity",
     "water",
@@ -113,6 +121,19 @@ const indicatorPercent = (value: IndicatorValue | null | undefined) => {
     return clamp(((current - min) / (max - min)) * 100, 0, 100);
 };
 
+const scalarPercent = (value: number | null | undefined) => {
+    const current = Number(value);
+    if (!Number.isFinite(current)) {
+        return 0;
+    }
+
+    const percent = current >= 0 && current <= 1
+        ? current * 100
+        : current;
+
+    return clamp(percent, 0, 100);
+};
+
 const availabilityStatusColor = (percent: number) => {
     if (percent >= 60) return STATUS_GREEN;
     if (percent >= 40) return STATUS_YELLOW;
@@ -128,6 +149,18 @@ const fireHazardStatusColor = (percent: number) => {
 const trafficStatusColor = (percent: number) => {
     if (percent >= 70) return STATUS_GREEN;
     if (percent >= 50) return STATUS_YELLOW;
+    return STATUS_RED;
+};
+
+const riskStatusColor = (percent: number) => {
+    if (percent <= 33) return STATUS_GREEN;
+    if (percent <= 66) return STATUS_YELLOW;
+    return STATUS_RED;
+};
+
+const homelessStatusColor = (percent: number) => {
+    if (percent <= 1) return STATUS_GREEN;
+    if (percent <= 3) return STATUS_YELLOW;
     return STATUS_RED;
 };
 
@@ -279,6 +312,35 @@ const SchoolRow = ({
 );
 
 
+const HomelessRow = ({
+    showText,
+    compactValues,
+    t,
+}: {
+    showText: boolean;
+    compactValues: boolean;
+    t: Translate;
+}) => {
+    const homeless = useValue(infoview.homeless$);
+    const homelessness = useValue(infoview.homelessness$);
+    const homelessCount = Math.max(0, Math.round(Number(homeless) || 0));
+    const percent = scalarPercent(homelessness);
+
+    return (
+        <Row
+            iconSrc={homelessIcon}
+            label={t("CityMonitor.Homeless", "Obdachlosigkeit")}
+            value={
+                compactValues
+                    ? percent.toFixed(1) + " %"
+                    : percent.toFixed(1) + " % / " + String(homelessCount)
+            }
+            color={homelessStatusColor(percent)}
+            showText={showText}
+        />
+    );
+};
+
 const unemploymentStatusColor = (rate: number) => {
     if (rate <= 5) return STATUS_GREEN;
     if (rate <= 10) return STATUS_YELLOW;
@@ -318,10 +380,14 @@ type TooltipPlacement = "left" | "right" | "top" | "bottom";
 type HorizontalTooltipAnchor = "left" | "center" | "right";
 type Translate = (id: string, fallback: string) => string;
 type ServiceKind =
+    | "homeless"
     | "fire"
     | "healthcare"
     | "cemetery"
-    | "garbage"
+    | "crematorium"
+    | "garbageProcessing"
+    | "landfill"
+    | "police"
     | "traffic"
     | "electricity"
     | "water"
@@ -330,6 +396,82 @@ type ServiceKind =
     | "post"
     | "tourism"
     | "attractiveness";
+
+interface DragHandleProps {
+    orientation: IconOrientationMode;
+    title: string;
+    onMouseDown: (e: React.MouseEvent) => void;
+}
+
+// Eigener Griff zum Verschieben der kompakten Icon-Leiste
+const DragHandle = ({
+    orientation,
+    title,
+    onMouseDown,
+}: DragHandleProps) => {
+    const [hovered, setHovered] = useState(false);
+
+    return (
+        <div
+            title={title}
+            onMouseDown={onMouseDown}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            style={{
+                width: "18rem",
+                height: "18rem",
+                minWidth: "18rem",
+                minHeight: "18rem",
+                marginRight:
+                    orientation === "horizontal"
+                        ? "4rem"
+                        : 0,
+                marginBottom:
+                    orientation === "vertical"
+                        ? "4rem"
+                        : 0,
+                borderRadius: "4rem",
+                border: hovered
+                    ? "1rem solid rgba(210,240,255,0.72)"
+                    : "1rem solid rgba(255,255,255,0.24)",
+                background:
+                    hovered
+                        ? "linear-gradient(145deg, rgba(76,105,122,0.96), rgba(20,29,35,0.96))"
+                        : "linear-gradient(145deg, rgba(47,61,70,0.94), rgba(14,21,26,0.94))",
+                boxShadow: hovered
+                    ? "0 0 8rem rgba(80,190,255,0.55), inset 0 0 4rem rgba(255,255,255,0.14)"
+                    : "0 2rem 5rem rgba(0,0,0,0.34), inset 0 0 3rem rgba(255,255,255,0.08)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "2rem",
+                cursor: "move",
+                flexShrink: 0,
+                transition:
+                    "border 100ms ease, background 100ms ease, box-shadow 100ms ease",
+            }}
+        >
+            {[0, 1, 2].map((index) => (
+                <span
+                    key={index}
+                    style={{
+                        width: "9rem",
+                        height: "1.6rem",
+                        borderRadius: "999rem",
+                        backgroundColor: hovered
+                            ? "rgba(235,248,255,0.95)"
+                            : "rgba(220,235,245,0.72)",
+                        boxShadow: hovered
+                            ? "0 0 3rem rgba(120,210,255,0.65)"
+                            : "none",
+                        pointerEvents: "none",
+                    }}
+                />
+            ))}
+        </div>
+    );
+};
 
 interface StatusIconProps {
     iconSrc: string;
@@ -348,6 +490,7 @@ interface StatusIconProps {
     isReordering?: boolean;
     onReorderStart?: () => void;
     onReorderEnter?: () => void;
+    onActivate?: () => void;
 }
 
 // Statussymbol mit Tooltip und Bearbeitungsfunktionen
@@ -368,6 +511,7 @@ const StatusIcon = ({
     isReordering = false,
     onReorderStart,
     onReorderEnter,
+    onActivate,
 }: StatusIconProps) => {
     const [hovered, setHovered] = useState(false);
     const [tooltipSide, setTooltipSide] =
@@ -434,7 +578,21 @@ const StatusIcon = ({
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
-                cursor: canReorder ? "move" : undefined,
+                cursor: canReorder
+                    ? "move"
+                    : onActivate
+                        ? "pointer"
+                        : undefined,
+            }}
+            onClick={(e) => {
+                if (!onActivate || reorderActive || isReordering) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+                setHovered(false);
+                onActivate();
             }}
             onMouseEnter={(e) => {
                 if (reorderActive) {
@@ -528,16 +686,70 @@ const StatusIcon = ({
                     height: contentSize + "rem",
                     borderRadius: "50%",
                     border: `2rem solid ${ringColor}`,
-                    backgroundColor: "rgba(15, 20, 25, 0.58)",
+                    background:
+                        "radial-gradient(" +
+                        "circle at 34% 24%, " +
+                        "rgba(255,255,255,0.18) 0%, " +
+                        "rgba(255,255,255,0.08) 24%, " +
+                        "rgba(255,255,255,0) 52%" +
+                        "), " +
+                        "linear-gradient(" +
+                        "145deg, " +
+                        "rgb(54, 64, 72) 0%, " +
+                        "rgb(28, 36, 42) 44%, " +
+                        "rgb(10, 15, 19) 100%" +
+                        ")",
                     opacity: iconOpacity,
-                    boxShadow: `0 0 7rem ${ringColor}`,
+                    boxShadow:
+                        `0 0 3rem ${ringColor}, ` +
+                        `0 0 6rem ${ringColor}55, ` +
+                        "0 3rem 7rem rgba(0,0,0,0.30), " +
+                        "inset 0 0 0 1rem rgba(255,255,255,0.12), " +
+                        "inset 1rem 1rem 2rem rgba(255,255,255,0.12), " +
+                        "inset -1rem -2rem 3rem rgba(0,0,0,0.38)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    position: "relative",
+                    overflow: "hidden",
+                    transform: isReordering
+                        ? "scale(1.10)"
+                        : "scale(1)",
+                    transition: "transform 100ms ease",
                 }}
             >
-                <Icon src={iconSrc} size={glyphSize} />
+                <div
+                    style={{
+                        position: "relative",
+                        zIndex: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    <Icon src={iconSrc} size={glyphSize} />
+                </div>
             </div>
+
+            {isReordering && (
+                <div
+                    style={{
+                        position: "absolute",
+                        inset: "1rem",
+                        borderRadius: "50%",
+                        border:
+                            "2rem solid rgba(235,248,255,0.96)",
+                        backgroundColor:
+                            "rgba(70, 175, 255, 0.14)",
+                        boxShadow:
+                            "0 0 5rem rgba(255,255,255,0.85), " +
+                            "0 0 11rem rgba(70,175,255,0.95), " +
+                            "inset 0 0 7rem rgba(180,225,255,0.22)",
+                        pointerEvents: "none",
+                        zIndex: 5,
+                    }}
+                />
+            )}
 
             {hovered && !reorderActive && (
                 <div
@@ -641,6 +853,44 @@ interface ServiceStatusIconProps
 }
 
 // Servicewerte werden nur für aktive Symbole abonniert
+const HomelessStatusIcon = (props: ServiceStatusIconProps) => {
+    const homeless = useValue(infoview.homeless$);
+    const homelessness = useValue(infoview.homelessness$);
+    const homelessCount = Math.max(0, Math.round(Number(homeless) || 0));
+    const percent = scalarPercent(homelessness);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={
+                props.compactValues
+                    ? [
+                        {
+                            value: percent.toFixed(1) + " %",
+                        },
+                    ]
+                    : [
+                        {
+                            label: props.t(
+                                "CityMonitor.HomelessRate",
+                                "Quote"
+                            ),
+                            value: percent.toFixed(1) + " %",
+                        },
+                        {
+                            label: props.t(
+                                "CityMonitor.HomelessPeople",
+                                "Obdachlose"
+                            ),
+                            value: String(homelessCount),
+                        },
+                    ]
+            }
+            ringColor={homelessStatusColor(percent)}
+        />
+    );
+};
+
 const FireStatusIcon = (props: ServiceStatusIconProps) => {
     const fireHazard =
         useValue(infoview.averageFireHazard$);
@@ -697,6 +947,31 @@ const CemeteryStatusIcon = (
     const availability =
         useValue(infoview.cemeteryAvailability$);
     const percent = indicatorPercent(availability);
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    label: props.compactValues
+                        ? undefined
+                        : props.t(
+                            "CityMonitor.Availability",
+                            "Verfügbarkeit"
+                        ),
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={availabilityStatusColor(percent)}
+        />
+    );
+};
+
+const CrematoriumStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const availability =
+        useValue(infoview.deathcareAvailability$);
+    const percent = indicatorPercent(availability);
 
     return (
         <StatusIcon
@@ -717,35 +992,16 @@ const CemeteryStatusIcon = (
     );
 };
 
-const GarbageStatusIcon = (
+const GarbageProcessingStatusIcon = (
     props: ServiceStatusIconProps
 ) => {
-    const landfillAvailability =
-        useValue(infoview.landfillAvailability$);
-    const garbageProductionRate =
+    const availability =
+        useValue(infoview.processingAvailability$);
+    const productionRate =
         useValue(infoview.garbageProductionRate$);
-    const garbageProcessingRate =
+    const processingRate =
         useValue(infoview.garbageProcessingRate$);
-
-    const landfillPercent =
-        indicatorPercent(landfillAvailability);
-
-    const processingPercent =
-        garbageProductionRate > 0
-            ? clamp(
-                (
-                    garbageProcessingRate /
-                    garbageProductionRate
-                ) * 100,
-                0,
-                100
-            )
-            : 100;
-
-    const overallPercent = Math.min(
-        processingPercent,
-        landfillPercent
-    );
+    const percent = indicatorPercent(availability);
 
     return (
         <StatusIcon
@@ -754,35 +1010,118 @@ const GarbageStatusIcon = (
                 props.compactValues
                     ? [
                         {
-                            value:
-                                overallPercent.toFixed(0) +
-                                " %",
+                            value: percent.toFixed(0) + " %",
                         },
                     ]
                     : [
                         {
                             label: props.t(
-                                "CityMonitor.Processing",
-                                "Verarbeitung"
+                                "CityMonitor.Status",
+                                "Status"
                             ),
-                            value:
-                                processingPercent.toFixed(0) +
-                                " %",
+                            value: percent.toFixed(0) + " %",
                         },
                         {
                             label: props.t(
-                                "CityMonitor.Landfill",
-                                "Deponie frei"
+                                "CityMonitor.GarbageProduction",
+                                "Müll"
                             ),
                             value:
-                                landfillPercent.toFixed(0) +
-                                " %",
+                                Math.max(0, Math.round(Number(productionRate) || 0)) +
+                                " t/Mo.",
+                        },
+                        {
+                            label: props.t(
+                                "CityMonitor.ProcessingRate",
+                                "Verarbeitung"
+                            ),
+                            value:
+                                Math.max(0, Math.round(Number(processingRate) || 0)) +
+                                " t/Mo.",
                         },
                     ]
             }
-            ringColor={
-                availabilityStatusColor(overallPercent)
+            ringColor={availabilityStatusColor(percent)}
+        />
+    );
+};
+
+const LandfillStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const availability =
+        useValue(infoview.landfillAvailability$);
+    const percent = indicatorPercent(availability);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={[
+                {
+                    label: props.compactValues
+                        ? undefined
+                        : props.t(
+                            "CityMonitor.Availability",
+                            "Verfügbarkeit"
+                        ),
+                    value: percent.toFixed(0) + " %",
+                },
+            ]}
+            ringColor={availabilityStatusColor(percent)}
+        />
+    );
+};
+
+const PoliceStatusIcon = (
+    props: ServiceStatusIconProps
+) => {
+    const crimeProbability =
+        useValue(infoview.averageCrimeProbability$);
+    const jailAvailability =
+        useValue(infoview.jailAvailability$);
+    const crimePerMonth =
+        useValue(infoview.crimePerMonth$);
+
+    const crimePercent = indicatorPercent(crimeProbability);
+    const jailPercent = indicatorPercent(jailAvailability);
+
+    return (
+        <StatusIcon
+            {...props}
+            details={
+                props.compactValues
+                    ? [
+                        {
+                            value: crimePercent.toFixed(0) + " %",
+                        },
+                    ]
+                    : [
+                        {
+                            label: props.t(
+                                "CityMonitor.CrimeProbability",
+                                "Kriminalitätsrisiko"
+                            ),
+                            value: crimePercent.toFixed(0) + " %",
+                        },
+                        {
+                            label: props.t(
+                                "CityMonitor.JailAvailability",
+                                "Gefängnis frei"
+                            ),
+                            value: jailPercent.toFixed(0) + " %",
+                        },
+                        {
+                            label: props.t(
+                                "CityMonitor.CrimePerMonth",
+                                "Straftaten / Monat"
+                            ),
+                            value: String(
+                                Math.max(0, Math.round(Number(crimePerMonth) || 0))
+                            ),
+                        },
+                    ]
             }
+            ringColor={riskStatusColor(crimePercent)}
         />
     );
 };
@@ -1042,17 +1381,28 @@ const ServiceStatusIcon = ({
     service: ServiceKind;
 }) => {
     switch (service) {
+        case "homeless":
+            return <HomelessStatusIcon {...props} />;
+
         case "fire":
             return <FireStatusIcon {...props} />;
 
         case "healthcare":
             return <HealthcareStatusIcon {...props} />;
-
         case "cemetery":
             return <CemeteryStatusIcon {...props} />;
 
-        case "garbage":
-            return <GarbageStatusIcon {...props} />;
+        case "crematorium":
+            return <CrematoriumStatusIcon {...props} />;
+
+        case "garbageProcessing":
+            return <GarbageProcessingStatusIcon {...props} />;
+
+        case "landfill":
+            return <LandfillStatusIcon {...props} />;
+
+        case "police":
+            return <PoliceStatusIcon {...props} />;
 
         case "traffic":
             return <TrafficStatusIcon {...props} />;
@@ -1096,9 +1446,10 @@ const NormalServiceRows = ({
     const fireHazard = useValue(infoview.averageFireHazard$);
     const healthcare = useValue(infoview.healthcareAvailability$);
     const cemetery = useValue(infoview.cemeteryAvailability$);
+    const crematorium = useValue(infoview.deathcareAvailability$);
+    const garbageProcessing = useValue(infoview.processingAvailability$);
     const landfill = useValue(infoview.landfillAvailability$);
-    const garbageProduction = useValue(infoview.garbageProductionRate$);
-    const garbageProcessing = useValue(infoview.garbageProcessingRate$);
+    const crimeProbability = useValue(infoview.averageCrimeProbability$);
     const trafficFlow = useValue(infoview.trafficFlow$);
     const electricity = useValue(infoview.electricityAvailability$);
     const water = useValue(infoview.waterAvailability$);
@@ -1112,7 +1463,10 @@ const NormalServiceRows = ({
     const firePercent = indicatorPercent(fireHazard);
     const healthcarePercent = indicatorPercent(healthcare);
     const cemeteryPercent = indicatorPercent(cemetery);
+    const crematoriumPercent = indicatorPercent(crematorium);
+    const garbageProcessingPercent = indicatorPercent(garbageProcessing);
     const landfillPercent = indicatorPercent(landfill);
+    const crimePercent = indicatorPercent(crimeProbability);
     const electricityPercent = indicatorPercent(electricity);
     const waterPercent = indicatorPercent(water);
     const sewagePercent = indicatorPercent(sewage);
@@ -1120,15 +1474,6 @@ const NormalServiceRows = ({
     const parkingBikePercent = indicatorPercent(parkingBike);
     const postPercent = indicatorPercent(post);
     const attractivenessPercent = indicatorPercent(attractiveness);
-
-    const garbageProcessingPercent =
-        garbageProduction > 0
-            ? clamp((garbageProcessing / garbageProduction) * 100, 0, 100)
-            : 100;
-    const garbagePercent = Math.min(
-        garbageProcessingPercent,
-        landfillPercent
-    );
 
     const trafficValues = Array.isArray(trafficFlow)
         ? trafficFlow
@@ -1139,7 +1484,7 @@ const NormalServiceRows = ({
     let trafficPercent =
         trafficValues.length > 0
             ? trafficValues.reduce((sum, value) => sum + value, 0) /
-              trafficValues.length
+            trafficValues.length
             : 0;
     if (
         trafficValues.length > 0 &&
@@ -1183,15 +1528,31 @@ const NormalServiceRows = ({
                 showText={showText}
             />
             <Row
+                iconSrc={crematoriumIcon}
+                label={t("CityMonitor.Crematorium", "Krematorium")}
+                value={crematoriumPercent.toFixed(0) + " %"}
+                color={availabilityStatusColor(crematoriumPercent)}
+                showText={showText}
+            />
+            <Row
                 iconSrc={ICON_GARBAGE}
-                label={t("CityMonitor.Garbage", "Müll")}
-                value={
-                    compactValues
-                        ? garbagePercent.toFixed(0) + " %"
-                        : garbageProcessingPercent.toFixed(0) + " / " +
-                          landfillPercent.toFixed(0) + " %"
-                }
-                color={availabilityStatusColor(garbagePercent)}
+                label={t("CityMonitor.GarbageProcessing", "Müllverarbeitung")}
+                value={garbageProcessingPercent.toFixed(0) + " %"}
+                color={availabilityStatusColor(garbageProcessingPercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={landfillIcon}
+                label={t("CityMonitor.Landfill", "Deponie")}
+                value={landfillPercent.toFixed(0) + " %"}
+                color={availabilityStatusColor(landfillPercent)}
+                showText={showText}
+            />
+            <Row
+                iconSrc={policeIcon}
+                label={t("CityMonitor.Police", "Polizei")}
+                value={crimePercent.toFixed(0) + " %"}
+                color={riskStatusColor(crimePercent)}
                 showText={showText}
             />
             <Row
@@ -1215,7 +1576,7 @@ const NormalServiceRows = ({
                     compactValues
                         ? waterSewagePercent.toFixed(0) + " %"
                         : waterPercent.toFixed(0) + " / " +
-                          sewagePercent.toFixed(0) + " %"
+                        sewagePercent.toFixed(0) + " %"
                 }
                 color={availabilityStatusColor(waterSewagePercent)}
                 showText={showText}
@@ -1280,6 +1641,8 @@ export const CityMonitorComponent = () => {
     const iconGapSetting = useValue(iconGap$);
     const hiddenIconsRaw = useValue(hiddenIcons$);
     const iconOrderRaw = useValue(iconOrder$);
+    const availableInfoviews = useValue(infoview.infoviews$);
+    const activeInfoview = useValue(infoview.activeInfoview$);
 
     const [hiddenIconIds, setHiddenIconIds] =
         useState<Set<string>>(new Set());
@@ -1289,14 +1652,15 @@ export const CityMonitorComponent = () => {
             const parsed = JSON.parse(hiddenIconsRaw || "[]");
 
             if (Array.isArray(parsed)) {
-                setHiddenIconIds(
-                    new Set(
-                        parsed.filter(
-                            (item): item is string =>
-                                typeof item === "string"
-                        )
-                    )
+                const ids = parsed.filter(
+                    (item): item is string =>
+                        typeof item === "string"
                 );
+                const migrated = ids.filter((id) => id !== "garbage");
+                if (ids.includes("garbage")) {
+                    migrated.push("garbageProcessing", "landfill");
+                }
+                setHiddenIconIds(new Set(migrated));
             } else {
                 setHiddenIconIds(new Set());
             }
@@ -1310,17 +1674,39 @@ export const CityMonitorComponent = () => {
         const seen = new Set<string>();
         const result: string[] = [];
 
-        for (const id of ids) {
+        const add = (id: string) => {
             if (validIds.has(id) && !seen.has(id)) {
                 seen.add(id);
                 result.push(id);
             }
+        };
+
+        for (const id of ids) {
+            if (id === "garbage") {
+                add("garbageProcessing");
+                add("landfill");
+            } else {
+                add(id);
+            }
         }
 
-        for (const id of ALL_ICON_IDS) {
-            if (!seen.has(id)) {
-                result.push(id);
+        const insertAfter = (anchorId: string, id: string) => {
+            if (seen.has(id)) {
+                return;
             }
+            const anchorIndex = result.indexOf(anchorId);
+            if (anchorIndex >= 0) {
+                result.splice(anchorIndex + 1, 0, id);
+                seen.add(id);
+            }
+        };
+
+        insertAfter("unemployment", "homeless");
+        insertAfter("cemetery", "crematorium");
+        insertAfter("landfill", "police");
+
+        for (const id of ALL_ICON_IDS) {
+            add(id);
         }
 
         return result;
@@ -1336,9 +1722,9 @@ export const CityMonitorComponent = () => {
             const next = normalizeIconOrder(
                 Array.isArray(parsed)
                     ? parsed.filter(
-                          (item): item is string =>
-                              typeof item === "string"
-                      )
+                        (item): item is string =>
+                            typeof item === "string"
+                    )
                     : []
             );
             iconOrderRef.current = next;
@@ -1356,9 +1742,9 @@ export const CityMonitorComponent = () => {
     const iconSize = clamp(iconSizeSetting ?? 30, 22, 50);
     const iconGap = clamp(iconGapSetting ?? 5, 0, 20);
     const iconOrientation: IconOrientationMode =
-        iconOrientationSetting === 1
-            ? "horizontal"
-            : "vertical";
+        iconOrientationSetting === 0
+            ? "vertical"
+            : "horizontal";
 
     const displayedIconIdCount = iconVisibilityEditMode
         ? ALL_ICON_IDS.length
@@ -1369,9 +1755,23 @@ export const CityMonitorComponent = () => {
     const iconBarLengthRem =
         displayedIconIdCount > 0
             ? displayedIconIdCount * iconSize +
-              Math.max(0, displayedIconIdCount - 1) *
-                  iconGap
+            Math.max(0, displayedIconIdCount - 1) *
+            iconGap
             : 0;
+
+    const dragHandleSize = 18;
+    const dragHandleGap = 4;
+    const showDragHandle =
+        iconOnlyMode && !iconPositionLocked;
+
+    const iconBarLengthWithHandleRem =
+        iconBarLengthRem +
+        (showDragHandle
+            ? dragHandleSize +
+            (displayedIconIdCount > 0
+                ? dragHandleGap
+                : 0)
+            : 0);
 
     const iconOpacity =
         1 - clamp(iconBackgroundTransparency ?? 40, 0, 100) / 100;
@@ -1419,27 +1819,37 @@ export const CityMonitorComponent = () => {
             ? 170
             : 215
         : compactValues
-          ? 76
-          : 102;
+            ? 76
+            : 102;
 
     const MIN_W = showText
         ? compactValues
             ? 155
             : 190
         : compactValues
-          ? 72
-          : 96;
+            ? 72
+            : 96;
 
     const widthRem = iconOnlyMode
         ? iconOrientation === "horizontal"
-            ? Math.max(iconSize, iconBarLengthRem)
-            : iconSize
+            ? Math.max(
+                iconSize,
+                iconBarLengthWithHandleRem
+            )
+            : Math.max(
+                iconSize,
+                showDragHandle
+                    ? dragHandleSize
+                    : 0
+            )
         : minimized
-          ? 52
-          : clamp(userWidth ?? DEFAULT_W, MIN_W, 400);
+            ? 52
+            : clamp(userWidth ?? DEFAULT_W, MIN_W, 400);
 
     // Gespeicherten UI-Zustand laden
     const applied = useRef(false);
+    const hasValidSavedPosition = useRef(false);
+    const defaultPositionApplied = useRef(false);
 
     useEffect(() => {
         if (applied.current || !savedRaw) return;
@@ -1449,24 +1859,20 @@ export const CityMonitorComponent = () => {
         try {
             const s = JSON.parse(savedRaw);
 
-            let p =
+            const hasValidPosition =
                 s.pos &&
                 typeof s.pos.x === "number" &&
-                typeof s.pos.y === "number"
-                    ? s.pos
-                    : { x: 50, y: 100 };
+                typeof s.pos.y === "number" &&
+                Number.isFinite(s.pos.x) &&
+                Number.isFinite(s.pos.y) &&
+                s.pos.x >= 0 &&
+                s.pos.y >= 0;
 
-            if (
-                !Number.isFinite(p.x) ||
-                !Number.isFinite(p.y) ||
-                p.x < 0 ||
-                p.y < 0
-            ) {
-                p = { x: 50, y: 100 };
+            if (hasValidPosition) {
+                hasValidSavedPosition.current = true;
+                posRef.current = s.pos;
+                setPos(s.pos);
             }
-
-            posRef.current = p;
-            setPos(p);
 
             if (typeof s.minimized === "boolean") {
                 setMinimized(s.minimized);
@@ -1505,6 +1911,86 @@ export const CityMonitorComponent = () => {
         } catch {
         }
     };
+
+    // Ohne gespeicherte UI-Position startet die kompakte Leiste
+    // horizontal zentriert und etwas unterhalb der Bildschirmmitte.
+    useEffect(() => {
+        if (
+            defaultPositionApplied.current ||
+            hasValidSavedPosition.current ||
+            !iconOnlyMode ||
+            !visible ||
+            !panelRef.current
+        ) {
+            return;
+        }
+
+        const rect =
+            panelRef.current.getBoundingClientRect();
+        const viewportWidth =
+            document.documentElement?.clientWidth ||
+            window.innerWidth ||
+            0;
+        const viewportHeight =
+            document.documentElement?.clientHeight ||
+            window.innerHeight ||
+            0;
+
+        if (
+            viewportWidth <= 0 ||
+            viewportHeight <= 0 ||
+            rect.width <= 0 ||
+            rect.height <= 0
+        ) {
+            return;
+        }
+
+        const pxPerRem =
+            widthRem > 0
+                ? rect.width / widthRem
+                : 1;
+
+        if (pxPerRem <= 0) {
+            return;
+        }
+
+        const targetCenterY =
+            viewportHeight * 0.58;
+
+        const maxX =
+            Math.max(0, viewportWidth - rect.width);
+        const maxY =
+            Math.max(0, viewportHeight - rect.height);
+
+        const targetXPx = clamp(
+            (viewportWidth - rect.width) / 2,
+            0,
+            maxX
+        );
+        const targetYPx = clamp(
+            targetCenterY - rect.height / 2,
+            0,
+            maxY
+        );
+
+        const nextPos = {
+            x: targetXPx / pxPerRem,
+            y: targetYPx / pxPerRem,
+        };
+
+        defaultPositionApplied.current = true;
+        posRef.current = nextPos;
+        setPos(nextPos);
+    }, [
+        savedRaw,
+        iconOnlyMode,
+        visible,
+        widthRem,
+        iconOrientation,
+        displayedIconIdCount,
+        iconSize,
+        iconGap,
+    ]);
 
     useEffect(() => {
         if (
@@ -1843,313 +2329,349 @@ export const CityMonitorComponent = () => {
 
     const iconItems: IconItem[] = data
         ? [
-              {
-                  id: "unemployment",
-                  iconSrc: stat,
-                  label: t(
-                      "CityMonitor.Unemployment",
-                      "Arbeitslosigkeit"
-                  ),
-                  details: compactValues
-                      ? [
-                            {
-                                value:
-                                    data.unemploymentRate.toFixed(1) + " %",
-                            },
-                        ]
-                      : [
-                            {
-                                label: t(
-                                    "CityMonitor.UnemploymentRate",
-                                    "Quote"
-                                ),
-                                value:
-                                    data.unemploymentRate.toFixed(1) + " %",
-                            },
-                            {
-                                label: t(
-                                    "CityMonitor.Unemployed",
-                                    "Arbeitslose"
-                                ),
-                                value: String(data.unemployedCount),
-                            },
-                        ],
-                  ringColor: unemploymentStatusColor(
-                      data.unemploymentRate
-                  ),
-              },
-              {
-                  id: "jobs",
-                  iconSrc: work,
-                  label: t(
-                      "CityMonitor.Jobs",
-                      "Arbeitsplätze"
-                  ),
-                  details: compactValues
-                      ? [{ value: String(data.openJobs) }]
-                      : [
-                            {
-                                label: t(
-                                    "CityMonitor.Open",
-                                    "Offen"
-                                ),
-                                value: String(data.openJobs),
-                            },
-                            {
-                                label: t(
-                                    "CityMonitor.Total",
-                                    "Gesamt"
-                                ),
-                                value: String(data.totalJobSlots),
-                            },
-                        ],
-                  ringColor: openJobsStatusColor(
-                      data.openJobs,
-                      data.totalJobSlots
-                  ),
-              },
-              {
-                  id: "elementary",
-                  iconSrc: edu1,
-                  label: t(
-                      "CityMonitor.ElementarySchool",
-                      "Grundschule"
-                  ),
-                  details: compactValues
-                      ? [{ value: String(data.elementaryFreeSlots) }]
-                      : [
-                            {
-                                label: t(
-                                    "CityMonitor.Free",
-                                    "Frei"
-                                ),
-                                value: String(data.elementaryFreeSlots),
-                            },
-                            {
-                                label: t(
-                                    "CityMonitor.Total",
-                                    "Gesamt"
-                                ),
-                                value: String(
-                                    data.elementaryStudents +
-                                        data.elementaryFreeSlots
-                                ),
-                            },
-                        ],
-                  ringColor: schoolStatusColor(
-                      data.elementaryFreeSlots,
-                      data.elementaryStudents
-                  ),
-              },
-              {
-                  id: "highschool",
-                  iconSrc: edu2,
-                  label: t(
-                      "CityMonitor.HighSchool",
-                      "Oberschule"
-                  ),
-                  details: compactValues
-                      ? [{ value: String(data.highFreeSlots) }]
-                      : [
-                            {
-                                label: t(
-                                    "CityMonitor.Free",
-                                    "Frei"
-                                ),
-                                value: String(data.highFreeSlots),
-                            },
-                            {
-                                label: t(
-                                    "CityMonitor.Total",
-                                    "Gesamt"
-                                ),
-                                value: String(
-                                    data.highStudents +
-                                        data.highFreeSlots
-                                ),
-                            },
-                        ],
-                  ringColor: schoolStatusColor(
-                      data.highFreeSlots,
-                      data.highStudents
-                  ),
-              },
-              {
-                  id: "college",
-                  iconSrc: edu3,
-                  label: t(
-                      "CityMonitor.College",
-                      "College"
-                  ),
-                  details: compactValues
-                      ? [{ value: String(data.collegeFreeSlots) }]
-                      : [
-                            {
-                                label: t(
-                                    "CityMonitor.Free",
-                                    "Frei"
-                                ),
-                                value: String(data.collegeFreeSlots),
-                            },
-                            {
-                                label: t(
-                                    "CityMonitor.Total",
-                                    "Gesamt"
-                                ),
-                                value: String(
-                                    data.collegeStudents +
-                                        data.collegeFreeSlots
-                                ),
-                            },
-                        ],
-                  ringColor: schoolStatusColor(
-                      data.collegeFreeSlots,
-                      data.collegeStudents
-                  ),
-              },
-              {
-                  id: "university",
-                  iconSrc: edu4,
-                  label: t(
-                      "CityMonitor.University",
-                      "Universität"
-                  ),
-                  details: compactValues
-                      ? [{ value: String(data.uniFreeSlots) }]
-                      : [
-                            {
-                                label: t(
-                                    "CityMonitor.Free",
-                                    "Frei"
-                                ),
-                                value: String(data.uniFreeSlots),
-                            },
-                            {
-                                label: t(
-                                    "CityMonitor.Total",
-                                    "Gesamt"
-                                ),
-                                value: String(
-                                    data.uniStudents +
-                                        data.uniFreeSlots
-                                ),
-                            },
-                        ],
-                  ringColor: schoolStatusColor(
-                      data.uniFreeSlots,
-                      data.uniStudents
-                  ),
-              },
+            {
+                id: "unemployment",
+                iconSrc: stat,
+                label: t(
+                    "CityMonitor.Unemployment",
+                    "Arbeitslosigkeit"
+                ),
+                details: compactValues
+                    ? [
+                        {
+                            value:
+                                data.unemploymentRate.toFixed(1) + " %",
+                        },
+                    ]
+                    : [
+                        {
+                            label: t(
+                                "CityMonitor.UnemploymentRate",
+                                "Quote"
+                            ),
+                            value:
+                                data.unemploymentRate.toFixed(1) + " %",
+                        },
+                        {
+                            label: t(
+                                "CityMonitor.Unemployed",
+                                "Arbeitslose"
+                            ),
+                            value: String(data.unemployedCount),
+                        },
+                    ],
+                ringColor: unemploymentStatusColor(
+                    data.unemploymentRate
+                ),
+            },
+            {
+                id: "homeless",
+                service: "homeless",
+                iconSrc: homelessIcon,
+                label: t(
+                    "CityMonitor.Homeless",
+                    "Obdachlosigkeit"
+                ),
+            },
+            {
+                id: "jobs",
+                iconSrc: work,
+                label: t(
+                    "CityMonitor.Jobs",
+                    "Arbeitsplätze"
+                ),
+                details: compactValues
+                    ? [{ value: String(data.openJobs) }]
+                    : [
+                        {
+                            label: t(
+                                "CityMonitor.Open",
+                                "Offen"
+                            ),
+                            value: String(data.openJobs),
+                        },
+                        {
+                            label: t(
+                                "CityMonitor.Total",
+                                "Gesamt"
+                            ),
+                            value: String(data.totalJobSlots),
+                        },
+                    ],
+                ringColor: openJobsStatusColor(
+                    data.openJobs,
+                    data.totalJobSlots
+                ),
+            },
+            {
+                id: "elementary",
+                iconSrc: edu1,
+                label: t(
+                    "CityMonitor.ElementarySchool",
+                    "Grundschule"
+                ),
+                details: compactValues
+                    ? [{ value: String(data.elementaryFreeSlots) }]
+                    : [
+                        {
+                            label: t(
+                                "CityMonitor.Free",
+                                "Frei"
+                            ),
+                            value: String(data.elementaryFreeSlots),
+                        },
+                        {
+                            label: t(
+                                "CityMonitor.Total",
+                                "Gesamt"
+                            ),
+                            value: String(
+                                data.elementaryStudents +
+                                data.elementaryFreeSlots
+                            ),
+                        },
+                    ],
+                ringColor: schoolStatusColor(
+                    data.elementaryFreeSlots,
+                    data.elementaryStudents
+                ),
+            },
+            {
+                id: "highschool",
+                iconSrc: edu2,
+                label: t(
+                    "CityMonitor.HighSchool",
+                    "Oberschule"
+                ),
+                details: compactValues
+                    ? [{ value: String(data.highFreeSlots) }]
+                    : [
+                        {
+                            label: t(
+                                "CityMonitor.Free",
+                                "Frei"
+                            ),
+                            value: String(data.highFreeSlots),
+                        },
+                        {
+                            label: t(
+                                "CityMonitor.Total",
+                                "Gesamt"
+                            ),
+                            value: String(
+                                data.highStudents +
+                                data.highFreeSlots
+                            ),
+                        },
+                    ],
+                ringColor: schoolStatusColor(
+                    data.highFreeSlots,
+                    data.highStudents
+                ),
+            },
+            {
+                id: "college",
+                iconSrc: edu3,
+                label: t(
+                    "CityMonitor.College",
+                    "College"
+                ),
+                details: compactValues
+                    ? [{ value: String(data.collegeFreeSlots) }]
+                    : [
+                        {
+                            label: t(
+                                "CityMonitor.Free",
+                                "Frei"
+                            ),
+                            value: String(data.collegeFreeSlots),
+                        },
+                        {
+                            label: t(
+                                "CityMonitor.Total",
+                                "Gesamt"
+                            ),
+                            value: String(
+                                data.collegeStudents +
+                                data.collegeFreeSlots
+                            ),
+                        },
+                    ],
+                ringColor: schoolStatusColor(
+                    data.collegeFreeSlots,
+                    data.collegeStudents
+                ),
+            },
+            {
+                id: "university",
+                iconSrc: edu4,
+                label: t(
+                    "CityMonitor.University",
+                    "Universität"
+                ),
+                details: compactValues
+                    ? [{ value: String(data.uniFreeSlots) }]
+                    : [
+                        {
+                            label: t(
+                                "CityMonitor.Free",
+                                "Frei"
+                            ),
+                            value: String(data.uniFreeSlots),
+                        },
+                        {
+                            label: t(
+                                "CityMonitor.Total",
+                                "Gesamt"
+                            ),
+                            value: String(
+                                data.uniStudents +
+                                data.uniFreeSlots
+                            ),
+                        },
+                    ],
+                ringColor: schoolStatusColor(
+                    data.uniFreeSlots,
+                    data.uniStudents
+                ),
+            },
 
-              {
-                  id: "fire",
-                  service: "fire",
-                  iconSrc: ICON_FIRE,
-                  label: t(
-                      "CityMonitor.Fire",
-                      "Feuerwehr"
-                  ),
-              },
-              {
-                  id: "healthcare",
-                  service: "healthcare",
-                  iconSrc: ICON_HEALTHCARE,
-                  label: t(
-                      "CityMonitor.Healthcare",
-                      "Krankenhaus"
-                  ),
-              },
-              {
-                  id: "cemetery",
-                  service: "cemetery",
-                  iconSrc: ICON_CEMETERY,
-                  label: t(
-                      "CityMonitor.Cemetery",
-                      "Friedhof"
-                  ),
-              },
-              {
-                  id: "garbage",
-                  service: "garbage",
-                  iconSrc: ICON_GARBAGE,
-                  label: t(
-                      "CityMonitor.Garbage",
-                      "Müll"
-                  ),
-              },
-              {
-                  id: "traffic",
-                  service: "traffic",
-                  iconSrc: ICON_TRAFFIC,
-                  label: t(
-                      "CityMonitor.TrafficFlow",
-                      "Verkehrsfluss"
-                  ),
-              },
-              {
-                  id: "electricity",
-                  service: "electricity",
-                  iconSrc: ICON_ELECTRICITY,
-                  label: t(
-                      "CityMonitor.Electricity",
-                      "Strom"
-                  ),
-              },
-              {
-                  id: "water",
-                  service: "water",
-                  iconSrc: ICON_WATER,
-                  label: t(
-                      "CityMonitor.WaterSewage",
-                      "Wasser / Abwasser"
-                  ),
-              },
-              {
-                  id: "parkingCar",
-                  service: "parkingCar",
-                  iconSrc: ICON_PARKING,
-                  label: t(
-                      "CityMonitor.CarParking",
-                      "Parkplätze Auto"
-                  ),
-              },
-              {
-                  id: "parkingBike",
-                  service: "parkingBike",
-                  iconSrc: ICON_BICYCLE,
-                  label: t(
-                      "CityMonitor.BikeParking",
-                      "Parkplätze Fahrrad"
-                  ),
-              },
-              {
-                  id: "post",
-                  service: "post",
-                  iconSrc: ICON_POST,
-                  label: t(
-                      "CityMonitor.Post",
-                      "Post"
-                  ),
-              },
-              {
-                  id: "tourism",
-                  service: "tourism",
-                  iconSrc: ICON_TOURISM,
-                  label: t(
-                      "CityMonitor.Tourism",
-                      "Tourismus"
-                  ),
-              },
-              {
-                  id: "attractiveness",
-                  service: "attractiveness",
-                  iconSrc: ICON_ATTRACTIVENESS,
-                  label: t(
-                      "CityMonitor.Attractiveness",
-                      "Stadtattraktivität"
-                  ),
-              },
-          ]
+            {
+                id: "fire",
+                service: "fire",
+                iconSrc: ICON_FIRE,
+                label: t(
+                    "CityMonitor.Fire",
+                    "Feuerwehr"
+                ),
+            },
+            {
+                id: "healthcare",
+                service: "healthcare",
+                iconSrc: ICON_HEALTHCARE,
+                label: t(
+                    "CityMonitor.Healthcare",
+                    "Krankenhaus"
+                ),
+            },
+            {
+                id: "cemetery",
+                service: "cemetery",
+                iconSrc: ICON_CEMETERY,
+                label: t(
+                    "CityMonitor.Cemetery",
+                    "Friedhof"
+                ),
+            },
+            {
+                id: "crematorium",
+                service: "crematorium",
+                iconSrc: crematoriumIcon,
+                label: t(
+                    "CityMonitor.Crematorium",
+                    "Krematorium"
+                ),
+            },
+            {
+                id: "garbageProcessing",
+                service: "garbageProcessing",
+                iconSrc: ICON_GARBAGE,
+                label: t(
+                    "CityMonitor.GarbageProcessing",
+                    "Müllverarbeitung"
+                ),
+            },
+            {
+                id: "landfill",
+                service: "landfill",
+                iconSrc: landfillIcon,
+                label: t(
+                    "CityMonitor.Landfill",
+                    "Deponie"
+                ),
+            },
+            {
+                id: "police",
+                service: "police",
+                iconSrc: policeIcon,
+                label: t(
+                    "CityMonitor.Police",
+                    "Polizei"
+                ),
+            },
+            {
+                id: "traffic",
+                service: "traffic",
+                iconSrc: ICON_TRAFFIC,
+                label: t(
+                    "CityMonitor.TrafficFlow",
+                    "Verkehrsfluss"
+                ),
+            },
+            {
+                id: "electricity",
+                service: "electricity",
+                iconSrc: ICON_ELECTRICITY,
+                label: t(
+                    "CityMonitor.Electricity",
+                    "Strom"
+                ),
+            },
+            {
+                id: "water",
+                service: "water",
+                iconSrc: ICON_WATER,
+                label: t(
+                    "CityMonitor.WaterSewage",
+                    "Wasser / Abwasser"
+                ),
+            },
+            {
+                id: "parkingCar",
+                service: "parkingCar",
+                iconSrc: ICON_PARKING,
+                label: t(
+                    "CityMonitor.CarParking",
+                    "Parkplätze Auto"
+                ),
+            },
+            {
+                id: "parkingBike",
+                service: "parkingBike",
+                iconSrc: ICON_BICYCLE,
+                label: t(
+                    "CityMonitor.BikeParking",
+                    "Parkplätze Fahrrad"
+                ),
+            },
+            {
+                id: "post",
+                service: "post",
+                iconSrc: ICON_POST,
+                label: t(
+                    "CityMonitor.Post",
+                    "Post"
+                ),
+            },
+            {
+                id: "tourism",
+                service: "tourism",
+                iconSrc: ICON_TOURISM,
+                label: t(
+                    "CityMonitor.Tourism",
+                    "Tourismus"
+                ),
+            },
+            {
+                id: "attractiveness",
+                service: "attractiveness",
+                iconSrc: ICON_ATTRACTIVENESS,
+                label: t(
+                    "CityMonitor.Attractiveness",
+                    "Stadtattraktivität"
+                ),
+            },
+        ]
         : [];
 
     const orderedIconItems = iconOrderIds
@@ -2160,6 +2682,109 @@ export const CityMonitorComponent = () => {
     const displayedIconItems = iconVisibilityEditMode
         ? orderedIconItems
         : orderedIconItems.filter((item) => !hiddenIconIds.has(item.id));
+
+    const infoviewSearchTerms: Record<string, string[]> = {
+        unemployment: ["population"],
+        homeless: ["population"],
+        jobs: ["population"],
+        elementary: ["education"],
+        highschool: ["education"],
+        college: ["education"],
+        university: ["education"],
+        fire: ["fire"],
+        healthcare: ["healthcare", "health", "deathcare"],
+        cemetery: ["healthcare", "deathcare", "health"],
+        crematorium: ["healthcare", "deathcare", "health"],
+        garbageProcessing: ["garbage", "waste"],
+        landfill: ["garbage", "waste"],
+        police: ["police", "crime"],
+        traffic: ["traffic"],
+        electricity: ["electricity"],
+        water: ["water", "sewage"],
+        // Parkplätze liegen im Spiel in zwei getrennten Infoviews
+        parkingCar: ["roads", "road", "streets", "street"],
+        parkingBike: ["bicycles", "bicycle", "bike", "cycling"],
+        post: ["post", "mail"],
+        tourism: ["tourism"],
+        attractiveness: ["tourism", "attraction"],
+    };
+
+    const normalizeInfoviewText = (
+        value: string | null | undefined
+    ) =>
+        (value ?? "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+
+    const findInfoviewForIcon = (iconId: string) => {
+        const terms =
+            infoviewSearchTerms[iconId]?.map(
+                normalizeInfoviewText
+            ) ?? [];
+
+        if (terms.length === 0) {
+            return undefined;
+        }
+
+        let bestMatch:
+            | (typeof availableInfoviews)[number]
+            | undefined;
+        let bestScore = 0;
+
+        for (const view of availableInfoviews) {
+            if (view.locked) {
+                continue;
+            }
+
+            const id = normalizeInfoviewText(view.id);
+            const uiTag = normalizeInfoviewText(view.uiTag);
+            const icon = normalizeInfoviewText(view.icon);
+
+            let score = 0;
+
+            for (const term of terms) {
+                if (!term) {
+                    continue;
+                }
+
+                if (id === term) {
+                    score = Math.max(score, 100);
+                } else if (id.includes(term)) {
+                    score = Math.max(score, 70);
+                }
+
+                if (uiTag.includes(term)) {
+                    score = Math.max(score, 45);
+                }
+
+                if (icon.includes(term)) {
+                    score = Math.max(score, 30);
+                }
+            }
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = view;
+            }
+        }
+
+        return bestMatch;
+    };
+
+    const toggleInfoviewForIcon = (iconId: string) => {
+        const target = findInfoviewForIcon(iconId);
+
+        if (!target) {
+            return;
+        }
+
+        if (activeInfoview?.id === target.id) {
+            infoview.clearActiveInfoview();
+            return;
+        }
+
+        infoview.setActiveInfoview(target.entity);
+    };
 
     const rateColor =
         data && data.unemploymentRate > 10 ? "#ff6b6b" : "#7CFC00";
@@ -2257,33 +2882,27 @@ export const CityMonitorComponent = () => {
                     >
                         {iconOnlyMode ? (
                             <div
-                                onMouseDown={
-                                    iconPositionLocked
-                                        ? undefined
-                                        : onHeaderDown
-                                }
-                                title={
-                                    iconPositionLocked
-                                        ? t(
-                                              "CityMonitor.PositionLocked",
-                                              "Position fixiert"
-                                          )
-                                        : t(
-                                              "CityMonitor.Drag",
-                                              "Zum Verschieben ziehen"
-                                          )
-                                }
                                 style={{
                                     width:
                                         (iconOrientation === "horizontal"
                                             ? Math.max(
                                                 iconSize,
-                                                iconBarLengthRem
+                                                iconBarLengthWithHandleRem
                                             )
-                                            : iconSize) + "rem",
+                                            : Math.max(
+                                                iconSize,
+                                                showDragHandle
+                                                    ? dragHandleSize
+                                                    : 0
+                                            )) + "rem",
                                     height:
                                         iconOrientation === "horizontal"
-                                            ? iconSize + "rem"
+                                            ? Math.max(
+                                                iconSize,
+                                                showDragHandle
+                                                    ? dragHandleSize
+                                                    : 0
+                                            ) + "rem"
                                             : undefined,
                                     display: "flex",
                                     flexDirection:
@@ -2292,12 +2911,21 @@ export const CityMonitorComponent = () => {
                                             : "column",
                                     alignItems: "center",
                                     padding: 0,
-                                    cursor: iconPositionLocked
-                                        ? "default"
-                                        : "move",
+                                    cursor: "default",
                                     overflow: "visible",
                                 }}
                             >
+                                {showDragHandle && (
+                                    <DragHandle
+                                        orientation={iconOrientation}
+                                        title={t(
+                                            "CityMonitor.Drag",
+                                            "Griff ziehen, um Leiste zu verschieben"
+                                        )}
+                                        onMouseDown={onHeaderDown}
+                                    />
+                                )}
+
                                 {displayedIconItems.map(
                                     (item, index) => {
                                         const isHidden =
@@ -2306,13 +2934,13 @@ export const CityMonitorComponent = () => {
                                         const currentIconOpacity =
                                             iconVisibilityEditMode
                                                 ? isHidden
-                                                    ? 0.4
+                                                    ? 0.45
                                                     : 1
                                                 : iconOpacity;
 
                                         const gapAfter =
                                             index <
-                                            displayedIconItems.length - 1
+                                                displayedIconItems.length - 1
                                                 ? iconGap
                                                 : 0;
 
@@ -2405,6 +3033,14 @@ export const CityMonitorComponent = () => {
                                                     orientation={
                                                         iconOrientation
                                                     }
+                                                    onActivate={
+                                                        iconVisibilityEditMode
+                                                            ? undefined
+                                                            : () =>
+                                                                toggleInfoviewForIcon(
+                                                                    item.id
+                                                                )
+                                                    }
                                                     canToggleVisibility={
                                                         iconVisibilityEditMode
                                                     }
@@ -2454,6 +3090,14 @@ export const CityMonitorComponent = () => {
                                                 gapAfter={gapAfter}
                                                 orientation={
                                                     iconOrientation
+                                                }
+                                                onActivate={
+                                                    iconVisibilityEditMode
+                                                        ? undefined
+                                                        : () =>
+                                                            toggleInfoviewForIcon(
+                                                                item.id
+                                                            )
                                                 }
                                                 canToggleVisibility={
                                                     iconVisibilityEditMode
@@ -2528,6 +3172,12 @@ export const CityMonitorComponent = () => {
                                             value={data.unemploymentRate.toFixed(1) + " %"}
                                             color={rateColor}
                                             showText={showText}
+                                        />
+
+                                        <HomelessRow
+                                            showText={showText}
+                                            compactValues={compactValues}
+                                            t={t}
                                         />
 
                                         <Row
