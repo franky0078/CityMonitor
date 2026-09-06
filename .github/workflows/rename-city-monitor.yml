@@ -1,0 +1,172 @@
+name: Rename UI_Extended to CityMonitor
+
+on:
+  push:
+    branches:
+      - rename-city-monitor
+
+permissions:
+  contents: write
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rename project and identifiers
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          root = Path('.')
+
+          def git_mv(src: str, dst: str):
+              if Path(src).exists() and not Path(dst).exists():
+                  subprocess.run(['git', 'mv', src, dst], check=True)
+
+          git_mv('UI_Extended', 'CityMonitor')
+          git_mv('CityMonitor/UI_Extended.csproj', 'CityMonitor/CityMonitor.csproj')
+          git_mv('UI_Extended.slnx', 'CityMonitor.slnx')
+
+          text_suffixes = {
+              '.cs', '.csproj', '.slnx', '.tsx', '.ts', '.js', '.json',
+              '.xml', '.md', '.txt', '.props', '.targets', '.yml', '.yaml'
+          }
+          exact_text_files = {'.gitignore', '.gitattributes'}
+
+          for path in root.rglob('*'):
+              if not path.is_file():
+                  continue
+              if '.git' in path.parts or 'node_modules' in path.parts or 'build' in path.parts:
+                  continue
+              if path.suffix.lower() not in text_suffixes and path.name not in exact_text_files:
+                  continue
+
+              raw = path.read_bytes()
+              bom = raw.startswith(b'\xef\xbb\xbf')
+              try:
+                  text = raw.decode('utf-8-sig')
+              except UnicodeDecodeError:
+                  continue
+
+              original = text
+              text = text.replace('UI_Extended.CityMonitor.', 'CityMonitor.')
+              text = text.replace('UI_Extended', 'CityMonitor')
+              text = text.replace('UI Extended', 'City Monitor')
+              text = text.replace('UIExtended', 'CityMonitor')
+              text = text.replace('ui-extended', 'city-monitor')
+
+              if path.as_posix() == 'CityMonitor/Properties/PublishConfiguration.xml':
+                  text = text.replace('<DisplayName Value="CityMonitor" />', '<DisplayName Value="City Monitor" />')
+
+              if path.as_posix() == 'README.md':
+                  text = text.replace(
+                      'Area Bulldozer is licensed under the **MIT License**.',
+                      'City Monitor is licensed under the **MIT License**.'
+                  )
+
+              if text != original:
+                  encoded = text.encode('utf-8')
+                  if bom:
+                      encoded = b'\xef\xbb\xbf' + encoded
+                  path.write_bytes(encoded)
+          PY
+
+      - name: Remove one-shot workflow from renamed result
+        shell: bash
+        run: git rm .github/workflows/rename-city-monitor.yml
+
+      - name: Verify old project name is gone
+        shell: bash
+        run: |
+          if grep -RInE --exclude-dir=.git --exclude='*.png' --exclude='*.jpg' --exclude='*.jpeg' --exclude='*.gif' 'UI_Extended|UI Extended|UIExtended|ui-extended' .; then
+            echo "Old project identifier still exists."
+            exit 1
+          fi
+          if find . -path './.git' -prune -o -print | grep -E 'UI_Extended|UIExtended|ui-extended'; then
+            echo "Old project identifier still exists in a path."
+            exit 1
+          fi
+
+      - name: Create local setup instructions
+        shell: bash
+        run: |
+          cat > LOCAL_SETUP.md <<'EOF'
+          # City Monitor - lokale Umstellung
+
+          ## Empfohlener Weg: Repository nach GitHub-Umbenennung neu klonen
+
+          1. Auf GitHub das Repository unter **Settings > General > Repository name** von `UI_Extended` auf `CityMonitor` umbenennen.
+          2. Den lokalen alten Projektordner sichern oder schließen.
+          3. Neu klonen:
+             `git clone https://github.com/franky0078/CityMonitor.git`
+          4. `CityMonitor.slnx` in Visual Studio öffnen.
+          5. Prüfen, dass `CityMonitor/CityMonitor.csproj` geladen wird.
+          6. `bin` und `obj` löschen, falls sie aus einem alten lokalen Stand übernommen wurden.
+          7. Unter `CityMonitor/Frontend` einmal `npm install` ausführen, falls `node_modules` nicht vorhanden ist.
+          8. Solution in **Debug** bauen und Cities: Skylines II starten.
+          9. Im Spiel prüfen: Optionen heißen `City Monitor`, Panel öffnet sich, Symbolmodus funktioniert, Icon-Reihenfolge und Position lassen sich speichern.
+          10. Im Log prüfen, dass der Logger `CityMonitor` verwendet und keine `UI_Extended`-Fehler auftreten.
+
+          ## Alternative: bestehenden lokalen Clone weiterverwenden
+
+          Nach dem Umbenennen des GitHub-Repositories:
+
+          `git remote set-url origin https://github.com/franky0078/CityMonitor.git`
+          `git fetch origin`
+          `git checkout master`
+          `git pull`
+
+          Danach Visual Studio schließen und erneut über `CityMonitor.slnx` öffnen.
+
+          ## Alte lokale Mod-Reste entfernen
+
+          Vor dem ersten Test mit dem neuen technischen Namen sollte eine alte lokale `UI_Extended`-Installation aus dem Cities: Skylines II Mods-Verzeichnis entfernt werden, damit nicht beide Varianten gleichzeitig geladen werden. Anschließend City Monitor neu bauen/installieren.
+
+          ## Erwartete technische Namen
+
+          - Repository: `CityMonitor`
+          - Solution: `CityMonitor.slnx`
+          - Projektordner: `CityMonitor`
+          - Projektdatei: `CityMonitor.csproj`
+          - Assembly: `CityMonitor.dll`
+          - Root Namespace: `CityMonitor`
+          - Frontend Mod-ID: `CityMonitor`
+          - Anzeigename: `City Monitor`
+          - Lokalisierungspräfix: `CityMonitor.`
+          EOF
+
+      - name: Commit renamed source
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git reset LOCAL_SETUP.md
+          git commit -m "Rename UI_Extended to City Monitor"
+          git push origin rename-city-monitor
+
+      - name: Create downloadable source package
+        shell: bash
+        run: |
+          zip -r CityMonitor-renamed-source.zip \
+            CityMonitor \
+            CityMonitor.slnx \
+            README.md \
+            LICENSE.txt \
+            .gitignore \
+            .gitattributes \
+            LOCAL_SETUP.md
+
+      - name: Upload source package
+        uses: actions/upload-artifact@v4
+        with:
+          name: CityMonitor-renamed-source
+          path: CityMonitor-renamed-source.zip
+          if-no-files-found: error
