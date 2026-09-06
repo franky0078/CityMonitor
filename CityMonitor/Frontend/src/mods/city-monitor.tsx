@@ -873,8 +873,11 @@ interface ServiceStatusIconProps
 const HomelessStatusIcon = (props: ServiceStatusIconProps) => {
     const homeless = useValue(infoview.homeless$);
     const homelessness = useValue(infoview.homelessness$);
-    const homelessCount = Math.max(0, Math.round(Number(homeless) || 0));
-    const percent = scalarPercent(homelessness);
+    const homelessCount =
+        Math.max(0, Math.round(Number(homeless) || 0));
+
+    const percent =
+        clamp(Number(homelessness) || 0, 0, 100);
 
     return (
         <StatusIcon

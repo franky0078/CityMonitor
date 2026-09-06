@@ -4,7 +4,7 @@
 	Leave it empty for the first publication.
 	After the first publication, enter the assigned Paradox Mods ID here.
 	-->
-	<ModId Value="" />
+	<ModId Value="158167" />
 
 	<!-- Name displayed to players -->
 	<DisplayName Value="City Monitor" />
@@ -171,7 +171,7 @@
 	
 
 	<!-- First public release -->
-	<ModVersion Value="1.0.0" />
+	<ModVersion Value="1.0.5" />
 
 	<!-- Tested Cities: Skylines II version -->
 	<GameVersion Value="1.6.*" />
@@ -179,9 +179,9 @@
 	<!-- City Monitor currently has no required mod dependencies. -->
 
 	<ChangeLog>
-		Version 1.0.0
+		Version 1.0.5
 
-		- Initial public release.
+		- now correctly shows the percentage of homeless citizens instead of the percentage of citizens without a home
 
 	</ChangeLog>
 
