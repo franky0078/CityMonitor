@@ -1,4 +1,4 @@
-﻿using Colossal.UI.Binding;
+using Colossal.UI.Binding;
 using Game;
 using Game.Buildings;
 using Game.Citizens;
@@ -9,12 +9,12 @@ using Game.SceneFlow;
 using Game.Simulation;
 using Game.Tools;
 using Game.UI;
-using UI_Extended.Logic;
-using UI_Extended.UI;
+using CityMonitor.Logic;
+using CityMonitor.UI;
 using Unity.Collections;
 using Unity.Entities;
 
-namespace UI_Extended
+namespace CityMonitor
 {
     public partial class EmploymentUISystem : UISystemBase
     {

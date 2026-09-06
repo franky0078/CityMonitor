@@ -654,7 +654,7 @@ const FireStatusIcon = (props: ServiceStatusIconProps) => {
                     label: props.compactValues
                         ? undefined
                         : props.t(
-                            "UI_Extended.CityMonitor.FireHazard",
+                            "CityMonitor.FireHazard",
                             "Brandgefahr"
                         ),
                     value: percent.toFixed(0) + " %",
@@ -680,7 +680,7 @@ const HealthcareStatusIcon = (
                     label: props.compactValues
                         ? undefined
                         : props.t(
-                            "UI_Extended.CityMonitor.Availability",
+                            "CityMonitor.Availability",
                             "Verfügbarkeit"
                         ),
                     value: percent.toFixed(0) + " %",
@@ -706,7 +706,7 @@ const CemeteryStatusIcon = (
                     label: props.compactValues
                         ? undefined
                         : props.t(
-                            "UI_Extended.CityMonitor.Availability",
+                            "CityMonitor.Availability",
                             "Verfügbarkeit"
                         ),
                     value: percent.toFixed(0) + " %",
@@ -762,7 +762,7 @@ const GarbageStatusIcon = (
                     : [
                         {
                             label: props.t(
-                                "UI_Extended.CityMonitor.Processing",
+                                "CityMonitor.Processing",
                                 "Verarbeitung"
                             ),
                             value:
@@ -771,7 +771,7 @@ const GarbageStatusIcon = (
                         },
                         {
                             label: props.t(
-                                "UI_Extended.CityMonitor.Landfill",
+                                "CityMonitor.Landfill",
                                 "Deponie frei"
                             ),
                             value:
@@ -846,7 +846,7 @@ const ElectricityStatusIcon = (
                     label: props.compactValues
                         ? undefined
                         : props.t(
-                            "UI_Extended.CityMonitor.Availability",
+                            "CityMonitor.Availability",
                             "Verfügbarkeit"
                         ),
                     value: percent.toFixed(0) + " %",
@@ -887,7 +887,7 @@ const WaterStatusIcon = (
                     : [
                         {
                             label: props.t(
-                                "UI_Extended.CityMonitor.Water",
+                                "CityMonitor.Water",
                                 "Wasser"
                             ),
                             value:
@@ -896,7 +896,7 @@ const WaterStatusIcon = (
                         },
                         {
                             label: props.t(
-                                "UI_Extended.CityMonitor.Sewage",
+                                "CityMonitor.Sewage",
                                 "Abwasser"
                             ),
                             value:
@@ -928,7 +928,7 @@ const ParkingCarStatusIcon = (
                     label: props.compactValues
                         ? undefined
                         : props.t(
-                            "UI_Extended.CityMonitor.Availability",
+                            "CityMonitor.Availability",
                             "Verfügbarkeit"
                         ),
                     value: percent.toFixed(0) + " %",
@@ -954,7 +954,7 @@ const ParkingBikeStatusIcon = (
                     label: props.compactValues
                         ? undefined
                         : props.t(
-                            "UI_Extended.CityMonitor.Availability",
+                            "CityMonitor.Availability",
                             "Verfügbarkeit"
                         ),
                     value: percent.toFixed(0) + " %",
@@ -980,7 +980,7 @@ const PostStatusIcon = (
                     label: props.compactValues
                         ? undefined
                         : props.t(
-                            "UI_Extended.CityMonitor.Availability",
+                            "CityMonitor.Availability",
                             "Verfügbarkeit"
                         ),
                     value: percent.toFixed(0) + " %",
@@ -1004,7 +1004,7 @@ const TourismStatusIcon = (
                     label: props.compactValues
                         ? undefined
                         : props.t(
-                            "UI_Extended.CityMonitor.Tourists",
+                            "CityMonitor.Tourists",
                             "Touristen"
                         ),
                     value: String(Math.max(0, Math.round(Number(tourists) || 0))),
@@ -1163,28 +1163,28 @@ const NormalServiceRows = ({
 
             <Row
                 iconSrc={ICON_FIRE}
-                label={t("UI_Extended.CityMonitor.Fire", "Feuerwehr")}
+                label={t("CityMonitor.Fire", "Feuerwehr")}
                 value={firePercent.toFixed(0) + " %"}
                 color={fireHazardStatusColor(firePercent)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_HEALTHCARE}
-                label={t("UI_Extended.CityMonitor.Healthcare", "Krankenhaus")}
+                label={t("CityMonitor.Healthcare", "Krankenhaus")}
                 value={healthcarePercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(healthcarePercent)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_CEMETERY}
-                label={t("UI_Extended.CityMonitor.Cemetery", "Friedhof")}
+                label={t("CityMonitor.Cemetery", "Friedhof")}
                 value={cemeteryPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(cemeteryPercent)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_GARBAGE}
-                label={t("UI_Extended.CityMonitor.Garbage", "Müll")}
+                label={t("CityMonitor.Garbage", "Müll")}
                 value={
                     compactValues
                         ? garbagePercent.toFixed(0) + " %"
@@ -1196,21 +1196,21 @@ const NormalServiceRows = ({
             />
             <Row
                 iconSrc={ICON_TRAFFIC}
-                label={t("UI_Extended.CityMonitor.TrafficFlow", "Verkehrsfluss")}
+                label={t("CityMonitor.TrafficFlow", "Verkehrsfluss")}
                 value={trafficPercent.toFixed(0) + " %"}
                 color={trafficStatusColor(trafficPercent)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_ELECTRICITY}
-                label={t("UI_Extended.CityMonitor.Electricity", "Strom")}
+                label={t("CityMonitor.Electricity", "Strom")}
                 value={electricityPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(electricityPercent)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_WATER}
-                label={t("UI_Extended.CityMonitor.WaterSewage", "Wasser / Abwasser")}
+                label={t("CityMonitor.WaterSewage", "Wasser / Abwasser")}
                 value={
                     compactValues
                         ? waterSewagePercent.toFixed(0) + " %"
@@ -1222,35 +1222,35 @@ const NormalServiceRows = ({
             />
             <Row
                 iconSrc={ICON_PARKING}
-                label={t("UI_Extended.CityMonitor.CarParking", "Parkplätze Auto")}
+                label={t("CityMonitor.CarParking", "Parkplätze Auto")}
                 value={parkingCarPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(parkingCarPercent)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_BICYCLE}
-                label={t("UI_Extended.CityMonitor.BikeParking", "Parkplätze Fahrrad")}
+                label={t("CityMonitor.BikeParking", "Parkplätze Fahrrad")}
                 value={parkingBikePercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(parkingBikePercent)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_POST}
-                label={t("UI_Extended.CityMonitor.Post", "Post")}
+                label={t("CityMonitor.Post", "Post")}
                 value={postPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(postPercent)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_TOURISM}
-                label={t("UI_Extended.CityMonitor.Tourism", "Tourismus")}
+                label={t("CityMonitor.Tourism", "Tourismus")}
                 value={String(Math.max(0, Math.round(Number(tourists) || 0)))}
                 color={STATUS_INFO}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_ATTRACTIVENESS}
-                label={t("UI_Extended.CityMonitor.Attractiveness", "Stadtattraktivität")}
+                label={t("CityMonitor.Attractiveness", "Stadtattraktivität")}
                 value={attractivenessPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(attractivenessPercent)}
                 showText={showText}
@@ -1847,7 +1847,7 @@ export const CityMonitorComponent = () => {
                   id: "unemployment",
                   iconSrc: stat,
                   label: t(
-                      "UI_Extended.CityMonitor.Unemployment",
+                      "CityMonitor.Unemployment",
                       "Arbeitslosigkeit"
                   ),
                   details: compactValues
@@ -1860,7 +1860,7 @@ export const CityMonitorComponent = () => {
                       : [
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.UnemploymentRate",
+                                    "CityMonitor.UnemploymentRate",
                                     "Quote"
                                 ),
                                 value:
@@ -1868,7 +1868,7 @@ export const CityMonitorComponent = () => {
                             },
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Unemployed",
+                                    "CityMonitor.Unemployed",
                                     "Arbeitslose"
                                 ),
                                 value: String(data.unemployedCount),
@@ -1882,7 +1882,7 @@ export const CityMonitorComponent = () => {
                   id: "jobs",
                   iconSrc: work,
                   label: t(
-                      "UI_Extended.CityMonitor.Jobs",
+                      "CityMonitor.Jobs",
                       "Arbeitsplätze"
                   ),
                   details: compactValues
@@ -1890,14 +1890,14 @@ export const CityMonitorComponent = () => {
                       : [
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Open",
+                                    "CityMonitor.Open",
                                     "Offen"
                                 ),
                                 value: String(data.openJobs),
                             },
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Total",
+                                    "CityMonitor.Total",
                                     "Gesamt"
                                 ),
                                 value: String(data.totalJobSlots),
@@ -1912,7 +1912,7 @@ export const CityMonitorComponent = () => {
                   id: "elementary",
                   iconSrc: edu1,
                   label: t(
-                      "UI_Extended.CityMonitor.ElementarySchool",
+                      "CityMonitor.ElementarySchool",
                       "Grundschule"
                   ),
                   details: compactValues
@@ -1920,14 +1920,14 @@ export const CityMonitorComponent = () => {
                       : [
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Free",
+                                    "CityMonitor.Free",
                                     "Frei"
                                 ),
                                 value: String(data.elementaryFreeSlots),
                             },
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Total",
+                                    "CityMonitor.Total",
                                     "Gesamt"
                                 ),
                                 value: String(
@@ -1945,7 +1945,7 @@ export const CityMonitorComponent = () => {
                   id: "highschool",
                   iconSrc: edu2,
                   label: t(
-                      "UI_Extended.CityMonitor.HighSchool",
+                      "CityMonitor.HighSchool",
                       "Oberschule"
                   ),
                   details: compactValues
@@ -1953,14 +1953,14 @@ export const CityMonitorComponent = () => {
                       : [
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Free",
+                                    "CityMonitor.Free",
                                     "Frei"
                                 ),
                                 value: String(data.highFreeSlots),
                             },
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Total",
+                                    "CityMonitor.Total",
                                     "Gesamt"
                                 ),
                                 value: String(
@@ -1978,7 +1978,7 @@ export const CityMonitorComponent = () => {
                   id: "college",
                   iconSrc: edu3,
                   label: t(
-                      "UI_Extended.CityMonitor.College",
+                      "CityMonitor.College",
                       "College"
                   ),
                   details: compactValues
@@ -1986,14 +1986,14 @@ export const CityMonitorComponent = () => {
                       : [
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Free",
+                                    "CityMonitor.Free",
                                     "Frei"
                                 ),
                                 value: String(data.collegeFreeSlots),
                             },
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Total",
+                                    "CityMonitor.Total",
                                     "Gesamt"
                                 ),
                                 value: String(
@@ -2011,7 +2011,7 @@ export const CityMonitorComponent = () => {
                   id: "university",
                   iconSrc: edu4,
                   label: t(
-                      "UI_Extended.CityMonitor.University",
+                      "CityMonitor.University",
                       "Universität"
                   ),
                   details: compactValues
@@ -2019,14 +2019,14 @@ export const CityMonitorComponent = () => {
                       : [
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Free",
+                                    "CityMonitor.Free",
                                     "Frei"
                                 ),
                                 value: String(data.uniFreeSlots),
                             },
                             {
                                 label: t(
-                                    "UI_Extended.CityMonitor.Total",
+                                    "CityMonitor.Total",
                                     "Gesamt"
                                 ),
                                 value: String(
@@ -2046,7 +2046,7 @@ export const CityMonitorComponent = () => {
                   service: "fire",
                   iconSrc: ICON_FIRE,
                   label: t(
-                      "UI_Extended.CityMonitor.Fire",
+                      "CityMonitor.Fire",
                       "Feuerwehr"
                   ),
               },
@@ -2055,7 +2055,7 @@ export const CityMonitorComponent = () => {
                   service: "healthcare",
                   iconSrc: ICON_HEALTHCARE,
                   label: t(
-                      "UI_Extended.CityMonitor.Healthcare",
+                      "CityMonitor.Healthcare",
                       "Krankenhaus"
                   ),
               },
@@ -2064,7 +2064,7 @@ export const CityMonitorComponent = () => {
                   service: "cemetery",
                   iconSrc: ICON_CEMETERY,
                   label: t(
-                      "UI_Extended.CityMonitor.Cemetery",
+                      "CityMonitor.Cemetery",
                       "Friedhof"
                   ),
               },
@@ -2073,7 +2073,7 @@ export const CityMonitorComponent = () => {
                   service: "garbage",
                   iconSrc: ICON_GARBAGE,
                   label: t(
-                      "UI_Extended.CityMonitor.Garbage",
+                      "CityMonitor.Garbage",
                       "Müll"
                   ),
               },
@@ -2082,7 +2082,7 @@ export const CityMonitorComponent = () => {
                   service: "traffic",
                   iconSrc: ICON_TRAFFIC,
                   label: t(
-                      "UI_Extended.CityMonitor.TrafficFlow",
+                      "CityMonitor.TrafficFlow",
                       "Verkehrsfluss"
                   ),
               },
@@ -2091,7 +2091,7 @@ export const CityMonitorComponent = () => {
                   service: "electricity",
                   iconSrc: ICON_ELECTRICITY,
                   label: t(
-                      "UI_Extended.CityMonitor.Electricity",
+                      "CityMonitor.Electricity",
                       "Strom"
                   ),
               },
@@ -2100,7 +2100,7 @@ export const CityMonitorComponent = () => {
                   service: "water",
                   iconSrc: ICON_WATER,
                   label: t(
-                      "UI_Extended.CityMonitor.WaterSewage",
+                      "CityMonitor.WaterSewage",
                       "Wasser / Abwasser"
                   ),
               },
@@ -2109,7 +2109,7 @@ export const CityMonitorComponent = () => {
                   service: "parkingCar",
                   iconSrc: ICON_PARKING,
                   label: t(
-                      "UI_Extended.CityMonitor.CarParking",
+                      "CityMonitor.CarParking",
                       "Parkplätze Auto"
                   ),
               },
@@ -2118,7 +2118,7 @@ export const CityMonitorComponent = () => {
                   service: "parkingBike",
                   iconSrc: ICON_BICYCLE,
                   label: t(
-                      "UI_Extended.CityMonitor.BikeParking",
+                      "CityMonitor.BikeParking",
                       "Parkplätze Fahrrad"
                   ),
               },
@@ -2127,7 +2127,7 @@ export const CityMonitorComponent = () => {
                   service: "post",
                   iconSrc: ICON_POST,
                   label: t(
-                      "UI_Extended.CityMonitor.Post",
+                      "CityMonitor.Post",
                       "Post"
                   ),
               },
@@ -2136,7 +2136,7 @@ export const CityMonitorComponent = () => {
                   service: "tourism",
                   iconSrc: ICON_TOURISM,
                   label: t(
-                      "UI_Extended.CityMonitor.Tourism",
+                      "CityMonitor.Tourism",
                       "Tourismus"
                   ),
               },
@@ -2145,7 +2145,7 @@ export const CityMonitorComponent = () => {
                   service: "attractiveness",
                   iconSrc: ICON_ATTRACTIVENESS,
                   label: t(
-                      "UI_Extended.CityMonitor.Attractiveness",
+                      "CityMonitor.Attractiveness",
                       "Stadtattraktivität"
                   ),
               },
@@ -2182,7 +2182,7 @@ export const CityMonitorComponent = () => {
         <>
             <button
                 onClick={toggleVisible}
-                title={t("UI_Extended.CityMonitor.Toggle", "Stadt Monitor ein-/ausblenden")}
+                title={t("CityMonitor.Toggle", "Stadt Monitor ein-/ausblenden")}
                 style={{
                     display: "flex",
                     alignItems: "center",
@@ -2265,11 +2265,11 @@ export const CityMonitorComponent = () => {
                                 title={
                                     iconPositionLocked
                                         ? t(
-                                              "UI_Extended.CityMonitor.PositionLocked",
+                                              "CityMonitor.PositionLocked",
                                               "Position fixiert"
                                           )
                                         : t(
-                                              "UI_Extended.CityMonitor.Drag",
+                                              "CityMonitor.Drag",
                                               "Zum Verschieben ziehen"
                                           )
                                 }
@@ -2319,16 +2319,16 @@ export const CityMonitorComponent = () => {
                                         const visibilityAction =
                                             isHidden
                                                 ? t(
-                                                    "UI_Extended.CityMonitor.ShowIcon",
+                                                    "CityMonitor.ShowIcon",
                                                     "Rechtsklick: Symbol einblenden"
                                                 )
                                                 : t(
-                                                    "UI_Extended.CityMonitor.HideIcon",
+                                                    "CityMonitor.HideIcon",
                                                     "Rechtsklick: Symbol ausblenden"
                                                 );
                                         const visibilityHint =
                                             t(
-                                                "UI_Extended.CityMonitor.ReorderIcon",
+                                                "CityMonitor.ReorderIcon",
                                                 "Ziehen: Reihenfolge ändern"
                                             ) + " · " + visibilityAction;
 
@@ -2344,7 +2344,7 @@ export const CityMonitorComponent = () => {
                                                     details={[
                                                         {
                                                             value: t(
-                                                                "UI_Extended.CityMonitor.Hidden",
+                                                                "CityMonitor.Hidden",
                                                                 "Ausgeblendet"
                                                             ),
                                                         },
@@ -2504,7 +2504,7 @@ export const CityMonitorComponent = () => {
                                     <button
                                         onClick={toggleMin}
                                         onMouseDown={(e) => e.stopPropagation()}
-                                        title={t("UI_Extended.CityMonitor.CollapseExpand", "Ein-/ausklappen")}
+                                        title={t("CityMonitor.CollapseExpand", "Ein-/ausklappen")}
                                         style={headerBtnStyle}
                                     >
                                         {minimized ? "▼" : "▲"}
@@ -2516,7 +2516,7 @@ export const CityMonitorComponent = () => {
                                         {!compactValues && (
                                             <Row
                                                 iconSrc={alos}
-                                                label={t("UI_Extended.CityMonitor.Unemployed", "Arbeitslose")}
+                                                label={t("CityMonitor.Unemployed", "Arbeitslose")}
                                                 value={String(data.unemployedCount)}
                                                 showText={showText}
                                             />
@@ -2524,7 +2524,7 @@ export const CityMonitorComponent = () => {
 
                                         <Row
                                             iconSrc={stat}
-                                            label={t("UI_Extended.CityMonitor.UnemploymentRate", "Quote")}
+                                            label={t("CityMonitor.UnemploymentRate", "Quote")}
                                             value={data.unemploymentRate.toFixed(1) + " %"}
                                             color={rateColor}
                                             showText={showText}
@@ -2532,7 +2532,7 @@ export const CityMonitorComponent = () => {
 
                                         <Row
                                             iconSrc={work}
-                                            label={t("UI_Extended.CityMonitor.OpenJobs", "Offene Stellen")}
+                                            label={t("CityMonitor.OpenJobs", "Offene Stellen")}
                                             value={
                                                 compactValues
                                                     ? String(data.openJobs)
@@ -2551,7 +2551,7 @@ export const CityMonitorComponent = () => {
 
                                         <SchoolRow
                                             iconSrc={edu1}
-                                            label={t("UI_Extended.CityMonitor.ElementarySchool", "Grundschule")}
+                                            label={t("CityMonitor.ElementarySchool", "Grundschule")}
                                             students={data.elementaryStudents}
                                             free={data.elementaryFreeSlots}
                                             showText={showText}
@@ -2560,7 +2560,7 @@ export const CityMonitorComponent = () => {
 
                                         <SchoolRow
                                             iconSrc={edu2}
-                                            label={t("UI_Extended.CityMonitor.HighSchool", "Oberschule")}
+                                            label={t("CityMonitor.HighSchool", "Oberschule")}
                                             students={data.highStudents}
                                             free={data.highFreeSlots}
                                             showText={showText}
@@ -2569,7 +2569,7 @@ export const CityMonitorComponent = () => {
 
                                         <SchoolRow
                                             iconSrc={edu3}
-                                            label={t("UI_Extended.CityMonitor.College", "College")}
+                                            label={t("CityMonitor.College", "College")}
                                             students={data.collegeStudents}
                                             free={data.collegeFreeSlots}
                                             showText={showText}
@@ -2578,7 +2578,7 @@ export const CityMonitorComponent = () => {
 
                                         <SchoolRow
                                             iconSrc={edu4}
-                                            label={t("UI_Extended.CityMonitor.University", "Universität")}
+                                            label={t("CityMonitor.University", "Universität")}
                                             students={data.uniStudents}
                                             free={data.uniFreeSlots}
                                             showText={showText}
@@ -2599,7 +2599,7 @@ export const CityMonitorComponent = () => {
                                             onMouseDown={startResize("l")}
                                             onMouseEnter={() => setResizeHover("l")}
                                             onMouseLeave={() => setResizeHover(null)}
-                                            title={t("UI_Extended.CityMonitor.Resize", "Breite ziehen")}
+                                            title={t("CityMonitor.Resize", "Breite ziehen")}
                                             style={{
                                                 position: "absolute",
                                                 top: 0,
@@ -2620,7 +2620,7 @@ export const CityMonitorComponent = () => {
                                             onMouseDown={startResize("r")}
                                             onMouseEnter={() => setResizeHover("r")}
                                             onMouseLeave={() => setResizeHover(null)}
-                                            title={t("UI_Extended.CityMonitor.Resize", "Breite ziehen")}
+                                            title={t("CityMonitor.Resize", "Breite ziehen")}
                                             style={{
                                                 position: "absolute",
                                                 top: 0,

@@ -1,8 +1,8 @@
-﻿using Colossal.IO.AssetDatabase;
+using Colossal.IO.AssetDatabase;
 using Game.Modding;
 using Game.Settings;
 
-namespace UI_Extended
+namespace CityMonitor
 {
     public enum IconBarOrientation
     {
@@ -10,7 +10,7 @@ namespace UI_Extended
         Horizontal = 1
     }
 
-    [FileLocation(nameof(UI_Extended))]
+    [FileLocation(nameof(CityMonitor))]
     [SettingsUIGroupOrder(
         kGeneralGroup,
         kDisplayGroup,

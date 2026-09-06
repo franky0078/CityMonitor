@@ -1,6 +1,6 @@
-﻿<Publish>
+<Publish>
 	<ModId Value="" />
-	<DisplayName Value="UI_Extended" />
+	<DisplayName Value="City Monitor" />
 	<ShortDescription Value="Erweiterte Anzeige von Statistiken" />
 	<LongDescription>
 This is a long description

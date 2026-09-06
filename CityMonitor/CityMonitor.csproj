@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<Configurations>Debug;Release</Configurations>
 
-		<AssemblyName>UI_Extended</AssemblyName>
-		<RootNamespace>UI_Extended</RootNamespace>
+		<AssemblyName>CityMonitor</AssemblyName>
+		<RootNamespace>CityMonitor</RootNamespace>
 
 		<Version>1.0.0</Version>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
@@ -13,7 +13,7 @@
 		<PublishConfigurationPath>Properties\PublishConfiguration.xml</PublishConfigurationPath>
 
 		<UIProjectDirectory>$(MSBuildProjectDirectory)\Frontend</UIProjectDirectory>
-		<EnableUIExtendedUIBuild Condition="'$(EnableUIExtendedUIBuild)' == ''">true</EnableUIExtendedUIBuild>
+		<EnableCityMonitorUIBuild Condition="'$(EnableCityMonitorUIBuild)' == ''">true</EnableCityMonitorUIBuild>
 
 		<DefaultItemExcludes>Frontend\node_modules\**;$(DefaultItemExcludes)</DefaultItemExcludes>
 		<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
@@ -62,12 +62,12 @@
 	</ItemGroup>
 
 	<Target
-		Name="RestoreUIExtendedUI"
-		Condition="'$(EnableUIExtendedUIBuild)' == 'true'"
+		Name="RestoreCityMonitorUI"
+		Condition="'$(EnableCityMonitorUIBuild)' == 'true'"
 		Inputs="$(UIProjectDirectory)\package.json;$(UIProjectDirectory)\package-lock.json"
-		Outputs="$(UIProjectDirectory)\node_modules\.ui-extended-restored">
+		Outputs="$(UIProjectDirectory)\node_modules\.city-monitor-restored">
 
-		<Message Text="Restoring UI Extended frontend dependencies..." Importance="high" />
+		<Message Text="Restoring City Monitor frontend dependencies..." Importance="high" />
 
 		<Exec
 			Command="npm install --no-audit --no-fund"
@@ -77,17 +77,17 @@
 			StandardErrorImportance="high" />
 
 		<Touch
-			Files="$(UIProjectDirectory)\node_modules\.ui-extended-restored"
+			Files="$(UIProjectDirectory)\node_modules\.city-monitor-restored"
 			AlwaysCreate="true" />
 	</Target>
 
 	<Target
-		Name="BuildUIExtendedUI"
+		Name="BuildCityMonitorUI"
 		AfterTargets="AfterBuild"
-		DependsOnTargets="RestoreUIExtendedUI"
-		Condition="'$(EnableUIExtendedUIBuild)' == 'true'">
+		DependsOnTargets="RestoreCityMonitorUI"
+		Condition="'$(EnableCityMonitorUIBuild)' == 'true'">
 
-		<Message Text="Building UI Extended frontend..." Importance="high" />
+		<Message Text="Building City Monitor frontend..." Importance="high" />
 
 		<Exec
 			Command="npm run build"

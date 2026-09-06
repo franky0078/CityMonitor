@@ -1,4 +1,4 @@
-﻿using Game.Agents;
+using Game.Agents;
 using Game.Buildings;
 using Game.Citizens;
 using Game.Common;
@@ -11,7 +11,7 @@ using System;
 using Unity.Collections;
 using Unity.Entities;
 
-namespace UI_Extended.Logic
+namespace CityMonitor.Logic
 {
     public static class EmploymentCalculator
     {

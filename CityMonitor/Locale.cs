@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Colossal;
 
-namespace UI_Extended
+namespace CityMonitor
 {
     public class LocaleDE : IDictionarySource
     {
@@ -85,50 +85,50 @@ namespace UI_Extended
                     "Aktuell installierte Version des City Monitors." },
 
                 // Laufzeit-UI
-                { "UI_Extended.CityMonitor.Toggle", "City Monitor ein-/ausblenden" },
-                { "UI_Extended.CityMonitor.Drag", "Zum Verschieben ziehen" },
-                { "UI_Extended.CityMonitor.PositionLocked", "Position fixiert" },
-                { "UI_Extended.CityMonitor.CollapseExpand", "Ein-/ausklappen" },
-                { "UI_Extended.CityMonitor.Resize", "Breite ziehen" },
+                { "CityMonitor.Toggle", "City Monitor ein-/ausblenden" },
+                { "CityMonitor.Drag", "Zum Verschieben ziehen" },
+                { "CityMonitor.PositionLocked", "Position fixiert" },
+                { "CityMonitor.CollapseExpand", "Ein-/ausklappen" },
+                { "CityMonitor.Resize", "Breite ziehen" },
 
-                { "UI_Extended.CityMonitor.Unemployment", "Arbeitslosigkeit" },
-                { "UI_Extended.CityMonitor.UnemploymentRate", "Quote" },
-                { "UI_Extended.CityMonitor.Unemployed", "Arbeitslose" },
+                { "CityMonitor.Unemployment", "Arbeitslosigkeit" },
+                { "CityMonitor.UnemploymentRate", "Quote" },
+                { "CityMonitor.Unemployed", "Arbeitslose" },
 
-                { "UI_Extended.CityMonitor.Jobs", "Arbeitsplätze" },
-                { "UI_Extended.CityMonitor.OpenJobs", "Offene Stellen" },
-                { "UI_Extended.CityMonitor.Open", "Offen" },
-                { "UI_Extended.CityMonitor.Free", "Frei" },
-                { "UI_Extended.CityMonitor.Total", "Gesamt" },
+                { "CityMonitor.Jobs", "Arbeitsplätze" },
+                { "CityMonitor.OpenJobs", "Offene Stellen" },
+                { "CityMonitor.Open", "Offen" },
+                { "CityMonitor.Free", "Frei" },
+                { "CityMonitor.Total", "Gesamt" },
 
-                { "UI_Extended.CityMonitor.ElementarySchool", "Grundschule" },
-                { "UI_Extended.CityMonitor.HighSchool", "Oberschule" },
-                { "UI_Extended.CityMonitor.College", "College" },
-                { "UI_Extended.CityMonitor.University", "Universität" },
+                { "CityMonitor.ElementarySchool", "Grundschule" },
+                { "CityMonitor.HighSchool", "Oberschule" },
+                { "CityMonitor.College", "College" },
+                { "CityMonitor.University", "Universität" },
 
-                { "UI_Extended.CityMonitor.HideIcon", "Rechtsklick: Symbol ausblenden" },
-                { "UI_Extended.CityMonitor.ShowIcon", "Rechtsklick: Symbol einblenden" },
-                { "UI_Extended.CityMonitor.ReorderIcon", "Ziehen: Reihenfolge ändern" },
-                { "UI_Extended.CityMonitor.Hidden", "Ausgeblendet" },
-                { "UI_Extended.CityMonitor.Fire", "Feuerwehr" },
-                { "UI_Extended.CityMonitor.FireHazard", "Brandgefahr" },
-                { "UI_Extended.CityMonitor.Healthcare", "Krankenhaus" },
-                { "UI_Extended.CityMonitor.Cemetery", "Friedhof" },
-                { "UI_Extended.CityMonitor.Garbage", "Müll" },
-                { "UI_Extended.CityMonitor.Processing", "Verarbeitung" },
-                { "UI_Extended.CityMonitor.Landfill", "Deponie frei" },
-                { "UI_Extended.CityMonitor.TrafficFlow", "Verkehrsfluss" },
-                { "UI_Extended.CityMonitor.Electricity", "Strom" },
-                { "UI_Extended.CityMonitor.WaterSewage", "Wasser / Abwasser" },
-                { "UI_Extended.CityMonitor.Water", "Wasser" },
-                { "UI_Extended.CityMonitor.Sewage", "Abwasser" },
-                { "UI_Extended.CityMonitor.Availability", "Verfügbarkeit" },
-                { "UI_Extended.CityMonitor.CarParking", "Parkplätze Auto" },
-                { "UI_Extended.CityMonitor.BikeParking", "Parkplätze Fahrrad" },
-                { "UI_Extended.CityMonitor.Post", "Post" },
-                { "UI_Extended.CityMonitor.Tourism", "Tourismus" },
-                { "UI_Extended.CityMonitor.Tourists", "Touristen" },
-                { "UI_Extended.CityMonitor.Attractiveness", "Stadtattraktivität" },
+                { "CityMonitor.HideIcon", "Rechtsklick: Symbol ausblenden" },
+                { "CityMonitor.ShowIcon", "Rechtsklick: Symbol einblenden" },
+                { "CityMonitor.ReorderIcon", "Ziehen: Reihenfolge ändern" },
+                { "CityMonitor.Hidden", "Ausgeblendet" },
+                { "CityMonitor.Fire", "Feuerwehr" },
+                { "CityMonitor.FireHazard", "Brandgefahr" },
+                { "CityMonitor.Healthcare", "Krankenhaus" },
+                { "CityMonitor.Cemetery", "Friedhof" },
+                { "CityMonitor.Garbage", "Müll" },
+                { "CityMonitor.Processing", "Verarbeitung" },
+                { "CityMonitor.Landfill", "Deponie frei" },
+                { "CityMonitor.TrafficFlow", "Verkehrsfluss" },
+                { "CityMonitor.Electricity", "Strom" },
+                { "CityMonitor.WaterSewage", "Wasser / Abwasser" },
+                { "CityMonitor.Water", "Wasser" },
+                { "CityMonitor.Sewage", "Abwasser" },
+                { "CityMonitor.Availability", "Verfügbarkeit" },
+                { "CityMonitor.CarParking", "Parkplätze Auto" },
+                { "CityMonitor.BikeParking", "Parkplätze Fahrrad" },
+                { "CityMonitor.Post", "Post" },
+                { "CityMonitor.Tourism", "Tourismus" },
+                { "CityMonitor.Tourists", "Touristen" },
+                { "CityMonitor.Attractiveness", "Stadtattraktivität" },
             };
         }
 

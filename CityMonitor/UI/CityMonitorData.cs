@@ -1,6 +1,6 @@
-﻿using Colossal.UI.Binding;
+using Colossal.UI.Binding;
 
-namespace UI_Extended.UI
+namespace CityMonitor.UI
 {
     public struct CityMonitorData : IJsonWritable
     {
@@ -20,7 +20,7 @@ namespace UI_Extended.UI
 
         public void Write(IJsonWriter writer)
         {
-            writer.TypeBegin("UI_Extended.CityMonitorData");
+            writer.TypeBegin("CityMonitor.CityMonitorData");
             writer.PropertyName("unemployedCount"); writer.Write(UnemployedCount);
             writer.PropertyName("unemploymentRate"); writer.Write(UnemploymentRate);
             writer.PropertyName("openJobs"); writer.Write(OpenJobs);

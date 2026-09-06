@@ -1,15 +1,15 @@
-﻿using Colossal.Logging;
+using Colossal.Logging;
 using Game;
 using Game.Modding;
 using Game.SceneFlow;
 using Colossal.IO.AssetDatabase;
 
-namespace UI_Extended
+namespace CityMonitor
 {
     public class Mod : IMod
     {
         public static ILog Log =
-            LogManager.GetLogger($"{nameof(UI_Extended)}")
+            LogManager.GetLogger($"{nameof(CityMonitor)}")
                 .SetShowsErrorsInUI(false);
 
         private EmploymentUISystem _uiSystem;
@@ -38,7 +38,7 @@ namespace UI_Extended
                 new LocaleDE(Setting));
 
             AssetDatabase.global.LoadSettings(
-                nameof(UI_Extended),
+                nameof(CityMonitor),
                 Setting,
                 new Setting(this));
 
