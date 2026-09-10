@@ -92,6 +92,22 @@ const iconSize$ = bindValue<number>("cityMonitor", "iconSize");
 const iconGap$ = bindValue<number>("cityMonitor", "iconGap");
 const hiddenIcons$ = bindValue<string>("cityMonitor", "hiddenIcons");
 const iconOrder$ = bindValue<string>("cityMonitor", "iconOrder");
+const unemploymentGreenMax$ = bindValue<number>("cityMonitor", "unemploymentGreenMax");
+const unemploymentYellowMax$ = bindValue<number>("cityMonitor", "unemploymentYellowMax");
+const homelessGreenMax$ = bindValue<number>("cityMonitor", "homelessGreenMax");
+const homelessYellowMax$ = bindValue<number>("cityMonitor", "homelessYellowMax");
+const openJobsYellowMin$ = bindValue<number>("cityMonitor", "openJobsYellowMin");
+const openJobsGreenMin$ = bindValue<number>("cityMonitor", "openJobsGreenMin");
+const schoolYellowMin$ = bindValue<number>("cityMonitor", "schoolYellowMin");
+const schoolGreenMin$ = bindValue<number>("cityMonitor", "schoolGreenMin");
+const availabilityYellowMin$ = bindValue<number>("cityMonitor", "availabilityYellowMin");
+const availabilityGreenMin$ = bindValue<number>("cityMonitor", "availabilityGreenMin");
+const trafficYellowMin$ = bindValue<number>("cityMonitor", "trafficYellowMin");
+const trafficGreenMin$ = bindValue<number>("cityMonitor", "trafficGreenMin");
+const fireHazardGreenMax$ = bindValue<number>("cityMonitor", "fireHazardGreenMax");
+const fireHazardYellowMax$ = bindValue<number>("cityMonitor", "fireHazardYellowMax");
+const crimeRiskGreenMax$ = bindValue<number>("cityMonitor", "crimeRiskGreenMax");
+const crimeRiskYellowMax$ = bindValue<number>("cityMonitor", "crimeRiskYellowMax");
 
 const clamp = (v: number, min: number, max: number) =>
     Math.max(min, Math.min(max, v));
@@ -101,6 +117,85 @@ const STATUS_YELLOW = "#FFD84D";
 const STATUS_RED = "#FF5A5A";
 const STATUS_INACTIVE = "#8A929A";
 const STATUS_INFO = "#4DA3FF";
+
+interface StatusThresholds {
+    unemploymentGreenMax: number;
+    unemploymentYellowMax: number;
+    homelessGreenMax: number;
+    homelessYellowMax: number;
+    openJobsYellowMin: number;
+    openJobsGreenMin: number;
+    schoolYellowMin: number;
+    schoolGreenMin: number;
+    availabilityYellowMin: number;
+    availabilityGreenMin: number;
+    trafficYellowMin: number;
+    trafficGreenMin: number;
+    fireHazardGreenMax: number;
+    fireHazardYellowMax: number;
+    crimeRiskGreenMax: number;
+    crimeRiskYellowMax: number;
+}
+
+const normalizeThresholdPair = (first: number, second: number) => {
+    const low = clamp(Math.min(Number(first) || 0, Number(second) || 0), 0, 100);
+    const high = clamp(Math.max(Number(first) || 0, Number(second) || 0), 0, 100);
+    return [low, high] as const;
+};
+
+const normalizeStatusThresholds = (raw: StatusThresholds): StatusThresholds => {
+    const unemployment = normalizeThresholdPair(
+        raw.unemploymentGreenMax,
+        raw.unemploymentYellowMax
+    );
+    const homeless = normalizeThresholdPair(
+        raw.homelessGreenMax,
+        raw.homelessYellowMax
+    );
+    const openJobs = normalizeThresholdPair(
+        raw.openJobsYellowMin,
+        raw.openJobsGreenMin
+    );
+    const school = normalizeThresholdPair(
+        raw.schoolYellowMin,
+        raw.schoolGreenMin
+    );
+    const availability = normalizeThresholdPair(
+        raw.availabilityYellowMin,
+        raw.availabilityGreenMin
+    );
+    const traffic = normalizeThresholdPair(
+        raw.trafficYellowMin,
+        raw.trafficGreenMin
+    );
+    const fireHazard = normalizeThresholdPair(
+        raw.fireHazardGreenMax,
+        raw.fireHazardYellowMax
+    );
+    const crimeRisk = normalizeThresholdPair(
+        raw.crimeRiskGreenMax,
+        raw.crimeRiskYellowMax
+    );
+
+    return {
+        unemploymentGreenMax: unemployment[0],
+        unemploymentYellowMax: unemployment[1],
+        homelessGreenMax: homeless[0],
+        homelessYellowMax: homeless[1],
+        openJobsYellowMin: openJobs[0],
+        openJobsGreenMin: openJobs[1],
+        schoolYellowMin: school[0],
+        schoolGreenMin: school[1],
+        availabilityYellowMin: availability[0],
+        availabilityGreenMin: availability[1],
+        trafficYellowMin: traffic[0],
+        trafficGreenMin: traffic[1],
+        fireHazardGreenMax: fireHazard[0],
+        fireHazardYellowMax: fireHazard[1],
+        crimeRiskGreenMax: crimeRisk[0],
+        crimeRiskYellowMax: crimeRisk[1],
+    };
+};
 
 const indicatorPercent = (value: IndicatorValue | null | undefined) => {
     if (!value) return 0;
@@ -134,33 +229,33 @@ const scalarPercent = (value: number | null | undefined) => {
     return clamp(percent, 0, 100);
 };
 
-const availabilityStatusColor = (percent: number) => {
-    if (percent >= 60) return STATUS_GREEN;
-    if (percent >= 40) return STATUS_YELLOW;
+const availabilityStatusColor = (percent: number, thresholds: StatusThresholds) => {
+    if (percent >= thresholds.availabilityGreenMin) return STATUS_GREEN;
+    if (percent >= thresholds.availabilityYellowMin) return STATUS_YELLOW;
     return STATUS_RED;
 };
 
-const fireHazardStatusColor = (percent: number) => {
-    if (percent <= 33) return STATUS_GREEN;
-    if (percent <= 66) return STATUS_YELLOW;
+const fireHazardStatusColor = (percent: number, thresholds: StatusThresholds) => {
+    if (percent <= thresholds.fireHazardGreenMax) return STATUS_GREEN;
+    if (percent <= thresholds.fireHazardYellowMax) return STATUS_YELLOW;
     return STATUS_RED;
 };
 
-const trafficStatusColor = (percent: number) => {
-    if (percent >= 70) return STATUS_GREEN;
-    if (percent >= 50) return STATUS_YELLOW;
+const trafficStatusColor = (percent: number, thresholds: StatusThresholds) => {
+    if (percent >= thresholds.trafficGreenMin) return STATUS_GREEN;
+    if (percent >= thresholds.trafficYellowMin) return STATUS_YELLOW;
     return STATUS_RED;
 };
 
-const riskStatusColor = (percent: number) => {
-    if (percent <= 33) return STATUS_GREEN;
-    if (percent <= 66) return STATUS_YELLOW;
+const riskStatusColor = (percent: number, thresholds: StatusThresholds) => {
+    if (percent <= thresholds.crimeRiskGreenMax) return STATUS_GREEN;
+    if (percent <= thresholds.crimeRiskYellowMax) return STATUS_YELLOW;
     return STATUS_RED;
 };
 
-const homelessStatusColor = (percent: number) => {
-    if (percent <= 1) return STATUS_GREEN;
-    if (percent <= 3) return STATUS_YELLOW;
+const homelessStatusColor = (percent: number, thresholds: StatusThresholds) => {
+    if (percent <= thresholds.homelessGreenMax) return STATUS_GREEN;
+    if (percent <= thresholds.homelessYellowMax) return STATUS_YELLOW;
     return STATUS_RED;
 };
 
@@ -281,6 +376,7 @@ const SchoolRow = ({
     free,
     showText,
     compactValues,
+    thresholds,
 }: {
     iconSrc: string;
     label: string;
@@ -288,6 +384,7 @@ const SchoolRow = ({
     free: number;
     showText: boolean;
     compactValues: boolean;
+    thresholds: StatusThresholds;
 }) => (
     <div
         style={{
@@ -313,13 +410,13 @@ const SchoolRow = ({
 
         <span style={{ whiteSpace: "nowrap" }}>
             {compactValues ? (
-                <span style={{ color: free <= 0 ? "#ff6b6b" : "#7CFC00" }}>
+                <span style={{ color: schoolStatusColor(free, students, thresholds) }}>
                     {free}
                 </span>
             ) : (
                 <>
                     {students}{"\u00A0/\u00A0"}
-                    <span style={{ color: free <= 0 ? "#ff6b6b" : "#7CFC00" }}>
+                    <span style={{ color: schoolStatusColor(free, students, thresholds) }}>
                         {free}
                     </span>
                 </>
@@ -333,10 +430,12 @@ const HomelessRow = ({
     showText,
     compactValues,
     t,
+    thresholds,
 }: {
     showText: boolean;
     compactValues: boolean;
     t: Translate;
+    thresholds: StatusThresholds;
 }) => {
     const homeless = useValue(infoview.homeless$);
     const homelessness = useValue(infoview.homelessness$);
@@ -352,38 +451,46 @@ const HomelessRow = ({
                     ? percent.toFixed(1) + " %"
                     : percent.toFixed(1) + " % / " + String(homelessCount)
             }
-            color={homelessStatusColor(percent)}
+            color={homelessStatusColor(percent, thresholds)}
             showText={showText}
         />
     );
 };
 
-const unemploymentStatusColor = (rate: number) => {
-    if (rate <= 5) return STATUS_GREEN;
-    if (rate <= 10) return STATUS_YELLOW;
+const unemploymentStatusColor = (rate: number, thresholds: StatusThresholds) => {
+    if (rate <= thresholds.unemploymentGreenMax) return STATUS_GREEN;
+    if (rate <= thresholds.unemploymentYellowMax) return STATUS_YELLOW;
     return STATUS_RED;
 };
 
-const openJobsStatusColor = (open: number, total: number) => {
+const openJobsStatusColor = (
+    open: number,
+    total: number,
+    thresholds: StatusThresholds
+) => {
     if (total <= 0) return STATUS_RED;
 
-    const ratio = open / total;
+    const percent = open / total * 100;
 
-    if (ratio >= 0.05) return STATUS_GREEN;
-    if (ratio >= 0.01) return STATUS_YELLOW;
+    if (percent >= thresholds.openJobsGreenMin) return STATUS_GREEN;
+    if (percent >= thresholds.openJobsYellowMin) return STATUS_YELLOW;
     return STATUS_RED;
 };
 
-const schoolStatusColor = (free: number, students: number) => {
+const schoolStatusColor = (
+    free: number,
+    students: number,
+    thresholds: StatusThresholds
+) => {
     if (free <= 0) return STATUS_RED;
 
     const capacity = free + students;
     if (capacity <= 0) return STATUS_RED;
 
-    const ratio = free / capacity;
+    const percent = free / capacity * 100;
 
-    if (ratio >= 0.10) return STATUS_GREEN;
-    if (ratio >= 0.03) return STATUS_YELLOW;
+    if (percent >= thresholds.schoolGreenMin) return STATUS_GREEN;
+    if (percent >= thresholds.schoolYellowMin) return STATUS_YELLOW;
     return STATUS_RED;
 };
 
@@ -867,6 +974,7 @@ interface ServiceStatusIconProps
     > {
     compactValues: boolean;
     t: Translate;
+    thresholds: StatusThresholds;
 }
 
 // Servicewerte werden nur für aktive Symbole abonniert
@@ -876,8 +984,7 @@ const HomelessStatusIcon = (props: ServiceStatusIconProps) => {
     const homelessCount =
         Math.max(0, Math.round(Number(homeless) || 0));
 
-    const percent =
-        clamp(Number(homelessness) || 0, 0, 100);
+    const percent = scalarPercent(homelessness);
 
     return (
         <StatusIcon
@@ -906,7 +1013,7 @@ const HomelessStatusIcon = (props: ServiceStatusIconProps) => {
                         },
                     ]
             }
-            ringColor={homelessStatusColor(percent)}
+            ringColor={homelessStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -930,7 +1037,7 @@ const FireStatusIcon = (props: ServiceStatusIconProps) => {
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={fireHazardStatusColor(percent)}
+            ringColor={fireHazardStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -956,7 +1063,7 @@ const HealthcareStatusIcon = (
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={availabilityStatusColor(percent)}
+            ringColor={availabilityStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -981,7 +1088,7 @@ const CemeteryStatusIcon = (
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={availabilityStatusColor(percent)}
+            ringColor={availabilityStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -1007,7 +1114,7 @@ const CrematoriumStatusIcon = (
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={availabilityStatusColor(percent)}
+            ringColor={availabilityStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -1061,7 +1168,7 @@ const GarbageProcessingStatusIcon = (
                         },
                     ]
             }
-            ringColor={availabilityStatusColor(percent)}
+            ringColor={availabilityStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -1087,7 +1194,7 @@ const LandfillStatusIcon = (
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={availabilityStatusColor(percent)}
+            ringColor={availabilityStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -1141,7 +1248,7 @@ const PoliceStatusIcon = (
                         },
                     ]
             }
-            ringColor={riskStatusColor(crimePercent)}
+            ringColor={riskStatusColor(crimePercent, props.thresholds)}
         />
     );
 };
@@ -1185,7 +1292,7 @@ const TrafficStatusIcon = (
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={trafficStatusColor(percent)}
+            ringColor={trafficStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -1211,7 +1318,7 @@ const ElectricityStatusIcon = (
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={availabilityStatusColor(percent)}
+            ringColor={availabilityStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -1265,7 +1372,7 @@ const WaterStatusIcon = (
                     ]
             }
             ringColor={
-                availabilityStatusColor(overallPercent)
+                availabilityStatusColor(overallPercent, props.thresholds)
             }
         />
     );
@@ -1293,7 +1400,7 @@ const ParkingCarStatusIcon = (
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={availabilityStatusColor(percent)}
+            ringColor={availabilityStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -1319,7 +1426,7 @@ const ParkingBikeStatusIcon = (
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={availabilityStatusColor(percent)}
+            ringColor={availabilityStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -1345,7 +1452,7 @@ const PostStatusIcon = (
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={availabilityStatusColor(percent)}
+            ringColor={availabilityStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -1389,7 +1496,7 @@ const AttractivenessStatusIcon = (
                     value: percent.toFixed(0) + " %",
                 },
             ]}
-            ringColor={availabilityStatusColor(percent)}
+            ringColor={availabilityStatusColor(percent, props.thresholds)}
         />
     );
 };
@@ -1455,6 +1562,7 @@ interface NormalServiceRowsProps {
     compactValues: boolean;
     showText: boolean;
     t: Translate;
+    thresholds: StatusThresholds;
 }
 
 // Servicewerte für den normalen Panelmodus
@@ -1462,6 +1570,7 @@ const NormalServiceRows = ({
     compactValues,
     showText,
     t,
+    thresholds,
 }: NormalServiceRowsProps) => {
     const fireHazard = useValue(infoview.averageFireHazard$);
     const healthcare = useValue(infoview.healthcareAvailability$);
@@ -1530,63 +1639,63 @@ const NormalServiceRows = ({
                 iconSrc={ICON_FIRE}
                 label={t("CityMonitor.Fire", "Feuerwehr")}
                 value={firePercent.toFixed(0) + " %"}
-                color={fireHazardStatusColor(firePercent)}
+                color={fireHazardStatusColor(firePercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_HEALTHCARE}
                 label={t("CityMonitor.Healthcare", "Krankenhaus")}
                 value={healthcarePercent.toFixed(0) + " %"}
-                color={availabilityStatusColor(healthcarePercent)}
+                color={availabilityStatusColor(healthcarePercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_CEMETERY}
                 label={t("CityMonitor.Cemetery", "Friedhof")}
                 value={cemeteryPercent.toFixed(0) + " %"}
-                color={availabilityStatusColor(cemeteryPercent)}
+                color={availabilityStatusColor(cemeteryPercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={crematoriumIcon}
                 label={t("CityMonitor.Crematorium", "Krematorium")}
                 value={crematoriumPercent.toFixed(0) + " %"}
-                color={availabilityStatusColor(crematoriumPercent)}
+                color={availabilityStatusColor(crematoriumPercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_GARBAGE}
                 label={t("CityMonitor.GarbageProcessing", "Müllverarbeitung")}
                 value={garbageProcessingPercent.toFixed(0) + " %"}
-                color={availabilityStatusColor(garbageProcessingPercent)}
+                color={availabilityStatusColor(garbageProcessingPercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={landfillIcon}
                 label={t("CityMonitor.Landfill", "Deponie")}
                 value={landfillPercent.toFixed(0) + " %"}
-                color={availabilityStatusColor(landfillPercent)}
+                color={availabilityStatusColor(landfillPercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={policeIcon}
                 label={t("CityMonitor.Police", "Polizei")}
                 value={crimePercent.toFixed(0) + " %"}
-                color={riskStatusColor(crimePercent)}
+                color={riskStatusColor(crimePercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_TRAFFIC}
                 label={t("CityMonitor.TrafficFlow", "Verkehrsfluss")}
                 value={trafficPercent.toFixed(0) + " %"}
-                color={trafficStatusColor(trafficPercent)}
+                color={trafficStatusColor(trafficPercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_ELECTRICITY}
                 label={t("CityMonitor.Electricity", "Strom")}
                 value={electricityPercent.toFixed(0) + " %"}
-                color={availabilityStatusColor(electricityPercent)}
+                color={availabilityStatusColor(electricityPercent, thresholds)}
                 showText={showText}
             />
             <Row
@@ -1598,28 +1707,28 @@ const NormalServiceRows = ({
                         : waterPercent.toFixed(0) + " / " +
                         sewagePercent.toFixed(0) + " %"
                 }
-                color={availabilityStatusColor(waterSewagePercent)}
+                color={availabilityStatusColor(waterSewagePercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_PARKING}
                 label={t("CityMonitor.CarParking", "Parkplätze Auto")}
                 value={parkingCarPercent.toFixed(0) + " %"}
-                color={availabilityStatusColor(parkingCarPercent)}
+                color={availabilityStatusColor(parkingCarPercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_BICYCLE}
                 label={t("CityMonitor.BikeParking", "Parkplätze Fahrrad")}
                 value={parkingBikePercent.toFixed(0) + " %"}
-                color={availabilityStatusColor(parkingBikePercent)}
+                color={availabilityStatusColor(parkingBikePercent, thresholds)}
                 showText={showText}
             />
             <Row
                 iconSrc={ICON_POST}
                 label={t("CityMonitor.Post", "Post")}
                 value={postPercent.toFixed(0) + " %"}
-                color={availabilityStatusColor(postPercent)}
+                color={availabilityStatusColor(postPercent, thresholds)}
                 showText={showText}
             />
             <Row
@@ -1633,7 +1742,7 @@ const NormalServiceRows = ({
                 iconSrc={ICON_ATTRACTIVENESS}
                 label={t("CityMonitor.Attractiveness", "Stadtattraktivität")}
                 value={attractivenessPercent.toFixed(0) + " %"}
-                color={availabilityStatusColor(attractivenessPercent)}
+                color={availabilityStatusColor(attractivenessPercent, thresholds)}
                 showText={showText}
             />
         </>
@@ -1661,8 +1770,43 @@ export const CityMonitorComponent = () => {
     const iconGapSetting = useValue(iconGap$);
     const hiddenIconsRaw = useValue(hiddenIcons$);
     const iconOrderRaw = useValue(iconOrder$);
+    const unemploymentGreenMax = useValue(unemploymentGreenMax$);
+    const unemploymentYellowMax = useValue(unemploymentYellowMax$);
+    const homelessGreenMax = useValue(homelessGreenMax$);
+    const homelessYellowMax = useValue(homelessYellowMax$);
+    const openJobsYellowMin = useValue(openJobsYellowMin$);
+    const openJobsGreenMin = useValue(openJobsGreenMin$);
+    const schoolYellowMin = useValue(schoolYellowMin$);
+    const schoolGreenMin = useValue(schoolGreenMin$);
+    const availabilityYellowMin = useValue(availabilityYellowMin$);
+    const availabilityGreenMin = useValue(availabilityGreenMin$);
+    const trafficYellowMin = useValue(trafficYellowMin$);
+    const trafficGreenMin = useValue(trafficGreenMin$);
+    const fireHazardGreenMax = useValue(fireHazardGreenMax$);
+    const fireHazardYellowMax = useValue(fireHazardYellowMax$);
+    const crimeRiskGreenMax = useValue(crimeRiskGreenMax$);
+    const crimeRiskYellowMax = useValue(crimeRiskYellowMax$);
     const availableInfoviews = useValue(infoview.infoviews$);
     const activeInfoview = useValue(infoview.activeInfoview$);
+
+    const thresholds = normalizeStatusThresholds({
+        unemploymentGreenMax,
+        unemploymentYellowMax,
+        homelessGreenMax,
+        homelessYellowMax,
+        openJobsYellowMin,
+        openJobsGreenMin,
+        schoolYellowMin,
+        schoolGreenMin,
+        availabilityYellowMin,
+        availabilityGreenMin,
+        trafficYellowMin,
+        trafficGreenMin,
+        fireHazardGreenMax,
+        fireHazardYellowMax,
+        crimeRiskGreenMax,
+        crimeRiskYellowMax,
+    });
 
     const [hiddenIconIds, setHiddenIconIds] =
         useState<Set<string>>(new Set());
@@ -2381,7 +2525,8 @@ export const CityMonitorComponent = () => {
                         },
                     ],
                 ringColor: unemploymentStatusColor(
-                    data.unemploymentRate
+                    data.unemploymentRate,
+                    thresholds
                 ),
             },
             {
@@ -2420,7 +2565,8 @@ export const CityMonitorComponent = () => {
                     ],
                 ringColor: openJobsStatusColor(
                     data.openJobs,
-                    data.totalJobSlots
+                    data.totalJobSlots,
+                    thresholds
                 ),
             },
             {
@@ -2453,7 +2599,8 @@ export const CityMonitorComponent = () => {
                     ],
                 ringColor: schoolStatusColor(
                     data.elementaryFreeSlots,
-                    data.elementaryStudents
+                    data.elementaryStudents,
+                    thresholds
                 ),
             },
             {
@@ -2486,7 +2633,8 @@ export const CityMonitorComponent = () => {
                     ],
                 ringColor: schoolStatusColor(
                     data.highFreeSlots,
-                    data.highStudents
+                    data.highStudents,
+                    thresholds
                 ),
             },
             {
@@ -2519,7 +2667,8 @@ export const CityMonitorComponent = () => {
                     ],
                 ringColor: schoolStatusColor(
                     data.collegeFreeSlots,
-                    data.collegeStudents
+                    data.collegeStudents,
+                    thresholds
                 ),
             },
             {
@@ -2552,7 +2701,8 @@ export const CityMonitorComponent = () => {
                     ],
                 ringColor: schoolStatusColor(
                     data.uniFreeSlots,
-                    data.uniStudents
+                    data.uniStudents,
+                    thresholds
                 ),
             },
 
@@ -2806,8 +2956,9 @@ export const CityMonitorComponent = () => {
         infoview.setActiveInfoview(target.entity);
     };
 
-    const rateColor =
-        data && data.unemploymentRate > 10 ? "#ff6b6b" : "#7CFC00";
+    const rateColor = data
+        ? unemploymentStatusColor(data.unemploymentRate, thresholds)
+        : STATUS_INACTIVE;
 
     const headerBtnStyle: React.CSSProperties = {
         background: "rgba(255,255,255,0.1)",
@@ -3053,6 +3204,7 @@ export const CityMonitorComponent = () => {
                                                         compactValues
                                                     }
                                                     t={t}
+                                                    thresholds={thresholds}
                                                     iconOpacity={
                                                         currentIconOpacity
                                                     }
@@ -3206,6 +3358,7 @@ export const CityMonitorComponent = () => {
                                             showText={showText}
                                             compactValues={compactValues}
                                             t={t}
+                                            thresholds={thresholds}
                                         />
 
                                         <Row
@@ -3216,6 +3369,11 @@ export const CityMonitorComponent = () => {
                                                     ? String(data.openJobs)
                                                     : `${data.openJobs} / ${data.totalJobSlots}`
                                             }
+                                            color={openJobsStatusColor(
+                                                data.openJobs,
+                                                data.totalJobSlots,
+                                                thresholds
+                                            )}
                                             showText={showText}
                                         />
 
@@ -3234,6 +3392,7 @@ export const CityMonitorComponent = () => {
                                             free={data.elementaryFreeSlots}
                                             showText={showText}
                                             compactValues={compactValues}
+                                            thresholds={thresholds}
                                         />
 
                                         <SchoolRow
@@ -3243,6 +3402,7 @@ export const CityMonitorComponent = () => {
                                             free={data.highFreeSlots}
                                             showText={showText}
                                             compactValues={compactValues}
+                                            thresholds={thresholds}
                                         />
 
                                         <SchoolRow
@@ -3252,6 +3412,7 @@ export const CityMonitorComponent = () => {
                                             free={data.collegeFreeSlots}
                                             showText={showText}
                                             compactValues={compactValues}
+                                            thresholds={thresholds}
                                         />
 
                                         <SchoolRow
@@ -3261,12 +3422,14 @@ export const CityMonitorComponent = () => {
                                             free={data.uniFreeSlots}
                                             showText={showText}
                                             compactValues={compactValues}
+                                            thresholds={thresholds}
                                         />
 
                                         <NormalServiceRows
                                             compactValues={compactValues}
                                             showText={showText}
                                             t={t}
+                                            thresholds={thresholds}
                                         />
                                     </div>
                                 )}

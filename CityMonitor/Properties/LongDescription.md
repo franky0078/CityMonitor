@@ -38,9 +38,7 @@ Features include:
 - Horizontal or vertical layout
 - Movable icon bar with a dedicated drag handle
 - Optional position lock
-- Adjustable icon size
-- Adjustable icon spacing
-- Adjustable icon transparency
+- Adjustable icon size, spacing and transparency
 - Custom icon order
 - Individual icons can be hidden
 - Hover tooltips with detailed values
@@ -51,7 +49,6 @@ When icon editing is enabled, icons can be reordered by dragging them. Right-cli
 ## Direct information view access
 
 When icon editing is disabled, clicking a status icon opens the corresponding Cities: Skylines II information view.
-
 Clicking the same icon again closes the information view.
 
 Examples include:
@@ -76,7 +73,6 @@ City Monitor can be configured in the game options.
 
 Available settings include:
 
-- Show or hide City Monitor
 - Compact values
 - Show labels
 - Compact icon mode
@@ -86,13 +82,11 @@ Available settings include:
 - Icon transparency
 - Icon size
 - Icon spacing
-- Reset icon order
-- Restore all hidden icons
+- Color Thresholds can be customized
 
 ## Update interval
 
 The update interval for locally calculated employment and education statistics can be configured between 0.5 and 60 seconds.
-
 Many city service indicators use the game's UI bindings directly and therefore update independently of this interval.
 
 ## Performance
@@ -107,9 +101,7 @@ City Monitor was inspired by City Stats by kendallroth:
 https://github.com/kendallroth/cs2-city-stats
 
 City Stats provided the original inspiration for displaying important city statistics in a compact and accessible interface.
-
 With City Stats not receiving further updates since June 2026, I decided to create City Monitor as my own independently developed implementation, expanding the original concept with additional statistics, city service monitoring, customizable status icons, direct information-view access and further display options.
-
 Special thanks to kendallroth for the original City Stats mod and for the inspiration behind this project.
 
 City Monitor is an independent project and is not officially affiliated with City Stats or its developer.

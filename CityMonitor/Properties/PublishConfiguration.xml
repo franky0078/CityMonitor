@@ -57,9 +57,7 @@
 		- Horizontal or vertical layout
 		- Movable icon bar with a dedicated drag handle
 		- Optional position lock
-		- Adjustable icon size
-		- Adjustable icon spacing
-		- Adjustable icon transparency
+		- Adjustable icon size, spacing and transparency
 		- Custom icon order
 		- Individual icons can be hidden
 		- Hover tooltips with detailed values
@@ -70,7 +68,6 @@
 		## Direct information view access
 
 		When icon editing is disabled, clicking a status icon opens the corresponding Cities: Skylines II information view.
-
 		Clicking the same icon again closes the information view.
 
 		Examples include:
@@ -95,7 +92,6 @@
 
 		Available settings include:
 
-		- Show or hide City Monitor
 		- Compact values
 		- Show labels
 		- Compact icon mode
@@ -105,13 +101,11 @@
 		- Icon transparency
 		- Icon size
 		- Icon spacing
-		- Reset icon order
-		- Restore all hidden icons
+		- Color Thresholds can be customized
 
 		## Update interval
 
 		The update interval for locally calculated employment and education statistics can be configured between 0.5 and 60 seconds.
-
 		Many city service indicators use the game's UI bindings directly and therefore update independently of this interval.
 
 		## Performance
@@ -126,9 +120,7 @@
 		https://github.com/kendallroth/cs2-city-stats
 
 		City Stats provided the original inspiration for displaying important city statistics in a compact and accessible interface.
-
 		With City Stats not receiving further updates since June 2026, I decided to create City Monitor as my own independently developed implementation, expanding the original concept with additional statistics, city service monitoring, customizable status icons, direct information-view access and further display options.
-
 		Special thanks to kendallroth for the original City Stats mod and for the inspiration behind this project.
 
 		City Monitor is an independent project and is not officially affiliated with City Stats or its developer.
@@ -163,6 +155,7 @@
 	<Screenshot Value="Properties/Screenshot08.jpg" />
 	<Screenshot Value="Properties/Screenshot09.jpg" />
 	<Screenshot Value="Properties/Screenshot10.jpg" />
+	<Screenshot Value="Properties/Screenshot11.jpg" />
 
 	<Tag Value="Code Mod" />
 
@@ -171,7 +164,7 @@
 	
 
 	<!-- First public release -->
-	<ModVersion Value="1.0.5" />
+	<ModVersion Value="1.1.0" />
 
 	<!-- Tested Cities: Skylines II version -->
 	<GameVersion Value="1.6.*" />
@@ -179,9 +172,11 @@
 	<!-- City Monitor currently has no required mod dependencies. -->
 
 	<ChangeLog>
-		Version 1.0.5
+		Version 1.1.0
 
-		- now correctly shows the percentage of homeless citizens instead of the percentage of citizens without a home
+		- Added a new Color Thresholds tab to the mod options.
+		- Status colors are now consistent between the normal panel and compact icon mode.
+		- Invalid or reversed threshold values are automatically corrected.
 
 	</ChangeLog>
 

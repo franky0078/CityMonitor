@@ -33,6 +33,22 @@ namespace CityMonitor
         private GetterValueBinding<int> _iconGapBinding;
         private GetterValueBinding<string> _hiddenIconsBinding;
         private GetterValueBinding<string> _iconOrderBinding;
+        private GetterValueBinding<int> _unemploymentGreenMaxBinding;
+        private GetterValueBinding<int> _unemploymentYellowMaxBinding;
+        private GetterValueBinding<int> _homelessGreenMaxBinding;
+        private GetterValueBinding<int> _homelessYellowMaxBinding;
+        private GetterValueBinding<int> _openJobsYellowMinBinding;
+        private GetterValueBinding<int> _openJobsGreenMinBinding;
+        private GetterValueBinding<int> _schoolYellowMinBinding;
+        private GetterValueBinding<int> _schoolGreenMinBinding;
+        private GetterValueBinding<int> _availabilityYellowMinBinding;
+        private GetterValueBinding<int> _availabilityGreenMinBinding;
+        private GetterValueBinding<int> _trafficYellowMinBinding;
+        private GetterValueBinding<int> _trafficGreenMinBinding;
+        private GetterValueBinding<int> _fireHazardGreenMaxBinding;
+        private GetterValueBinding<int> _fireHazardYellowMaxBinding;
+        private GetterValueBinding<int> _crimeRiskGreenMaxBinding;
+        private GetterValueBinding<int> _crimeRiskYellowMaxBinding;
 
         private EntityQuery _potentialWorkforceQuery;
         private EntityQuery _workplaceQuery;
@@ -98,6 +114,39 @@ namespace CityMonitor
             AddBinding(_iconOrderBinding = new GetterValueBinding<string>(
                 Group, "iconOrder",
                 () => Mod.Setting?.IconOrder ?? "[]"));
+
+            AddBinding(_unemploymentGreenMaxBinding = new GetterValueBinding<int>(
+                Group, "unemploymentGreenMax", () => ClampPercent(Mod.Setting?.UnemploymentGreenMax ?? 5)));
+            AddBinding(_unemploymentYellowMaxBinding = new GetterValueBinding<int>(
+                Group, "unemploymentYellowMax", () => ClampPercent(Mod.Setting?.UnemploymentYellowMax ?? 10)));
+            AddBinding(_homelessGreenMaxBinding = new GetterValueBinding<int>(
+                Group, "homelessGreenMax", () => ClampPercent(Mod.Setting?.HomelessGreenMax ?? 1)));
+            AddBinding(_homelessYellowMaxBinding = new GetterValueBinding<int>(
+                Group, "homelessYellowMax", () => ClampPercent(Mod.Setting?.HomelessYellowMax ?? 3)));
+            AddBinding(_openJobsYellowMinBinding = new GetterValueBinding<int>(
+                Group, "openJobsYellowMin", () => ClampPercent(Mod.Setting?.OpenJobsYellowMin ?? 1)));
+            AddBinding(_openJobsGreenMinBinding = new GetterValueBinding<int>(
+                Group, "openJobsGreenMin", () => ClampPercent(Mod.Setting?.OpenJobsGreenMin ?? 5)));
+            AddBinding(_schoolYellowMinBinding = new GetterValueBinding<int>(
+                Group, "schoolYellowMin", () => ClampPercent(Mod.Setting?.SchoolYellowMin ?? 3)));
+            AddBinding(_schoolGreenMinBinding = new GetterValueBinding<int>(
+                Group, "schoolGreenMin", () => ClampPercent(Mod.Setting?.SchoolGreenMin ?? 10)));
+            AddBinding(_availabilityYellowMinBinding = new GetterValueBinding<int>(
+                Group, "availabilityYellowMin", () => ClampPercent(Mod.Setting?.AvailabilityYellowMin ?? 40)));
+            AddBinding(_availabilityGreenMinBinding = new GetterValueBinding<int>(
+                Group, "availabilityGreenMin", () => ClampPercent(Mod.Setting?.AvailabilityGreenMin ?? 60)));
+            AddBinding(_trafficYellowMinBinding = new GetterValueBinding<int>(
+                Group, "trafficYellowMin", () => ClampPercent(Mod.Setting?.TrafficYellowMin ?? 50)));
+            AddBinding(_trafficGreenMinBinding = new GetterValueBinding<int>(
+                Group, "trafficGreenMin", () => ClampPercent(Mod.Setting?.TrafficGreenMin ?? 70)));
+            AddBinding(_fireHazardGreenMaxBinding = new GetterValueBinding<int>(
+                Group, "fireHazardGreenMax", () => ClampPercent(Mod.Setting?.FireHazardGreenMax ?? 33)));
+            AddBinding(_fireHazardYellowMaxBinding = new GetterValueBinding<int>(
+                Group, "fireHazardYellowMax", () => ClampPercent(Mod.Setting?.FireHazardYellowMax ?? 66)));
+            AddBinding(_crimeRiskGreenMaxBinding = new GetterValueBinding<int>(
+                Group, "crimeRiskGreenMax", () => ClampPercent(Mod.Setting?.CrimeRiskGreenMax ?? 33)));
+            AddBinding(_crimeRiskYellowMaxBinding = new GetterValueBinding<int>(
+                Group, "crimeRiskYellowMax", () => ClampPercent(Mod.Setting?.CrimeRiskYellowMax ?? 66)));
 
             _updateIntervalSeconds = ClampUpdateInterval(Mod.Setting?.UpdateIntervalSeconds ?? 15f);
 
@@ -182,6 +231,22 @@ namespace CityMonitor
             _iconGapBinding.Update();
             _hiddenIconsBinding.Update();
             _iconOrderBinding.Update();
+            _unemploymentGreenMaxBinding.Update();
+            _unemploymentYellowMaxBinding.Update();
+            _homelessGreenMaxBinding.Update();
+            _homelessYellowMaxBinding.Update();
+            _openJobsYellowMinBinding.Update();
+            _openJobsGreenMinBinding.Update();
+            _schoolYellowMinBinding.Update();
+            _schoolGreenMinBinding.Update();
+            _availabilityYellowMinBinding.Update();
+            _availabilityGreenMinBinding.Update();
+            _trafficYellowMinBinding.Update();
+            _trafficGreenMinBinding.Update();
+            _fireHazardGreenMaxBinding.Update();
+            _fireHazardYellowMaxBinding.Update();
+            _crimeRiskGreenMaxBinding.Update();
+            _crimeRiskYellowMaxBinding.Update();
 
             _updateIntervalSeconds = ClampUpdateInterval(
                 Mod.Setting?.UpdateIntervalSeconds ?? 15f);
