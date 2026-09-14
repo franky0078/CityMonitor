@@ -29,6 +29,19 @@ namespace CityMonitor.Logic
             public int OpenSlots => Math.Max(0, TotalCapacity - TotalOccupied);
         }
 
+        public struct SchoolDataResult
+        {
+            public int ElementaryCapacity;
+            public int HighSchoolCapacity;
+            public int CollegeCapacity;
+            public int UniversityCapacity;
+
+            public int ElementaryStudents;
+            public int HighSchoolStudents;
+            public int CollegeStudents;
+            public int UniversityStudents;
+        }
+
         // Arbeitslosigkeit nach Einwohnerstatus berechnen
         public static WorkforceData CalculateWorkforce(NativeArray<Entity> allCitizens, EntityManager entityManager)
         {
@@ -98,45 +111,66 @@ namespace CityMonitor.Logic
             return result;
         }
 
-        // Schulkapazitäten und Schülerzahlen berechnen
-        public static (int elem, int high, int college, int uni) CalculateSchoolCapacities(NativeArray<Entity> schools, EntityManager entityManager)
+        // Schulkapazitäten und tatsächliche Belegung wie im Spiel berechnen
+        public static SchoolDataResult CalculateSchoolData(
+            NativeArray<Entity> schools,
+            EntityManager entityManager,
+            ref ComponentLookup<PrefabRef> prefabRefs,
+            ref ComponentLookup<SchoolData> schoolDataLookup)
         {
-            int c1 = 0, c2 = 0, c3 = 0, c4 = 0;
+            SchoolDataResult result = new SchoolDataResult();
+
             foreach (var entity in schools)
             {
-                if (entityManager.HasComponent<PrefabRef>(entity))
-                {
-                    var prefabRef = entityManager.GetComponentData<PrefabRef>(entity);
-                    if (entityManager.HasComponent<SchoolData>(prefabRef.m_Prefab))
-                    {
-                        var schoolData = entityManager.GetComponentData<SchoolData>(prefabRef.m_Prefab);
-                        switch ((int)schoolData.m_EducationLevel)
-                        {
-                            case 1: c1 += schoolData.m_StudentCapacity; break;
-                            case 2: c2 += schoolData.m_StudentCapacity; break;
-                            case 3: c3 += schoolData.m_StudentCapacity; break;
-                            case 4: c4 += schoolData.m_StudentCapacity; break;
-                        }
-                    }
-                }
-            }
-            return (c1, c2, c3, c4);
-        }
+                if (!entityManager.HasBuffer<Efficiency>(entity))
+                    continue;
 
-        public static (int elem, int high, int college, int uni) CountStudents(NativeArray<Game.Citizens.Student> students)
-        {
-            int s1 = 0, s2 = 0, s3 = 0, s4 = 0;
-            for (int i = 0; i < students.Length; i++)
-            {
-                switch ((int)students[i].m_Level)
+                var efficiency = entityManager.GetBuffer<Efficiency>(entity, true);
+                if (BuildingUtils.GetEfficiency(efficiency) == 0f)
+                    continue;
+
+                if (!prefabRefs.TryGetComponent(entity, out var prefabRef) ||
+                    !schoolDataLookup.TryGetComponent(prefabRef.m_Prefab, out var schoolData))
                 {
-                    case 0: case 1: s1++; break;
-                    case 2: s2++; break;
-                    case 3: s3++; break;
-                    case 4: default: s4++; break;
+                    continue;
+                }
+
+                if (entityManager.HasBuffer<InstalledUpgrade>(entity))
+                {
+                    var upgrades = entityManager.GetBuffer<InstalledUpgrade>(entity, true);
+                    UpgradeUtils.CombineStats(
+                        ref schoolData,
+                        upgrades,
+                        ref prefabRefs,
+                        ref schoolDataLookup);
+                }
+
+                int students = entityManager.HasBuffer<Game.Buildings.Student>(entity)
+                    ? entityManager.GetBuffer<Game.Buildings.Student>(entity, true).Length
+                    : 0;
+
+                switch ((int)schoolData.m_EducationLevel)
+                {
+                    case 1:
+                        result.ElementaryCapacity += schoolData.m_StudentCapacity;
+                        result.ElementaryStudents += students;
+                        break;
+                    case 2:
+                        result.HighSchoolCapacity += schoolData.m_StudentCapacity;
+                        result.HighSchoolStudents += students;
+                        break;
+                    case 3:
+                        result.CollegeCapacity += schoolData.m_StudentCapacity;
+                        result.CollegeStudents += students;
+                        break;
+                    case 4:
+                        result.UniversityCapacity += schoolData.m_StudentCapacity;
+                        result.UniversityStudents += students;
+                        break;
                 }
             }
-            return (s1, s2, s3, s4);
+
+            return result;
         }
 
         public static string GetColorForValue(int capacity, int current) => (capacity - current < 0) ? "#ff6b6b" : "#51cf66";

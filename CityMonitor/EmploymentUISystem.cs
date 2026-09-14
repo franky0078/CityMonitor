@@ -53,7 +53,6 @@ namespace CityMonitor
         private EntityQuery _potentialWorkforceQuery;
         private EntityQuery _workplaceQuery;
         private EntityQuery _schoolQuery;
-        private EntityQuery _studentQuery;
 
         private float _timer = 0f;
 
@@ -367,49 +366,52 @@ namespace CityMonitor
             {
                 using var schoolEntities =
                     _schoolQuery.ToEntityArray(Allocator.Temp);
-                using var students =
-                    _studentQuery.ToComponentDataArray<Game.Citizens.Student>(
-                        Allocator.Temp);
 
-                var cap = EmploymentCalculator.CalculateSchoolCapacities(
+                var prefabRefs =
+                    SystemAPI.GetComponentLookup<PrefabRef>(true);
+                var schoolData =
+                    SystemAPI.GetComponentLookup<SchoolData>(true);
+
+                var schools = EmploymentCalculator.CalculateSchoolData(
                     schoolEntities,
-                    EntityManager);
-                var stud = EmploymentCalculator.CountStudents(students);
+                    EntityManager,
+                    ref prefabRefs,
+                    ref schoolData);
 
                 if (updateElementary)
                 {
-                    data.ElementaryStudents = stud.elem;
+                    data.ElementaryStudents = schools.ElementaryStudents;
                     data.ElementaryFreeSlots =
                         EmploymentCalculator.CalculateFreeSchoolSlots(
-                            cap.elem,
-                            stud.elem);
+                            schools.ElementaryCapacity,
+                            schools.ElementaryStudents);
                 }
 
                 if (updateHighSchool)
                 {
-                    data.HighSchoolStudents = stud.high;
+                    data.HighSchoolStudents = schools.HighSchoolStudents;
                     data.HighSchoolFreeSlots =
                         EmploymentCalculator.CalculateFreeSchoolSlots(
-                            cap.high,
-                            stud.high);
+                            schools.HighSchoolCapacity,
+                            schools.HighSchoolStudents);
                 }
 
                 if (updateCollege)
                 {
-                    data.CollegeStudents = stud.college;
+                    data.CollegeStudents = schools.CollegeStudents;
                     data.CollegeFreeSlots =
                         EmploymentCalculator.CalculateFreeSchoolSlots(
-                            cap.college,
-                            stud.college);
+                            schools.CollegeCapacity,
+                            schools.CollegeStudents);
                 }
 
                 if (updateUniversity)
                 {
-                    data.UniversityStudents = stud.uni;
+                    data.UniversityStudents = schools.UniversityStudents;
                     data.UniversityFreeSlots =
                         EmploymentCalculator.CalculateFreeSchoolSlots(
-                            cap.uni,
-                            stud.uni);
+                            schools.UniversityCapacity,
+                            schools.UniversityStudents);
                 }
             }
 
@@ -477,23 +479,11 @@ namespace CityMonitor
             {
                 All = new[]
                 {
+                    ComponentType.ReadOnly<Building>(),
                     ComponentType.ReadOnly<Game.Buildings.School>(),
+                    ComponentType.ReadOnly<Game.Buildings.Student>(),
                     ComponentType.ReadOnly<PrefabRef>(),
-                    ComponentType.ReadOnly<UpdateFrame>()
-                },
-                None = new[]
-                {
-                    ComponentType.ReadOnly<Deleted>(),
-                    ComponentType.ReadOnly<Temp>()
-                }
-            });
-
-            _studentQuery = GetEntityQuery(new EntityQueryDesc
-            {
-                All = new[]
-                {
-                    ComponentType.ReadOnly<Game.Citizens.Student>(),
-                    ComponentType.ReadOnly<Citizen>()
+                    ComponentType.ReadOnly<Efficiency>()
                 },
                 None = new[]
                 {
