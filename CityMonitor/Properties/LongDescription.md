@@ -1,7 +1,5 @@
 City Monitor provides a compact overview of important city statistics and service conditions directly in the Cities: Skylines II interface.
 
-Instead of repeatedly opening multiple information views, City Monitor can display the most relevant values in one configurable panel or as a compact icon bar. Status colors make it easy to identify potential problems at a glance, while tooltips provide additional details.
-
 ## Monitored statistics
 
 
