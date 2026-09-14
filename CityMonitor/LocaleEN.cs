@@ -166,6 +166,7 @@ namespace CityMonitor
                 { "CityMonitor.OpenJobs", "Open jobs" },
                 { "CityMonitor.Open", "Open" },
                 { "CityMonitor.Free", "Free" },
+                { "CityMonitor.Occupied", "Occupied" },
                 { "CityMonitor.Total", "Total" },
 
                 { "CityMonitor.ElementarySchool", "Elementary School" },

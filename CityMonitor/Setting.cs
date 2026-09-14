@@ -59,6 +59,7 @@ namespace CityMonitor
         public bool CompactValues { get; set; } = false;
 
         [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeEnabled))]
         public bool ShowLabels { get; set; } = false;
 
         [SettingsUISection(kSection, kDisplayGroup)]
@@ -203,11 +204,16 @@ namespace CityMonitor
         // Versionsanzeige aus der Assembly
         [SettingsUISection(kSection, kAboutGroup)]
         public string ModVersion =>
-            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.1.2";
+            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.1.0";
 
         public bool IsIconOnlyModeDisabled()
         {
             return !IconOnlyMode;
+        }
+
+        public bool IsIconOnlyModeEnabled()
+        {
+            return IconOnlyMode;
         }
 
         public override void SetDefaults()

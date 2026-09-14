@@ -259,7 +259,7 @@ const homelessStatusColor = (percent: number, thresholds: StatusThresholds) => {
     return STATUS_RED;
 };
 
-// City Monitor App-Icon
+// City Monitor App-Icon als direkt gezeichneter Ingame-SVG-Pfad
 const P_CITY_MONITOR =
     "M 3.84,10.00 7.54,7.50 6.86,6.50 3.16,9.00 Z " +
     "M 6.92,7.53 10.32,9.33 10.88,8.27 7.48,6.47 Z " +
@@ -1789,6 +1789,31 @@ export const CityMonitorComponent = () => {
     const availableInfoviews = useValue(infoview.infoviews$);
     const activeInfoview = useValue(infoview.activeInfoview$);
 
+    const getSchoolTooltipDetails = (
+        students: number,
+        free: number
+    ): TooltipDetail[] => {
+        const details: TooltipDetail[] = [
+            {
+                label: t("CityMonitor.Total", "Gesamt"),
+                value: String(students + free),
+            },
+            {
+                label: t("CityMonitor.Occupied", "Belegt"),
+                value: String(students),
+            },
+        ];
+
+        if (!compactValues) {
+            details.push({
+                label: t("CityMonitor.Free", "Frei"),
+                value: String(free),
+            });
+        }
+
+        return details;
+    };
+
     const thresholds = normalizeStatusThresholds({
         unemploymentGreenMax,
         unemploymentYellowMax,
@@ -2550,17 +2575,17 @@ export const CityMonitorComponent = () => {
                     : [
                         {
                             label: t(
-                                "CityMonitor.Open",
-                                "Offen"
-                            ),
-                            value: String(data.openJobs),
-                        },
-                        {
-                            label: t(
                                 "CityMonitor.Total",
                                 "Gesamt"
                             ),
                             value: String(data.totalJobSlots),
+                        },
+                        {
+                            label: t(
+                                "CityMonitor.Open",
+                                "Offen"
+                            ),
+                            value: String(data.openJobs),
                         },
                     ],
                 ringColor: openJobsStatusColor(
@@ -2576,27 +2601,10 @@ export const CityMonitorComponent = () => {
                     "CityMonitor.ElementarySchool",
                     "Grundschule"
                 ),
-                details: compactValues
-                    ? [{ value: String(data.elementaryFreeSlots) }]
-                    : [
-                        {
-                            label: t(
-                                "CityMonitor.Free",
-                                "Frei"
-                            ),
-                            value: String(data.elementaryFreeSlots),
-                        },
-                        {
-                            label: t(
-                                "CityMonitor.Total",
-                                "Gesamt"
-                            ),
-                            value: String(
-                                data.elementaryStudents +
-                                data.elementaryFreeSlots
-                            ),
-                        },
-                    ],
+                details: getSchoolTooltipDetails(
+                    data.elementaryStudents,
+                    data.elementaryFreeSlots
+                ),
                 ringColor: schoolStatusColor(
                     data.elementaryFreeSlots,
                     data.elementaryStudents,
@@ -2610,27 +2618,10 @@ export const CityMonitorComponent = () => {
                     "CityMonitor.HighSchool",
                     "Oberschule"
                 ),
-                details: compactValues
-                    ? [{ value: String(data.highFreeSlots) }]
-                    : [
-                        {
-                            label: t(
-                                "CityMonitor.Free",
-                                "Frei"
-                            ),
-                            value: String(data.highFreeSlots),
-                        },
-                        {
-                            label: t(
-                                "CityMonitor.Total",
-                                "Gesamt"
-                            ),
-                            value: String(
-                                data.highStudents +
-                                data.highFreeSlots
-                            ),
-                        },
-                    ],
+                details: getSchoolTooltipDetails(
+                    data.highStudents,
+                    data.highFreeSlots
+                ),
                 ringColor: schoolStatusColor(
                     data.highFreeSlots,
                     data.highStudents,
@@ -2644,27 +2635,10 @@ export const CityMonitorComponent = () => {
                     "CityMonitor.College",
                     "College"
                 ),
-                details: compactValues
-                    ? [{ value: String(data.collegeFreeSlots) }]
-                    : [
-                        {
-                            label: t(
-                                "CityMonitor.Free",
-                                "Frei"
-                            ),
-                            value: String(data.collegeFreeSlots),
-                        },
-                        {
-                            label: t(
-                                "CityMonitor.Total",
-                                "Gesamt"
-                            ),
-                            value: String(
-                                data.collegeStudents +
-                                data.collegeFreeSlots
-                            ),
-                        },
-                    ],
+                details: getSchoolTooltipDetails(
+                    data.collegeStudents,
+                    data.collegeFreeSlots
+                ),
                 ringColor: schoolStatusColor(
                     data.collegeFreeSlots,
                     data.collegeStudents,
@@ -2678,27 +2652,10 @@ export const CityMonitorComponent = () => {
                     "CityMonitor.University",
                     "Universität"
                 ),
-                details: compactValues
-                    ? [{ value: String(data.uniFreeSlots) }]
-                    : [
-                        {
-                            label: t(
-                                "CityMonitor.Free",
-                                "Frei"
-                            ),
-                            value: String(data.uniFreeSlots),
-                        },
-                        {
-                            label: t(
-                                "CityMonitor.Total",
-                                "Gesamt"
-                            ),
-                            value: String(
-                                data.uniStudents +
-                                data.uniFreeSlots
-                            ),
-                        },
-                    ],
+                details: getSchoolTooltipDetails(
+                    data.uniStudents,
+                    data.uniFreeSlots
+                ),
                 ringColor: schoolStatusColor(
                     data.uniFreeSlots,
                     data.uniStudents,

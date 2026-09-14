@@ -6,9 +6,9 @@
 		<AssemblyName>CityMonitor</AssemblyName>
 		<RootNamespace>CityMonitor</RootNamespace>
 
-		<Version>1.1.2</Version>
-		<AssemblyVersion>1.1.2.0</AssemblyVersion>
-		<FileVersion>1.1.2.0</FileVersion>
+		<Version>1.1.3</Version>
+		<AssemblyVersion>1.1.3.0</AssemblyVersion>
+		<FileVersion>1.1.3.0</FileVersion>
 
 		<PublishConfigurationPath>Properties\PublishConfiguration.xml</PublishConfigurationPath>
 
