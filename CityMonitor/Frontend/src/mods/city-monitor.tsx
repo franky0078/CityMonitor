@@ -259,7 +259,7 @@ const homelessStatusColor = (percent: number, thresholds: StatusThresholds) => {
     return STATUS_RED;
 };
 
-// City Monitor App-Icon als direkt gezeichneter Ingame-SVG-Pfad
+// City Monitor App-Icon
 const P_CITY_MONITOR =
     "M 3.84,10.00 7.54,7.50 6.86,6.50 3.16,9.00 Z " +
     "M 6.92,7.53 10.32,9.33 10.88,8.27 7.48,6.47 Z " +

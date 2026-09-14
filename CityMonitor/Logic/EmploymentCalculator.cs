@@ -111,7 +111,7 @@ namespace CityMonitor.Logic
             return result;
         }
 
-        // Schulkapazitäten und tatsächliche Belegung wie im Spiel berechnen
+        // Schulkapazitäten und tatsächliche Belegung
         public static SchoolDataResult CalculateSchoolData(
             NativeArray<Entity> schools,
             EntityManager entityManager,
