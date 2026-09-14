@@ -170,6 +170,7 @@
 
 	<ChangeLog>
 		Version 1.1.3
+		
 
 		- fixed: school data calculation
 		- updated Tooltip text for school capacity and unemployment statistic

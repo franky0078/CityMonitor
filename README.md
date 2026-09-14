@@ -129,11 +129,10 @@ When reporting a problem, please include:
 
 ## ChangeLog>
 
-Version 1.1.0
+Version 1.1.3
 
-- Added a new Color Thresholds tab to the mod options.
-- Status colors are now consistent between the normal panel and compact icon mode.
-- Invalid or reversed threshold values are automatically corrected.
+- fixed: school data calculation
+- updated Tooltip text for school capacity and unemployment statistic
 
 
 
