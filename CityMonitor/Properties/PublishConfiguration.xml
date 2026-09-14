@@ -161,7 +161,7 @@
 	
 
 	<!-- First public release -->
-	<ModVersion Value="1.1.1" />
+	<ModVersion Value="1.1.2" />
 
 	<!-- Tested Cities: Skylines II version -->
 	<GameVersion Value="1.6.*" />
@@ -169,9 +169,10 @@
 	<!-- City Monitor currently has no required mod dependencies. -->
 
 	<ChangeLog>
-		Version 1.1.1
+		Version 1.1.2
 
 		- fixed: school data calculation
+		- updated Tooltip text for school capacity
 
 	</ChangeLog>
 

@@ -417,7 +417,7 @@ const SchoolRow = ({
                 <>
                     {students}{"\u00A0/\u00A0"}
                     <span style={{ color: schoolStatusColor(free, students, thresholds) }}>
-                        {free}
+                        {students + free}
                     </span>
                 </>
             )}
