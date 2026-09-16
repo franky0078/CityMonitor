@@ -22,6 +22,7 @@ namespace CityMonitor
 
         private ValueBinding<CityMonitorData> _dataBinding;
         private GetterValueBinding<bool> _showPanelBinding;
+        private GetterValueBinding<int> _buttonLocationBinding;
         private GetterValueBinding<bool> _compactValuesBinding;
         private GetterValueBinding<bool> _showLabelsBinding;
         private GetterValueBinding<bool> _iconOnlyModeBinding;
@@ -72,6 +73,10 @@ namespace CityMonitor
 
             AddBinding(_showPanelBinding = new GetterValueBinding<bool>(
                 Group, "showPanel", () => Mod.Setting?.ShowPanel ?? true));
+
+            AddBinding(_buttonLocationBinding = new GetterValueBinding<int>(
+                Group, "buttonLocation",
+                () => (int)(Mod.Setting?.ButtonLocation ?? ModButtonLocation.Standard)));
 
             AddBinding(_compactValuesBinding = new GetterValueBinding<bool>(
                 Group, "compactValues", () => Mod.Setting?.CompactValues ?? false));
@@ -219,6 +224,7 @@ namespace CityMonitor
         private void OnSettingsApplied(Game.Settings.Setting setting)
         {
             _showPanelBinding.Update();
+            _buttonLocationBinding.Update();
             _compactValuesBinding.Update();
             _showLabelsBinding.Update();
             _iconOnlyModeBinding.Update();

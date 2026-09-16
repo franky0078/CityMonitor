@@ -11,6 +11,12 @@ namespace CityMonitor
         Horizontal = 1
     }
 
+    public enum ModButtonLocation
+    {
+        Standard = 0,
+        UniversalModMenu = 1
+    }
+
     [FileLocation(nameof(CityMonitor))]
     [SettingsUIGroupOrder(
         kGeneralGroup,
@@ -54,6 +60,10 @@ namespace CityMonitor
 
         [SettingsUISection(kSection, kGeneralGroup)]
         public bool ShowPanel { get; set; } = true;
+
+        [SettingsUISection(kSection, kGeneralGroup)]
+        public ModButtonLocation ButtonLocation { get; set; } =
+            ModButtonLocation.Standard;
 
         [SettingsUISection(kSection, kDisplayGroup)]
         public bool CompactValues { get; set; } = false;
@@ -219,6 +229,7 @@ namespace CityMonitor
         public override void SetDefaults()
         {
             ShowPanel = true;
+            ButtonLocation = ModButtonLocation.Standard;
             CompactValues = false;
             ShowLabels = false;
             IconOnlyMode = false;

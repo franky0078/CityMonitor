@@ -34,6 +34,12 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowPanel)),
                     "Shows or hides the City Monitor, including its in-game toggle button." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ButtonLocation)), "Mod button location" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ButtonLocation)),
+                    "Sets whether the City Monitor button is shown in its original position or inside the new Universal Mod Menu." },
+                { m_Setting.GetEnumValueLocaleID(ModButtonLocation.Standard), "Standard (original position)" },
+                { m_Setting.GetEnumValueLocaleID(ModButtonLocation.UniversalModMenu), "Universal Mod Menu" },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CompactValues)), "Show relevant values only" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.CompactValues)),
                     "Reduces multi-value indicators to their most relevant values. This applies to unemployment, homelessness, jobs, schools, and combined service indicators such as water/sewage. In compact icon mode, the same setting also applies to hover tooltips." },

@@ -41,6 +41,7 @@ Features include:
 - Individual icons can be hidden
 - Hover tooltips with detailed values
 - Colored status rings for quick visual feedback
+- Language support for German, English, French, Spanish and Italian
 
 When icon editing is enabled, icons can be reordered by dragging them. Right-clicking an icon hides or restores it.
 
@@ -53,13 +54,13 @@ Examples include:
 
 - Population
 - Education
-- Fire & Rescue
-- Healthcare & Deathcare
+- Fire &amp; Rescue
+- Healthcare &amp; Deathcare
 - Garbage Management
 - Police
 - Traffic
 - Electricity
-- Water & Sewage
+- Water &amp; Sewage
 - Roads
 - Bicycles
 - Post

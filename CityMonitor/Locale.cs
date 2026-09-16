@@ -34,6 +34,12 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowPanel)),
                     "Blendet den City Monitor inklusive Schaltfläche im Spiel ein oder aus." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ButtonLocation)), "Position der Mod-Schaltfläche" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ButtonLocation)),
+                    "Legt fest, ob die City-Monitor-Schaltfläche wie bisher einzeln oder im neuen Mod-Schaltflächenmenü angezeigt wird." },
+                { m_Setting.GetEnumValueLocaleID(ModButtonLocation.Standard), "Standard (wie bisher)" },
+                { m_Setting.GetEnumValueLocaleID(ModButtonLocation.UniversalModMenu), "Mod-Schaltflächenmenü" },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.CompactValues)), "Nur relevante Werte anzeigen" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.CompactValues)),
                     "Reduziert Mehrfachwerte auf die wichtigsten Kennzahlen. Das betrifft Arbeitslosigkeit, Obdachlosigkeit, Arbeitsplätze, Schulen sowie kombinierte Servicewerte wie Wasser/Abwasser. Im kompakten Symbolmodus gilt die Auswahl auch für die Hover-Tooltips." },

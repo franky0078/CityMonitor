@@ -1750,7 +1750,11 @@ const NormalServiceRows = ({
 };
 
 // Hauptkomponente und persistenter UI-Zustand
-export const CityMonitorComponent = () => {
+export const CityMonitorComponent = ({
+    inUniversalModMenu = false,
+}: {
+    inUniversalModMenu?: boolean;
+}) => {
     const localization = useLocalization();
     const t = (id: string, fallback: string) =>
         localization.translate(id, fallback) ?? fallback;
@@ -2931,6 +2935,15 @@ export const CityMonitorComponent = () => {
         return null;
     }
 
+    const toolbarScale = inUniversalModMenu
+        ? Number.parseFloat(
+            getComputedStyle(document.documentElement)
+                .getPropertyValue("--toolbarScale")
+        ) || 1
+        : 1;
+    const launcherSize = inUniversalModMenu ? 32 * toolbarScale : 36;
+    const launcherIconSize = inUniversalModMenu ? 32 * toolbarScale : 40;
+
     return (
         <>
             <button
@@ -2940,25 +2953,23 @@ export const CityMonitorComponent = () => {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    width: "36rem",
-                    height: "36rem",
-                    margin: "0 4rem",
+                    width: `${launcherSize}rem`,
+                    height: `${launcherSize}rem`,
+                    margin: inUniversalModMenu ? 0 : "0 4rem",
                     padding: 0,
                     borderRadius: "4rem",
                     border: "none",
                     cursor: "pointer",
                     color: "#fff",
-                    backgroundColor: visible
-                        ? "rgba(76,188,226,0.95)"
-                        : "rgba(60,76,86,0.92)",
-                    opacity: visible ? 1 : 0.68,
+                    backgroundColor: "rgba(76,188,226,0.95)",
+                    opacity: visible ? 1 : 0.9,
                     transition:
                         "background-color 120ms ease, opacity 120ms ease",
                 }}
             >
                 <Icon
                     path={P_CITY_MONITOR}
-                    size={40}
+                    size={launcherIconSize}
                     color="#fff"
                 />
             </button>
