@@ -54,6 +54,36 @@ const ALL_ICON_IDS = [
     "attractiveness",
 ] as const;
 
+const NORMAL_SERVICE_IDS = [
+    "fire",
+    "healthcare",
+    "cemetery",
+    "crematorium",
+    "garbageProcessing",
+    "landfill",
+    "police",
+    "traffic",
+    "electricity",
+    "water",
+    "parkingCar",
+    "parkingBike",
+    "post",
+    "tourism",
+    "attractiveness",
+] as const;
+
+const ALL_NORMAL_STAT_IDS = [
+    "unemployed",
+    "unemployment",
+    "homeless",
+    "jobs",
+    "elementary",
+    "highschool",
+    "college",
+    "university",
+    ...NORMAL_SERVICE_IDS,
+] as const;
+
 interface CityMonitorData {
     unemployedCount: number;
     unemploymentRate: number;
@@ -91,6 +121,10 @@ const iconBackgroundTransparency$ = bindValue<number>(
 const iconSize$ = bindValue<number>("cityMonitor", "iconSize");
 const iconGap$ = bindValue<number>("cityMonitor", "iconGap");
 const hiddenIcons$ = bindValue<string>("cityMonitor", "hiddenIcons");
+const hiddenNormalStats$ = bindValue<string>(
+    "cityMonitor",
+    "hiddenNormalStats"
+);
 const iconOrder$ = bindValue<string>("cityMonitor", "iconOrder");
 const unemploymentGreenMax$ = bindValue<number>("cityMonitor", "unemploymentGreenMax");
 const unemploymentYellowMax$ = bindValue<number>("cityMonitor", "unemploymentYellowMax");
@@ -368,6 +402,53 @@ const Row = ({
         </span>
     </div>
 );
+
+const EditableNormalStat = ({
+    id,
+    hidden,
+    editMode,
+    onToggleVisibility,
+    title,
+    children,
+}: {
+    id: string;
+    hidden: boolean;
+    editMode: boolean;
+    onToggleVisibility: (id: string) => void;
+    title: string;
+    children: React.ReactNode;
+}) => {
+    if (hidden && !editMode) {
+        return null;
+    }
+
+    return (
+        <div
+            title={editMode ? title : undefined}
+            onContextMenu={(event) => {
+                if (!editMode) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+                onToggleVisibility(id);
+            }}
+            style={{
+                opacity: editMode && hidden ? 0.45 : 1,
+                cursor: editMode ? "context-menu" : undefined,
+                borderRadius: "3rem",
+                backgroundColor:
+                    editMode && hidden
+                        ? "rgba(255,255,255,0.05)"
+                        : "transparent",
+                transition: "opacity 120ms ease, background-color 120ms ease",
+            }}
+        >
+            {children}
+        </div>
+    );
+};
 
 const SchoolRow = ({
     iconSrc,
@@ -1563,6 +1644,10 @@ interface NormalServiceRowsProps {
     showText: boolean;
     t: Translate;
     thresholds: StatusThresholds;
+    hiddenStatIds: Set<string>;
+    editMode: boolean;
+    showSeparator: boolean;
+    onToggleVisibility: (id: string) => void;
 }
 
 // Servicewerte für den normalen Panelmodus
@@ -1571,6 +1656,10 @@ const NormalServiceRows = ({
     showText,
     t,
     thresholds,
+    hiddenStatIds,
+    editMode,
+    showSeparator,
+    onToggleVisibility,
 }: NormalServiceRowsProps) => {
     const fireHazard = useValue(infoview.averageFireHazard$);
     const healthcare = useValue(infoview.healthcareAvailability$);
@@ -1625,80 +1714,110 @@ const NormalServiceRows = ({
 
     const waterSewagePercent = Math.min(waterPercent, sewagePercent);
 
+    const renderStat = (id: string, row: React.ReactNode) => {
+        const hidden = hiddenStatIds.has(id);
+        const action = hidden
+            ? t("CityMonitor.ShowStat", "Rechtsklick: Anzeige einblenden")
+            : t("CityMonitor.HideStat", "Rechtsklick: Anzeige ausblenden");
+
+        return (
+            <EditableNormalStat
+                key={id}
+                id={id}
+                hidden={hidden}
+                editMode={editMode}
+                onToggleVisibility={onToggleVisibility}
+                title={action}
+            >
+                {row}
+            </EditableNormalStat>
+        );
+    };
+
+    const hasVisibleService =
+        editMode ||
+        NORMAL_SERVICE_IDS.some((id) => !hiddenStatIds.has(id));
+
+    if (!hasVisibleService) {
+        return null;
+    }
+
     return (
         <>
-            <div
-                style={{
-                    height: "1rem",
-                    background: "rgba(255,255,255,0.1)",
-                    margin: "6rem 0",
-                }}
-            />
+            {showSeparator && (
+                <div
+                    style={{
+                        height: "1rem",
+                        background: "rgba(255,255,255,0.1)",
+                        margin: "6rem 0",
+                    }}
+                />
+            )}
 
-            <Row
+            {renderStat("fire", <Row
                 iconSrc={ICON_FIRE}
                 label={t("CityMonitor.Fire", "Feuerwehr")}
                 value={firePercent.toFixed(0) + " %"}
                 color={fireHazardStatusColor(firePercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("healthcare", <Row
                 iconSrc={ICON_HEALTHCARE}
                 label={t("CityMonitor.Healthcare", "Krankenhaus")}
                 value={healthcarePercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(healthcarePercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("cemetery", <Row
                 iconSrc={ICON_CEMETERY}
                 label={t("CityMonitor.Cemetery", "Friedhof")}
                 value={cemeteryPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(cemeteryPercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("crematorium", <Row
                 iconSrc={crematoriumIcon}
                 label={t("CityMonitor.Crematorium", "Krematorium")}
                 value={crematoriumPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(crematoriumPercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("garbageProcessing", <Row
                 iconSrc={ICON_GARBAGE}
                 label={t("CityMonitor.GarbageProcessing", "Müllverarbeitung")}
                 value={garbageProcessingPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(garbageProcessingPercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("landfill", <Row
                 iconSrc={landfillIcon}
                 label={t("CityMonitor.Landfill", "Deponie")}
                 value={landfillPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(landfillPercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("police", <Row
                 iconSrc={policeIcon}
                 label={t("CityMonitor.Police", "Polizei")}
                 value={crimePercent.toFixed(0) + " %"}
                 color={riskStatusColor(crimePercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("traffic", <Row
                 iconSrc={ICON_TRAFFIC}
                 label={t("CityMonitor.TrafficFlow", "Verkehrsfluss")}
                 value={trafficPercent.toFixed(0) + " %"}
                 color={trafficStatusColor(trafficPercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("electricity", <Row
                 iconSrc={ICON_ELECTRICITY}
                 label={t("CityMonitor.Electricity", "Strom")}
                 value={electricityPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(electricityPercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("water", <Row
                 iconSrc={ICON_WATER}
                 label={t("CityMonitor.WaterSewage", "Wasser / Abwasser")}
                 value={
@@ -1709,42 +1828,42 @@ const NormalServiceRows = ({
                 }
                 color={availabilityStatusColor(waterSewagePercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("parkingCar", <Row
                 iconSrc={ICON_PARKING}
                 label={t("CityMonitor.CarParking", "Parkplätze Auto")}
                 value={parkingCarPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(parkingCarPercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("parkingBike", <Row
                 iconSrc={ICON_BICYCLE}
                 label={t("CityMonitor.BikeParking", "Parkplätze Fahrrad")}
                 value={parkingBikePercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(parkingBikePercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("post", <Row
                 iconSrc={ICON_POST}
                 label={t("CityMonitor.Post", "Post")}
                 value={postPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(postPercent, thresholds)}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("tourism", <Row
                 iconSrc={ICON_TOURISM}
                 label={t("CityMonitor.Tourism", "Tourismus")}
                 value={String(Math.max(0, Math.round(Number(tourists) || 0)))}
                 color={STATUS_INFO}
                 showText={showText}
-            />
-            <Row
+            />)}
+            {renderStat("attractiveness", <Row
                 iconSrc={ICON_ATTRACTIVENESS}
                 label={t("CityMonitor.Attractiveness", "Stadtattraktivität")}
                 value={attractivenessPercent.toFixed(0) + " %"}
                 color={availabilityStatusColor(attractivenessPercent, thresholds)}
                 showText={showText}
-            />
+            />)}
         </>
     );
 };
@@ -1773,6 +1892,7 @@ export const CityMonitorComponent = ({
     const iconSizeSetting = useValue(iconSize$);
     const iconGapSetting = useValue(iconGap$);
     const hiddenIconsRaw = useValue(hiddenIcons$);
+    const hiddenNormalStatsRaw = useValue(hiddenNormalStats$);
     const iconOrderRaw = useValue(iconOrder$);
     const unemploymentGreenMax = useValue(unemploymentGreenMax$);
     const unemploymentYellowMax = useValue(unemploymentYellowMax$);
@@ -1861,6 +1981,32 @@ export const CityMonitorComponent = ({
             setHiddenIconIds(new Set());
         }
     }, [hiddenIconsRaw]);
+
+    const [hiddenNormalStatIds, setHiddenNormalStatIds] =
+        useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        try {
+            const parsed = JSON.parse(hiddenNormalStatsRaw || "[]");
+            const validIds = new Set<string>(ALL_NORMAL_STAT_IDS);
+
+            if (Array.isArray(parsed)) {
+                setHiddenNormalStatIds(
+                    new Set(
+                        parsed.filter(
+                            (item): item is string =>
+                                typeof item === "string" &&
+                                validIds.has(item)
+                        )
+                    )
+                );
+            } else {
+                setHiddenNormalStatIds(new Set());
+            }
+        } catch {
+            setHiddenNormalStatIds(new Set());
+        }
+    }, [hiddenNormalStatsRaw]);
 
     const normalizeIconOrder = (ids: string[]) => {
         const validIds = new Set<string>(ALL_ICON_IDS);
@@ -2455,6 +2601,71 @@ export const CityMonitorComponent = ({
         } catch {
         }
     };
+
+    const toggleNormalStatVisibility = (id: string) => {
+        if (!iconVisibilityEditMode || iconOnlyMode) {
+            return;
+        }
+
+        const next = new Set(hiddenNormalStatIds);
+
+        if (next.has(id)) {
+            next.delete(id);
+        } else {
+            next.add(id);
+        }
+
+        setHiddenNormalStatIds(next);
+
+        try {
+            trigger(
+                "cityMonitor",
+                "saveHiddenNormalStats",
+                JSON.stringify(Array.from(next))
+            );
+        } catch {
+        }
+    };
+
+    const renderNormalStat = (id: string, row: React.ReactNode) => {
+        const hidden = hiddenNormalStatIds.has(id);
+        const action = hidden
+            ? t("CityMonitor.ShowStat", "Rechtsklick: Anzeige einblenden")
+            : t("CityMonitor.HideStat", "Rechtsklick: Anzeige ausblenden");
+
+        return (
+            <EditableNormalStat
+                key={id}
+                id={id}
+                hidden={hidden}
+                editMode={iconVisibilityEditMode && !iconOnlyMode}
+                onToggleVisibility={toggleNormalStatVisibility}
+                title={action}
+            >
+                {row}
+            </EditableNormalStat>
+        );
+    };
+
+    const normalEditMode = iconVisibilityEditMode && !iconOnlyMode;
+    const isNormalStatVisible = (id: string) =>
+        normalEditMode || !hiddenNormalStatIds.has(id);
+
+    const hasVisibleEmploymentStats =
+        (!compactValues && isNormalStatVisible("unemployed")) ||
+        isNormalStatVisible("unemployment") ||
+        isNormalStatVisible("homeless") ||
+        isNormalStatVisible("jobs");
+
+    const hasVisibleSchoolStats =
+        isNormalStatVisible("elementary") ||
+        isNormalStatVisible("highschool") ||
+        isNormalStatVisible("college") ||
+        isNormalStatVisible("university");
+
+    const hasVisibleServiceStats = NORMAL_SERVICE_IDS.some(
+        (id) => isNormalStatVisible(id)
+    );
 
 
     const startIconReorder = (id: string) => {
@@ -3306,30 +3517,30 @@ export const CityMonitorComponent = ({
                                 {!minimized && (
                                     <div style={{ padding: "7rem" }}>
                                         {!compactValues && (
-                                            <Row
+                                            renderNormalStat("unemployed", <Row
                                                 iconSrc={alos}
                                                 label={t("CityMonitor.Unemployed", "Arbeitslose")}
                                                 value={String(data.unemployedCount)}
                                                 showText={showText}
-                                            />
+                                            />)
                                         )}
 
-                                        <Row
+                                        {renderNormalStat("unemployment", <Row
                                             iconSrc={stat}
                                             label={t("CityMonitor.UnemploymentRate", "Quote")}
                                             value={data.unemploymentRate.toFixed(1) + " %"}
                                             color={rateColor}
                                             showText={showText}
-                                        />
+                                        />)}
 
-                                        <HomelessRow
+                                        {renderNormalStat("homeless", <HomelessRow
                                             showText={showText}
                                             compactValues={compactValues}
                                             t={t}
                                             thresholds={thresholds}
-                                        />
+                                        />)}
 
-                                        <Row
+                                        {renderNormalStat("jobs", <Row
                                             iconSrc={work}
                                             label={t("CityMonitor.OpenJobs", "Offene Stellen")}
                                             value={
@@ -3343,17 +3554,20 @@ export const CityMonitorComponent = ({
                                                 thresholds
                                             )}
                                             showText={showText}
-                                        />
+                                        />)}
 
-                                        <div
-                                            style={{
-                                                height: "1rem",
-                                                background: "rgba(255,255,255,0.1)",
-                                                margin: "6rem 0",
-                                            }}
-                                        />
+                                        {hasVisibleEmploymentStats &&
+                                            hasVisibleSchoolStats && (
+                                                <div
+                                                    style={{
+                                                        height: "1rem",
+                                                        background: "rgba(255,255,255,0.1)",
+                                                        margin: "6rem 0",
+                                                    }}
+                                                />
+                                            )}
 
-                                        <SchoolRow
+                                        {renderNormalStat("elementary", <SchoolRow
                                             iconSrc={edu1}
                                             label={t("CityMonitor.ElementarySchool", "Grundschule")}
                                             students={data.elementaryStudents}
@@ -3361,9 +3575,9 @@ export const CityMonitorComponent = ({
                                             showText={showText}
                                             compactValues={compactValues}
                                             thresholds={thresholds}
-                                        />
+                                        />)}
 
-                                        <SchoolRow
+                                        {renderNormalStat("highschool", <SchoolRow
                                             iconSrc={edu2}
                                             label={t("CityMonitor.HighSchool", "Oberschule")}
                                             students={data.highStudents}
@@ -3371,9 +3585,9 @@ export const CityMonitorComponent = ({
                                             showText={showText}
                                             compactValues={compactValues}
                                             thresholds={thresholds}
-                                        />
+                                        />)}
 
-                                        <SchoolRow
+                                        {renderNormalStat("college", <SchoolRow
                                             iconSrc={edu3}
                                             label={t("CityMonitor.College", "College")}
                                             students={data.collegeStudents}
@@ -3381,9 +3595,9 @@ export const CityMonitorComponent = ({
                                             showText={showText}
                                             compactValues={compactValues}
                                             thresholds={thresholds}
-                                        />
+                                        />)}
 
-                                        <SchoolRow
+                                        {renderNormalStat("university", <SchoolRow
                                             iconSrc={edu4}
                                             label={t("CityMonitor.University", "Universität")}
                                             students={data.uniStudents}
@@ -3391,13 +3605,23 @@ export const CityMonitorComponent = ({
                                             showText={showText}
                                             compactValues={compactValues}
                                             thresholds={thresholds}
-                                        />
+                                        />)}
 
                                         <NormalServiceRows
                                             compactValues={compactValues}
                                             showText={showText}
                                             t={t}
                                             thresholds={thresholds}
+                                            hiddenStatIds={hiddenNormalStatIds}
+                                            editMode={normalEditMode}
+                                            showSeparator={
+                                                hasVisibleServiceStats &&
+                                                (hasVisibleEmploymentStats ||
+                                                    hasVisibleSchoolStats)
+                                            }
+                                            onToggleVisibility={
+                                                toggleNormalStatVisibility
+                                            }
                                         />
                                     </div>
                                 )}

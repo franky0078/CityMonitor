@@ -54,6 +54,9 @@ namespace CityMonitor
         public string HiddenIcons { get; set; } = "[]";
 
         [SettingsUIHidden]
+        public string HiddenNormalStats { get; set; } = "[]";
+
+        [SettingsUIHidden]
         public string IconOrder { get; set; } = "[]";
 
         public Setting(IMod mod) : base(mod) { }
@@ -85,7 +88,6 @@ namespace CityMonitor
         public bool IconPositionLocked { get; set; } = false;
 
         [SettingsUISection(kSection, kDisplayGroup)]
-        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
         public bool IconVisibilityEditMode { get; set; } = false;
 
         [SettingsUISection(kSection, kDisplayGroup)]
@@ -111,6 +113,18 @@ namespace CityMonitor
             set
             {
                 HiddenIcons = "[]";
+                ApplyAndSave();
+            }
+        }
+
+        [SettingsUIButton]
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeEnabled))]
+        public bool ShowAllNormalStats
+        {
+            set
+            {
+                HiddenNormalStats = "[]";
                 ApplyAndSave();
             }
         }
@@ -214,7 +228,7 @@ namespace CityMonitor
         // Versionsanzeige aus der Assembly
         [SettingsUISection(kSection, kAboutGroup)]
         public string ModVersion =>
-            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.1.0";
+            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.3.0";
 
         public bool IsIconOnlyModeDisabled()
         {
@@ -240,6 +254,7 @@ namespace CityMonitor
             IconSize = 30;
             IconGap = 5;
             HiddenIcons = "[]";
+            HiddenNormalStats = "[]";
             IconOrder = "[]";
             UpdateIntervalSeconds = 15f;
             SetColorThresholdDefaults();

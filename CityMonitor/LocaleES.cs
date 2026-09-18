@@ -62,9 +62,9 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconPositionLocked)),
                     "Bloquea la barra de iconos en su posición actual. Si está desactivado, puede moverse con el ratón." },
 
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Editar iconos" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Personalizar visualización" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconVisibilityEditMode)),
-                    "Activa la edición de la barra de iconos. Arrastra los iconos con el botón izquierdo para cambiar su orden y haz clic derecho para ocultarlos o mostrarlos. Los iconos visibles se muestran totalmente opacos y los ocultos con un 55 % de transparencia. Al desactivar la edición, los iconos ocultos desaparecen y los visibles recuperan la transparencia configurada." },
+                    "Activa la edición de la vista actual. Haz clic derecho en un elemento para ocultarlo o mostrarlo. En el modo de iconos compactos también puedes cambiar el orden arrastrando con el botón izquierdo. Los elementos ocultos permanecen transparentes durante la edición y desaparecen al desactivarla." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundTransparency)), "Transparencia de iconos (%)" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
@@ -81,6 +81,10 @@ namespace CityMonitor
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowAllIcons)), "Mostrar todos los iconos" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowAllIcons)),
                     "Restaura todos los iconos ocultados con clic derecho en el modo compacto." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowAllNormalStats)), "Mostrar todas las estadísticas" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowAllNormalStats)),
+                    "Restaura todas las estadísticas y los servicios urbanos en la vista normal." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ResetIconOrder)), "Restablecer orden de iconos" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ResetIconOrder)),
@@ -161,6 +165,8 @@ namespace CityMonitor
                 { "CityMonitor.HideIcon", "Clic derecho: ocultar icono" },
                 { "CityMonitor.ShowIcon", "Clic derecho: mostrar icono" },
                 { "CityMonitor.ReorderIcon", "Arrastrar: cambiar orden" },
+                { "CityMonitor.HideStat", "Clic derecho: ocultar estadística" },
+                { "CityMonitor.ShowStat", "Clic derecho: mostrar estadística" },
                 { "CityMonitor.Hidden", "Oculto" },
                 { "CityMonitor.Fire", "Bomberos y rescate" },
                 { "CityMonitor.FireHazard", "Riesgo de incendio" },

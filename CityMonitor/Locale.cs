@@ -62,9 +62,9 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconPositionLocked)),
                     "Fixiert die Icon-Leiste an ihrer aktuellen Position. Ist die Option deaktiviert, kann die Leiste mit der Maus verschoben werden." },
 
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Symbole bearbeiten" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Anzeige anpassen" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconVisibilityEditMode)),
-                    "Aktiviert den Bearbeitungsmodus für die Symbolleiste. Symbole können mit gedrückter linker Maustaste in eine neue Reihenfolge gezogen und mit Rechtsklick ein- oder ausgeblendet werden. Sichtbare Symbole werden vollständig deckend dargestellt, ausgeblendete Symbole mit 55 % Transparenz. Nach dem Deaktivieren werden ausgeblendete Symbole verborgen und für sichtbare Symbole wieder die eingestellte Icon-Transparenz verwendet." },
+                    "Aktiviert den Bearbeitungsmodus für die aktuelle Ansicht. Anzeigen können mit Rechtsklick ein- oder ausgeblendet werden. Im kompakten Symbolmodus lassen sich die Symbole zusätzlich mit gedrückter linker Maustaste sortieren. Ausgeblendete Elemente bleiben während der Bearbeitung transparent sichtbar und verschwinden nach dem Deaktivieren." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundTransparency)), "Icon-Transparenz (%)" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
@@ -81,6 +81,10 @@ namespace CityMonitor
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowAllIcons)), "Alle Icons einblenden" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowAllIcons)),
                     "Blendet alle Symbole wieder ein, die im kompakten Symbolmodus per Rechtsklick ausgeblendet wurden." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowAllNormalStats)), "Alle Anzeigen einblenden" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowAllNormalStats)),
+                    "Blendet alle Kennzahlen und Stadtservices in der normalen Ansicht wieder ein." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ResetIconOrder)), "Symbolreihenfolge zurücksetzen" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ResetIconOrder)),
@@ -183,6 +187,8 @@ namespace CityMonitor
                 { "CityMonitor.HideIcon", "Rechtsklick: Symbol ausblenden" },
                 { "CityMonitor.ShowIcon", "Rechtsklick: Symbol einblenden" },
                 { "CityMonitor.ReorderIcon", "Ziehen: Reihenfolge ändern" },
+                { "CityMonitor.HideStat", "Rechtsklick: Anzeige ausblenden" },
+                { "CityMonitor.ShowStat", "Rechtsklick: Anzeige einblenden" },
                 { "CityMonitor.Hidden", "Ausgeblendet" },
                 { "CityMonitor.Fire", "Feuerwehr" },
                 { "CityMonitor.FireHazard", "Brandgefahr" },

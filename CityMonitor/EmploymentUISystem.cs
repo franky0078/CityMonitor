@@ -33,6 +33,7 @@ namespace CityMonitor
         private GetterValueBinding<int> _iconSizeBinding;
         private GetterValueBinding<int> _iconGapBinding;
         private GetterValueBinding<string> _hiddenIconsBinding;
+        private GetterValueBinding<string> _hiddenNormalStatsBinding;
         private GetterValueBinding<string> _iconOrderBinding;
         private GetterValueBinding<int> _unemploymentGreenMaxBinding;
         private GetterValueBinding<int> _unemploymentYellowMaxBinding;
@@ -115,6 +116,10 @@ namespace CityMonitor
                 Group, "hiddenIcons",
                 () => Mod.Setting?.HiddenIcons ?? "[]"));
 
+            AddBinding(_hiddenNormalStatsBinding = new GetterValueBinding<string>(
+                Group, "hiddenNormalStats",
+                () => Mod.Setting?.HiddenNormalStats ?? "[]"));
+
             AddBinding(_iconOrderBinding = new GetterValueBinding<string>(
                 Group, "iconOrder",
                 () => Mod.Setting?.IconOrder ?? "[]"));
@@ -182,6 +187,17 @@ namespace CityMonitor
                 }
             }));
 
+            AddBinding(new TriggerBinding<string>(Group, "saveHiddenNormalStats", (json) =>
+            {
+                if (Mod.Setting != null)
+                {
+                    Mod.Setting.HiddenNormalStats = string.IsNullOrWhiteSpace(json)
+                        ? "[]"
+                        : json;
+                    Mod.Setting.ApplyAndSave();
+                }
+            }));
+
             AddBinding(new TriggerBinding<string>(Group, "saveIconOrder", (json) =>
             {
                 if (Mod.Setting != null)
@@ -235,6 +251,7 @@ namespace CityMonitor
             _iconSizeBinding.Update();
             _iconGapBinding.Update();
             _hiddenIconsBinding.Update();
+            _hiddenNormalStatsBinding.Update();
             _iconOrderBinding.Update();
             _unemploymentGreenMaxBinding.Update();
             _unemploymentYellowMaxBinding.Update();
@@ -303,34 +320,42 @@ namespace CityMonitor
         // Nur sichtbare lokale Kennzahlen neu berechnen
         private void CalculateAndUpdate()
         {
-            bool optimizeHiddenIcons =
-                Mod.Setting?.IconOnlyMode == true;
+            bool iconOnlyMode = Mod.Setting?.IconOnlyMode == true;
+            bool normalEditMode =
+                !iconOnlyMode &&
+                Mod.Setting?.IconVisibilityEditMode == true;
 
-            string hiddenIcons = Mod.Setting?.HiddenIcons ?? "[]";
+            bool optimizeHiddenItems = !normalEditMode;
+            string hiddenItems = iconOnlyMode
+                ? Mod.Setting?.HiddenIcons ?? "[]"
+                : Mod.Setting?.HiddenNormalStats ?? "[]";
 
             bool updateUnemployment =
-                !optimizeHiddenIcons ||
-                !IsIconHidden(hiddenIcons, "unemployment");
+                !optimizeHiddenItems ||
+                (iconOnlyMode
+                    ? !IsItemHidden(hiddenItems, "unemployment")
+                    : !IsItemHidden(hiddenItems, "unemployed") ||
+                      !IsItemHidden(hiddenItems, "unemployment"));
 
             bool updateJobs =
-                !optimizeHiddenIcons ||
-                !IsIconHidden(hiddenIcons, "jobs");
+                !optimizeHiddenItems ||
+                !IsItemHidden(hiddenItems, "jobs");
 
             bool updateElementary =
-                !optimizeHiddenIcons ||
-                !IsIconHidden(hiddenIcons, "elementary");
+                !optimizeHiddenItems ||
+                !IsItemHidden(hiddenItems, "elementary");
 
             bool updateHighSchool =
-                !optimizeHiddenIcons ||
-                !IsIconHidden(hiddenIcons, "highschool");
+                !optimizeHiddenItems ||
+                !IsItemHidden(hiddenItems, "highschool");
 
             bool updateCollege =
-                !optimizeHiddenIcons ||
-                !IsIconHidden(hiddenIcons, "college");
+                !optimizeHiddenItems ||
+                !IsItemHidden(hiddenItems, "college");
 
             bool updateUniversity =
-                !optimizeHiddenIcons ||
-                !IsIconHidden(hiddenIcons, "university");
+                !optimizeHiddenItems ||
+                !IsItemHidden(hiddenItems, "university");
 
             bool updateSchools =
                 updateElementary ||
@@ -435,15 +460,15 @@ namespace CityMonitor
             }
         }
 
-        private static bool IsIconHidden(string hiddenIcons, string iconId)
+        private static bool IsItemHidden(string hiddenItems, string itemId)
         {
-            if (string.IsNullOrEmpty(hiddenIcons) ||
-                string.IsNullOrEmpty(iconId))
+            if (string.IsNullOrEmpty(hiddenItems) ||
+                string.IsNullOrEmpty(itemId))
             {
                 return false;
             }
 
-            return hiddenIcons.Contains($"\"{iconId}\"");
+            return hiddenItems.Contains($"\"{itemId}\"");
         }
 
 

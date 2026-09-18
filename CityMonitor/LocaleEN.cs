@@ -62,9 +62,9 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconPositionLocked)),
                     "Locks the icon bar at its current position. When disabled, the bar can be moved with the mouse." },
 
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Edit icons" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconVisibilityEditMode)), "Customize display" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconVisibilityEditMode)),
-                    "Enables icon bar editing. Drag icons with the left mouse button to change their order and right-click an icon to hide it or make it visible again. Visible icons are shown fully opaque, while hidden icons are shown with 55% transparency. When editing is disabled, hidden icons disappear and visible icons return to the configured icon transparency." },
+                    "Enables editing for the current view. Right-click an item to hide or restore it. In compact icon mode, icons can also be reordered by dragging with the left mouse button. Hidden items remain transparent while editing and disappear when editing is disabled." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundTransparency)), "Icon transparency (%)" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
@@ -81,6 +81,10 @@ namespace CityMonitor
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowAllIcons)), "Show all icons" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowAllIcons)),
                     "Restores all icons that were hidden with a right-click in compact icon mode." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowAllNormalStats)), "Show all statistics" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowAllNormalStats)),
+                    "Restores all statistics and city services in the regular view." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ResetIconOrder)), "Reset icon order" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ResetIconOrder)),
@@ -183,6 +187,8 @@ namespace CityMonitor
                 { "CityMonitor.HideIcon", "Right-click: hide icon" },
                 { "CityMonitor.ShowIcon", "Right-click: show icon" },
                 { "CityMonitor.ReorderIcon", "Drag: change order" },
+                { "CityMonitor.HideStat", "Right-click: hide statistic" },
+                { "CityMonitor.ShowStat", "Right-click: show statistic" },
                 { "CityMonitor.Hidden", "Hidden" },
                 { "CityMonitor.Fire", "Fire & Rescue" },
                 { "CityMonitor.FireHazard", "Fire hazard" },
