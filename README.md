@@ -130,10 +130,9 @@ When reporting a problem, please include:
 
 ## ChangeLog>
 
-Version 1.2.0
+Version 1.3.0
 
-- added button option for Modbutton Menu
-- language support for French, Spanish, Italian
+- add customization for the regular view
 
 
 
