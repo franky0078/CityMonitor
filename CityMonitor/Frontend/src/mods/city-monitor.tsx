@@ -354,6 +354,84 @@ const Icon = ({
     );
 };
 
+const PANEL_TOGGLE_EVENT = "cityMonitor:togglePanel";
+let sharedPanelVisible = true;
+const panelVisibilityListeners = new Set<(visible: boolean) => void>();
+
+const publishPanelVisibility = (visible: boolean) => {
+    sharedPanelVisible = visible;
+    panelVisibilityListeners.forEach((listener) => listener(visible));
+};
+
+const useSharedPanelVisibility = () => {
+    const [visible, setVisible] = useState(sharedPanelVisible);
+
+    useEffect(() => {
+        panelVisibilityListeners.add(setVisible);
+        setVisible(sharedPanelVisible);
+
+        return () => {
+            panelVisibilityListeners.delete(setVisible);
+        };
+    }, []);
+
+    return visible;
+};
+
+export const CityMonitorLauncher = ({
+    inUniversalModMenu = false,
+}: {
+    inUniversalModMenu?: boolean;
+}) => {
+    const localization = useLocalization();
+    const showPanelSetting = useValue(showPanel$);
+    const visible = useSharedPanelVisibility();
+    const t = (id: string, fallback: string) =>
+        localization.translate(id, fallback) ?? fallback;
+
+    if (!showPanelSetting) {
+        return null;
+    }
+
+    const toolbarScale = inUniversalModMenu
+        ? Number.parseFloat(
+            getComputedStyle(document.documentElement)
+                .getPropertyValue("--toolbarScale")
+        ) || 1
+        : 1;
+    const launcherSize = inUniversalModMenu ? 32 * toolbarScale : 36;
+    const launcherIconSize = inUniversalModMenu ? 32 * toolbarScale : 40;
+
+    return (
+        <button
+            onClick={() => window.dispatchEvent(new Event(PANEL_TOGGLE_EVENT))}
+            title={t("CityMonitor.Toggle", "Stadt Monitor ein-/ausblenden")}
+            style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: `${launcherSize}rem`,
+                height: `${launcherSize}rem`,
+                margin: inUniversalModMenu ? 0 : "0 4rem",
+                padding: 0,
+                borderRadius: "4rem",
+                border: "none",
+                cursor: "pointer",
+                color: "#fff",
+                backgroundColor: "rgba(76,188,226,0.95)",
+                opacity: visible ? 1 : 0.6,
+                transition: "background-color 120ms ease, opacity 120ms ease",
+            }}
+        >
+            <Icon
+                path={P_CITY_MONITOR}
+                size={launcherIconSize}
+                color="#fff"
+            />
+        </button>
+    );
+};
+
 const Row = ({
     icon,
     iconSrc,
@@ -425,14 +503,18 @@ const EditableNormalStat = ({
     return (
         <div
             title={editMode ? title : undefined}
-            onContextMenu={(event) => {
-                if (!editMode) {
+            onMouseDown={(event) => {
+                if (!editMode || event.button !== 2) {
                     return;
                 }
 
                 event.preventDefault();
                 event.stopPropagation();
                 onToggleVisibility(id);
+            }}
+            onContextMenu={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
             }}
             style={{
                 opacity: editMode && hidden ? 0.45 : 1,
@@ -1869,11 +1951,7 @@ const NormalServiceRows = ({
 };
 
 // Hauptkomponente und persistenter UI-Zustand
-export const CityMonitorComponent = ({
-    inUniversalModMenu = false,
-}: {
-    inUniversalModMenu?: boolean;
-}) => {
+export const CityMonitorComponent = () => {
     const localization = useLocalization();
     const t = (id: string, fallback: string) =>
         localization.translate(id, fallback) ?? fallback;
@@ -2575,6 +2653,19 @@ export const CityMonitorComponent = ({
             return n;
         });
 
+    useEffect(() => {
+        publishPanelVisibility(visible);
+    }, [visible]);
+
+    useEffect(() => {
+        const handleToggle = () => toggleVisible();
+        window.addEventListener(PANEL_TOGGLE_EVENT, handleToggle);
+
+        return () => {
+            window.removeEventListener(PANEL_TOGGLE_EVENT, handleToggle);
+        };
+    }, [toggleVisible]);
+
 
     // Sichtbarkeit und Reihenfolge der Symbole bearbeiten
     const toggleIconVisibility = (id: string) => {
@@ -3146,45 +3237,8 @@ export const CityMonitorComponent = ({
         return null;
     }
 
-    const toolbarScale = inUniversalModMenu
-        ? Number.parseFloat(
-            getComputedStyle(document.documentElement)
-                .getPropertyValue("--toolbarScale")
-        ) || 1
-        : 1;
-    const launcherSize = inUniversalModMenu ? 32 * toolbarScale : 36;
-    const launcherIconSize = inUniversalModMenu ? 32 * toolbarScale : 40;
-
     return (
         <>
-            <button
-                onClick={toggleVisible}
-                title={t("CityMonitor.Toggle", "Stadt Monitor ein-/ausblenden")}
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: `${launcherSize}rem`,
-                    height: `${launcherSize}rem`,
-                    margin: inUniversalModMenu ? 0 : "0 4rem",
-                    padding: 0,
-                    borderRadius: "4rem",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "#fff",
-                    backgroundColor: "rgba(76,188,226,0.95)",
-                    opacity: visible ? 1 : 0.9,
-                    transition:
-                        "background-color 120ms ease, opacity 120ms ease",
-                }}
-            >
-                <Icon
-                    path={P_CITY_MONITOR}
-                    size={launcherIconSize}
-                    color="#fff"
-                />
-            </button>
-
             {visible && data && (
                 <Portal>
                     {(dragging || resizing) && (
