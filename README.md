@@ -128,13 +128,6 @@ When reporting a problem, please include:
 - The affected status icon or statistic
 - Your configured update interval
 
-## ChangeLog>
-
-Version 1.3.1
-
-- add customization for the regular view
-
-
 
 ## License
 

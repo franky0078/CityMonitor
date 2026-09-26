@@ -250,17 +250,14 @@ const indicatorPercent = (value: IndicatorValue | null | undefined) => {
     return clamp(((current - min) / (max - min)) * 100, 0, 100);
 };
 
-const scalarPercent = (value: number | null | undefined) => {
+// infoview.homelessness$ liefert bereits Prozentpunkte (z. B. 0,194 für 0,194 %).
+const homelessnessPercent = (value: number | null | undefined) => {
     const current = Number(value);
     if (!Number.isFinite(current)) {
         return 0;
     }
 
-    const percent = current >= 0 && current <= 1
-        ? current * 100
-        : current;
-
-    return clamp(percent, 0, 100);
+    return clamp(current, 0, 100);
 };
 
 const availabilityStatusColor = (percent: number, thresholds: StatusThresholds) => {
@@ -603,7 +600,7 @@ const HomelessRow = ({
     const homeless = useValue(infoview.homeless$);
     const homelessness = useValue(infoview.homelessness$);
     const homelessCount = Math.max(0, Math.round(Number(homeless) || 0));
-    const percent = scalarPercent(homelessness);
+    const percent = homelessnessPercent(homelessness);
 
     return (
         <Row
@@ -1147,7 +1144,7 @@ const HomelessStatusIcon = (props: ServiceStatusIconProps) => {
     const homelessCount =
         Math.max(0, Math.round(Number(homeless) || 0));
 
-    const percent = scalarPercent(homelessness);
+    const percent = homelessnessPercent(homelessness);
 
     return (
         <StatusIcon
