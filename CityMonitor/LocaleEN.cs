@@ -218,6 +218,19 @@ namespace CityMonitor
                 { "CityMonitor.Tourism", "Tourism" },
                 { "CityMonitor.Tourists", "Tourists" },
                 { "CityMonitor.Attractiveness", "City attractiveness" },
+                { "CityMonitor.AppearanceTitle", "Window appearance" },
+                { "CityMonitor.AppearanceWindow", "Window" },
+                { "CityMonitor.AppearanceHeader", "Header bar" },
+                { "CityMonitor.AppearanceHex", "Hex color" },
+                { "CityMonitor.AppearanceRed", "Red" },
+                { "CityMonitor.AppearanceGreen", "Green" },
+                { "CityMonitor.AppearanceBlue", "Blue" },
+                { "CityMonitor.AppearanceTransparency", "Transparency (%)" },
+                { "CityMonitor.AppearanceBlur", "Blur strength" },
+                { "CityMonitor.AppearanceReset", "Reset section" },
+                { "CityMonitor.Close", "Close" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundDarkening)), "Darken icon backgrounds" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundDarkening)), "Darkens only the icon backgrounds. Glyphs and status rings are unaffected. 0% = no darkening, 100% = black background." },
             };
         }
 

@@ -1,4 +1,6 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, createContext, useContext } from "react";
+import styles from "./city-monitor.module.scss";
+import { AppearanceEditor, AppearanceBackdrop, backdropBlurClass, defaultAppearance, normalizeAppearance, type WindowAppearance, type SurfaceAppearance } from "./appearance-editor";
 import { bindValue, trigger, useValue } from "cs2/api";
 import { Portal, Tooltip } from "cs2/ui";
 import { useLocalization } from "cs2/l10n";
@@ -28,6 +30,9 @@ const ICON_BICYCLE = "Media/Game/Icons/Bicycle.svg";
 const ICON_POST = "Media/Game/Icons/PostService.svg";
 const ICON_TOURISM = "Media/Game/Icons/Tourism.svg";
 const ICON_ATTRACTIVENESS = "Media/Game/Icons/Attractions.svg";
+
+// The same native tool-options theme used by Enhanced Graphics and Textures.
+export const CityMonitorPanelTheme = createContext("");
 
 const ALL_ICON_IDS = [
     "unemployment",
@@ -118,6 +123,7 @@ const iconBackgroundTransparency$ = bindValue<number>(
     "cityMonitor",
     "iconBackgroundTransparency"
 );
+const iconBackgroundDarkening$ = bindValue<number>("cityMonitor", "iconBackgroundDarkening", 15);
 const iconSize$ = bindValue<number>("cityMonitor", "iconSize");
 const iconGap$ = bindValue<number>("cityMonitor", "iconGap");
 const hiddenIcons$ = bindValue<string>("cityMonitor", "hiddenIcons");
@@ -455,7 +461,7 @@ const Row = ({
         <span style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
             <Tooltip tooltip={label}>
                 <div style={{ display: "flex" }}>
-                    <Icon path={icon} src={iconSrc} white={false} />
+                    <Icon path={icon} src={iconSrc} white={false} size={20} />
                 </div>
             </Tooltip>
 
@@ -757,12 +763,45 @@ const DragHandle = ({
     );
 };
 
+// Start at twelve o'clock; the coloured arc grows clockwise with the value.
+// Use ordinary SVG paths, matching the existing inline SVG UI icons.
+const StatusRing = ({ percent, color, opacity = 1 }: { percent: number; color: string; opacity?: number }) => {
+    // Round the visual fill to ten-percent steps; tooltip values stay exact.
+    const fill = Number.isFinite(percent)
+        ? Math.round(clamp(percent, 0, 100) / 10) * 10
+        : 0;
+    const angle = fill / 100 * Math.PI * 2;
+    const x = 20 + 18.5 * Math.sin(angle);
+    const y = 20 - 18.5 * Math.cos(angle);
+    const arc = fill >= 100
+        ? "M20 1.5 A18.5 18.5 0 1 1 20 38.5 A18.5 18.5 0 1 1 20 1.5"
+        : `M20 1.5 A18.5 18.5 0 ${fill > 50 ? 1 : 0} 1 ${x.toFixed(4)} ${y.toFixed(4)}`;
+    return (
+        <svg viewBox="0 0 40 40" aria-hidden="true"
+            style={{ position: "absolute", top: 0, left: 0,
+                width: "100%", height: "100%", zIndex: 1, opacity, pointerEvents: "none" }}>
+            <circle cx="20" cy="20" r="18.5" fill="none"
+                stroke="rgba(176,210,229,0.25)" strokeWidth="2.5" />
+            {fill > 0 && <path d={arc} fill="none" stroke={color} strokeWidth="2.5" />}
+        </svg>
+    );
+};
+
+const sharePercent = (part: number, total: number) =>
+    Number.isFinite(part) && Number.isFinite(total) && total > 0
+        ? clamp(part / total * 100, 0, 100)
+        : 0;
+
 interface StatusIconProps {
     iconSrc: string;
     label: string;
     details: TooltipDetail[];
     ringColor: string;
+    ringPercent?: number;
     iconOpacity: number;
+    foregroundOpacity?: number;
+    backgroundDarkening?: number;
+    backgroundAppearance?: SurfaceAppearance;
     size: number;
     gapAfter: number;
     orientation: IconOrientationMode;
@@ -783,7 +822,11 @@ const StatusIcon = ({
     label,
     details,
     ringColor,
+    ringPercent = 0,
     iconOpacity,
+    foregroundOpacity = 1,
+    backgroundDarkening = 15,
+    backgroundAppearance = defaultAppearance.window,
     size,
     gapAfter,
     orientation,
@@ -805,8 +848,11 @@ const StatusIcon = ({
     const [horizontalTooltipAnchor, setHorizontalTooltipAnchor] =
         useState<HorizontalTooltipAnchor>("center");
 
-    const contentSize = Math.max(10, size - 4);
-    const glyphSize = Math.max(12, Math.round(size * 0.60));
+    // Blur the scene behind the circle; opacity on this same element fades
+    // the completed icon without an opaque tint hiding the filtered scene.
+    const tintOpacity = 1 - clamp(backgroundAppearance.transparency, 0, 100) / 100;
+    const contentSize = Math.max(14, size);
+    const glyphSize = Math.max(12, Math.min(size - 8, Math.round(size * 0.76)));
     const tooltipOffset = size + 6;
 
     const tooltipMinWidth = details.length > 1 ? 160 : 118;
@@ -965,47 +1011,38 @@ const StatusIcon = ({
             }}
         >
             <div
+                className={`${styles.iconSurface} ${backdropBlurClass(backgroundAppearance.blur)}`}
                 style={{
+                    backgroundColor: `rgba(${backgroundAppearance.red},${backgroundAppearance.green},${backgroundAppearance.blue},${0.93 * tintOpacity})`,
+                    opacity: clamp(iconOpacity, 0, 1),
                     width: contentSize + "rem",
                     height: contentSize + "rem",
                     borderRadius: "50%",
-                    border: `2rem solid ${ringColor}`,
-                    background:
-                        "radial-gradient(" +
-                        "circle at 34% 24%, " +
-                        "rgba(255,255,255,0.18) 0%, " +
-                        "rgba(255,255,255,0.08) 24%, " +
-                        "rgba(255,255,255,0) 52%" +
-                        "), " +
-                        "linear-gradient(" +
-                        "145deg, " +
-                        "rgb(54, 64, 72) 0%, " +
-                        "rgb(28, 36, 42) 44%, " +
-                        "rgb(10, 15, 19) 100%" +
-                        ")",
-                    opacity: iconOpacity,
-                    boxShadow:
-                        `0 0 3rem ${ringColor}, ` +
-                        `0 0 6rem ${ringColor}55, ` +
-                        "0 3rem 7rem rgba(0,0,0,0.30), " +
-                        "inset 0 0 0 1rem rgba(255,255,255,0.12), " +
-                        "inset 1rem 1rem 2rem rgba(255,255,255,0.12), " +
-                        "inset -1rem -2rem 3rem rgba(0,0,0,0.38)",
+                    boxShadow: "0 2rem 6rem rgba(0,0,0,0.3)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     position: "relative",
-                    overflow: "hidden",
                     transform: isReordering
                         ? "scale(1.10)"
-                        : "scale(1)",
+                        : "none",
                     transition: "transform 100ms ease",
                 }}
             >
+                <div aria-hidden="true"
+                    className={styles.iconBackdrop}
+                    style={{ backgroundColor: hovered
+                        ? `rgba(58,92,115,${0.25 * tintOpacity})`
+                        : "transparent" }}>
+                    <div className={styles.iconShade}
+                        style={{ backgroundColor: `rgba(0,0,0,${clamp(backgroundDarkening, 0, 100) / 100})` }} />
+                </div>
+                <StatusRing percent={ringPercent} color={ringColor} opacity={foregroundOpacity} />
                 <div
                     style={{
                         position: "relative",
-                        zIndex: 1,
+                        zIndex: 2,
+                        opacity: foregroundOpacity,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1130,7 +1167,7 @@ const StatusIcon = ({
 interface ServiceStatusIconProps
     extends Omit<
         StatusIconProps,
-        "details" | "ringColor"
+        "details" | "ringColor" | "ringPercent"
     > {
     compactValues: boolean;
     t: Translate;
@@ -1174,6 +1211,7 @@ const HomelessStatusIcon = (props: ServiceStatusIconProps) => {
                     ]
             }
             ringColor={homelessStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1198,6 +1236,7 @@ const FireStatusIcon = (props: ServiceStatusIconProps) => {
                 },
             ]}
             ringColor={fireHazardStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1224,6 +1263,7 @@ const HealthcareStatusIcon = (
                 },
             ]}
             ringColor={availabilityStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1249,6 +1289,7 @@ const CemeteryStatusIcon = (
                 },
             ]}
             ringColor={availabilityStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1275,6 +1316,7 @@ const CrematoriumStatusIcon = (
                 },
             ]}
             ringColor={availabilityStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1329,6 +1371,7 @@ const GarbageProcessingStatusIcon = (
                     ]
             }
             ringColor={availabilityStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1355,6 +1398,7 @@ const LandfillStatusIcon = (
                 },
             ]}
             ringColor={availabilityStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1409,6 +1453,7 @@ const PoliceStatusIcon = (
                     ]
             }
             ringColor={riskStatusColor(crimePercent, props.thresholds)}
+            ringPercent={crimePercent}
         />
     );
 };
@@ -1453,6 +1498,7 @@ const TrafficStatusIcon = (
                 },
             ]}
             ringColor={trafficStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1479,6 +1525,7 @@ const ElectricityStatusIcon = (
                 },
             ]}
             ringColor={availabilityStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1534,6 +1581,7 @@ const WaterStatusIcon = (
             ringColor={
                 availabilityStatusColor(overallPercent, props.thresholds)
             }
+            ringPercent={overallPercent}
         />
     );
 };
@@ -1561,6 +1609,7 @@ const ParkingCarStatusIcon = (
                 },
             ]}
             ringColor={availabilityStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1587,6 +1636,7 @@ const ParkingBikeStatusIcon = (
                 },
             ]}
             ringColor={availabilityStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1613,6 +1663,7 @@ const PostStatusIcon = (
                 },
             ]}
             ringColor={availabilityStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1657,6 +1708,7 @@ const AttractivenessStatusIcon = (
                 },
             ]}
             ringColor={availabilityStatusColor(percent, props.thresholds)}
+            ringPercent={percent}
         />
     );
 };
@@ -1949,6 +2001,7 @@ const NormalServiceRows = ({
 
 // Hauptkomponente und persistenter UI-Zustand
 export const CityMonitorComponent = () => {
+    const gamePanelClass = useContext(CityMonitorPanelTheme);
     const localization = useLocalization();
     const t = (id: string, fallback: string) =>
         localization.translate(id, fallback) ?? fallback;
@@ -1964,6 +2017,7 @@ export const CityMonitorComponent = () => {
     const iconPositionLocked = useValue(iconPositionLocked$);
     const iconVisibilityEditMode = useValue(iconVisibilityEditMode$);
     const iconBackgroundTransparency = useValue(iconBackgroundTransparency$);
+    const iconBackgroundDarkening = useValue(iconBackgroundDarkening$);
     const iconSizeSetting = useValue(iconSize$);
     const iconGapSetting = useValue(iconGap$);
     const hiddenIconsRaw = useValue(hiddenIcons$);
@@ -2197,6 +2251,28 @@ export const CityMonitorComponent = () => {
         posRef.current = pos;
     }, [pos]);
 
+    const [appearance, setAppearance] = useState<WindowAppearance>(defaultAppearance);
+    const appearanceRef = useRef(appearance);
+    const [appearanceOpen, setAppearanceOpen] = useState(false);
+    const appearanceSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const saveAppearanceRef = useRef<() => void>(() => {});
+    useEffect(() => () => {
+        if (appearanceSaveTimer.current !== null) {
+            clearTimeout(appearanceSaveTimer.current);
+            saveAppearanceRef.current();
+        }
+    }, []);
+    const updateAppearance = (next: WindowAppearance) => {
+        const normalized = normalizeAppearance(next);
+        appearanceRef.current = normalized;
+        setAppearance(normalized);
+        if (appearanceSaveTimer.current !== null) clearTimeout(appearanceSaveTimer.current);
+        appearanceSaveTimer.current = setTimeout(() => {
+            appearanceSaveTimer.current = null;
+            saveAppearanceRef.current();
+        }, 250);
+    };
+
     const [minimized, setMinimized] = useState(false);
     const [visible, setVisible] = useState(true);
     const [dragging, setDragging] = useState(false);
@@ -2257,7 +2333,7 @@ export const CityMonitorComponent = () => {
                     : 0
             )
         : minimized
-            ? 52
+            ? 80
             : clamp(userWidth ?? DEFAULT_W, MIN_W, 400);
 
     // Gespeicherten UI-Zustand laden
@@ -2272,6 +2348,9 @@ export const CityMonitorComponent = () => {
 
         try {
             const s = JSON.parse(savedRaw);
+            const savedAppearance = normalizeAppearance(s.appearance);
+            appearanceRef.current = savedAppearance;
+            setAppearance(savedAppearance);
 
             const hasValidPosition =
                 s.pos &&
@@ -2317,6 +2396,7 @@ export const CityMonitorComponent = () => {
             minimized,
             visible,
             width: userWidth,
+            appearance: appearanceRef.current,
             ...override,
         };
 
@@ -2325,6 +2405,8 @@ export const CityMonitorComponent = () => {
         } catch {
         }
     };
+
+    saveAppearanceRef.current = () => save();
 
     // Ohne gespeicherte UI-Position startet die kompakte Leiste
     // horizontal zentriert und etwas unterhalb der Bildschirmmitte.
@@ -2816,6 +2898,7 @@ export const CityMonitorComponent = () => {
         label: string;
         details?: TooltipDetail[];
         ringColor?: string;
+        ringPercent?: number;
         service?: ServiceKind;
     };
 
@@ -2852,6 +2935,7 @@ export const CityMonitorComponent = () => {
                             value: String(data.unemployedCount),
                         },
                     ],
+                ringPercent: data.unemploymentRate,
                 ringColor: unemploymentStatusColor(
                     data.unemploymentRate,
                     thresholds
@@ -2891,6 +2975,7 @@ export const CityMonitorComponent = () => {
                             value: String(data.openJobs),
                         },
                     ],
+                ringPercent: sharePercent(data.openJobs, data.totalJobSlots),
                 ringColor: openJobsStatusColor(
                     data.openJobs,
                     data.totalJobSlots,
@@ -2908,6 +2993,8 @@ export const CityMonitorComponent = () => {
                     data.elementaryStudents,
                     data.elementaryFreeSlots
                 ),
+                ringPercent: sharePercent(data.elementaryFreeSlots,
+                    data.elementaryStudents + data.elementaryFreeSlots),
                 ringColor: schoolStatusColor(
                     data.elementaryFreeSlots,
                     data.elementaryStudents,
@@ -2925,6 +3012,8 @@ export const CityMonitorComponent = () => {
                     data.highStudents,
                     data.highFreeSlots
                 ),
+                ringPercent: sharePercent(data.highFreeSlots,
+                    data.highStudents + data.highFreeSlots),
                 ringColor: schoolStatusColor(
                     data.highFreeSlots,
                     data.highStudents,
@@ -2942,6 +3031,8 @@ export const CityMonitorComponent = () => {
                     data.collegeStudents,
                     data.collegeFreeSlots
                 ),
+                ringPercent: sharePercent(data.collegeFreeSlots,
+                    data.collegeStudents + data.collegeFreeSlots),
                 ringColor: schoolStatusColor(
                     data.collegeFreeSlots,
                     data.collegeStudents,
@@ -2959,6 +3050,8 @@ export const CityMonitorComponent = () => {
                     data.uniStudents,
                     data.uniFreeSlots
                 ),
+                ringPercent: sharePercent(data.uniFreeSlots,
+                    data.uniStudents + data.uniFreeSlots),
                 ringColor: schoolStatusColor(
                     data.uniFreeSlots,
                     data.uniStudents,
@@ -3228,6 +3321,8 @@ export const CityMonitorComponent = () => {
         borderRadius: "3rem",
         padding: "0 6rem",
         lineHeight: "20rem",
+        position: "relative",
+        zIndex: 1,
     };
 
     if (!showPanelSetting) {
@@ -3263,6 +3358,7 @@ export const CityMonitorComponent = () => {
 
                     <div
                         ref={panelRef}
+                        className={iconOnlyMode ? undefined : styles.legacySurface}
                         style={{
                             position: "absolute",
                             top: pos.y + "rem",
@@ -3271,19 +3367,18 @@ export const CityMonitorComponent = () => {
                                 (iconOnlyMode
                                     ? widthRem
                                     : Math.max(0, widthRem - 2)) + "rem",
-                            backgroundColor: iconOnlyMode
-                                ? "transparent"
-                                : "rgba(20, 28, 35, 0.95)",
+                            backgroundColor: iconOnlyMode ? "transparent" : undefined,
                             color: "#fff",
-                            borderRadius: "4rem",
+                            borderRadius: "7rem",
                             fontSize: "13rem",
-                            fontFamily: "Noto Sans, sans-serif",
+                            fontFamily: '"CityMonitor Noto Sans", "Noto Sans", sans-serif',
+                            fontWeight: 400,
                             border: iconOnlyMode
                                 ? "none"
-                                : "1rem solid rgba(255,255,255,0.1)",
+                                : "1rem solid rgba(176,210,229,0.37)",
                             boxShadow: iconOnlyMode
                                 ? "none"
-                                : "0 4rem 15rem rgba(0,0,0,0.5)",
+                                : "0 8rem 24rem rgba(0,0,0,0.3)",
                             userSelect: "none",
                             zIndex: 100,
                             pointerEvents: "auto",
@@ -3340,12 +3435,9 @@ export const CityMonitorComponent = () => {
                                         const isHidden =
                                             hiddenIconIds.has(item.id);
 
-                                        const currentIconOpacity =
-                                            iconVisibilityEditMode
-                                                ? isHidden
-                                                    ? 0.45
-                                                    : 1
-                                                : iconOpacity;
+                                        const currentForegroundOpacity =
+                                            iconVisibilityEditMode && isHidden ? 0.45 : 1;
+                                        const currentIconOpacity = iconOpacity;
 
                                         const gapAfter =
                                             index <
@@ -3387,6 +3479,9 @@ export const CityMonitorComponent = () => {
                                                         },
                                                     ]}
                                                     ringColor={STATUS_INACTIVE}
+                                                    backgroundAppearance={appearance.window}
+                                                    backgroundDarkening={iconBackgroundDarkening}
+                                                    foregroundOpacity={currentForegroundOpacity}
                                                     iconOpacity={
                                                         currentIconOpacity
                                                     }
@@ -3435,6 +3530,9 @@ export const CityMonitorComponent = () => {
                                                     }
                                                     t={t}
                                                     thresholds={thresholds}
+                                                    backgroundAppearance={appearance.window}
+                                                    backgroundDarkening={iconBackgroundDarkening}
+                                                    foregroundOpacity={currentForegroundOpacity}
                                                     iconOpacity={
                                                         currentIconOpacity
                                                     }
@@ -3489,10 +3587,14 @@ export const CityMonitorComponent = () => {
                                                 details={
                                                     item.details ?? []
                                                 }
+                                                ringPercent={item.ringPercent}
                                                 ringColor={
                                                     item.ringColor ??
                                                     STATUS_INACTIVE
                                                 }
+                                                backgroundAppearance={appearance.window}
+                                                backgroundDarkening={iconBackgroundDarkening}
+                                                foregroundOpacity={currentForegroundOpacity}
                                                 iconOpacity={
                                                     currentIconOpacity
                                                 }
@@ -3543,6 +3645,7 @@ export const CityMonitorComponent = () => {
                         ) : (
                             <>
                                 <div
+                                    className={styles.legacyHeader}
                                     onMouseDown={onHeaderDown}
                                     style={{
                                         display: "flex",
@@ -3550,11 +3653,29 @@ export const CityMonitorComponent = () => {
                                         alignItems: "center",
                                         padding: "5rem 6rem",
                                         cursor: "move",
-                                        backgroundColor: "rgba(255,255,255,0.08)",
-                                        borderTopLeftRadius: "4rem",
-                                        borderTopRightRadius: "4rem",
+                                        position: "relative",
+                                        gap: "5rem",
+                                        borderTopLeftRadius: "7rem",
+                                        borderTopRightRadius: "7rem",
                                     }}
                                 >
+                                    <AppearanceBackdrop value={appearance.header} panelClass={gamePanelClass} header />
+                                    <div aria-hidden="true" className={styles.headerSeparator} />
+                                    <Tooltip tooltip={t("CityMonitor.AppearanceTitle", "Fenster anpassen")}>
+                                        <button title={t("CityMonitor.AppearanceTitle", "Fenster anpassen")}
+                                            aria-pressed={appearanceOpen}
+                                            onClick={() => setAppearanceOpen(!appearanceOpen)}
+                                            onMouseDown={event => event.stopPropagation()}
+                                            style={{ ...headerBtnStyle, display: "flex", alignItems: "center", height: "20rem" }}>
+                                            <svg viewBox="0 0 24 24" width="17rem" height="17rem" aria-hidden="true">
+                                                <path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.5-3.3l-.5-.6a1 1 0 0 1 .8-1.6H17A4 4 0 0 0 21 11c0-4.4-4-8-9-8Z" fill="none" stroke="white" strokeWidth="1.6" />
+                                                <circle cx="7" cy="11" r="1.5" fill="#FF5A5A" />
+                                                <circle cx="10" cy="7" r="1.5" fill="#FFD84D" />
+                                                <circle cx="15" cy="7" r="1.5" fill="#7CFC00" />
+                                                <circle cx="18" cy="11" r="1.5" fill="#4DA3FF" />
+                                            </svg>
+                                        </button>
+                                    </Tooltip>
                                     <button
                                         onClick={toggleMin}
                                         onMouseDown={(e) => e.stopPropagation()}
@@ -3566,7 +3687,9 @@ export const CityMonitorComponent = () => {
                                 </div>
 
                                 {!minimized && (
-                                    <div style={{ padding: "7rem" }}>
+                                    <div className={styles.legacyBody}>
+                                        <AppearanceBackdrop value={appearance.window} panelClass={gamePanelClass} />
+                                        <div className={styles.legacyBodyContent}>
                                         {!compactValues && (
                                             renderNormalStat("unemployed", <Row
                                                 iconSrc={alos}
@@ -3674,6 +3797,7 @@ export const CityMonitorComponent = () => {
                                                 toggleNormalStatVisibility
                                             }
                                         />
+                                        </div>
                                     </div>
                                 )}
 
@@ -3725,6 +3849,16 @@ export const CityMonitorComponent = () => {
                             </>
                         )}
                     </div>
+                    {appearanceOpen && !iconOnlyMode && <AppearanceEditor
+                        value={appearance} panelClass={gamePanelClass} t={t}
+                        initialPosition={{ x: pos.x + widthRem + 12, y: pos.y }}
+                        onChange={updateAppearance}
+                        onClose={() => {
+                            setAppearanceOpen(false);
+                            if (appearanceSaveTimer.current !== null) clearTimeout(appearanceSaveTimer.current);
+                            appearanceSaveTimer.current = null;
+                            save();
+                        }} />}
                 </Portal>
             )}
         </>

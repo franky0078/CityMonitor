@@ -1,0 +1,170 @@
+// Use a private family name so another mod's global Noto Sans face cannot replace it.
+@font-face {
+    font-family: "CityMonitor Noto Sans";
+    src: url("./fonts/NotoSans-Regular.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400;
+}
+@font-face {
+    font-family: "CityMonitor Noto Sans";
+    src: url("./fonts/NotoSans-Bold.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 700;
+}
+
+// Filter the circle itself, outside any clipping or tint layer.
+.iconSurface {
+    background-image: none !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 50% !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+}
+
+// Preserve CityMonitor's own position, layout and resize behaviour.
+.legacySurface {
+    position: absolute !important;
+    display: block;
+    padding: 0;
+    margin: 0;
+    max-height: none;
+    background-color: transparent;
+    backdrop-filter: none;
+}
+
+// Keep the native panel layout out of the icon's glyph/ring container.
+.iconBackdrop {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    box-sizing: border-box;
+    transform: none !important;
+    z-index: 0 !important;
+    opacity: 1 !important;
+    min-width: 0;
+    max-width: none;
+    min-height: 0;
+    max-height: none;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-radius: 50%;
+    box-shadow: none;
+    pointer-events: none;
+}
+
+.iconHovered {
+    background-color: rgba(58, 92, 115, .95);
+}
+
+.legacyBody { position: relative; z-index: 0; }
+.legacyHeader { width: 100%; box-sizing: border-box; }
+.headerSeparator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1rem;
+    background-color: rgba(190,217,231,.22);
+    z-index: 2;
+    pointer-events: none;
+}
+.legacyBodyContent { position: relative; z-index: 1; padding: 7rem; }
+.appearanceBackdrop {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    box-sizing: border-box;
+    transform: none !important;
+    z-index: 0 !important;
+    opacity: 1 !important;
+    min-width: 0;
+    max-width: none;
+    min-height: 0;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    pointer-events: none;
+    overflow: hidden;
+}
+.bodyBackdrop { border-radius: 0 0 7rem 7rem; }
+.headerBackdrop { border-radius: 7rem 7rem 0 0; }
+.surfaceTint { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+.appearanceEditor {
+    position: fixed !important;
+    width: 320rem !important;
+    max-height: 95vh;
+    overflow-y: auto;
+    display: block;
+    padding: 0;
+    margin: 0;
+    border: 1rem solid rgba(176,210,229,.37);
+    border-radius: 7rem;
+    background-color: rgba(25,43,57,.93);
+    backdrop-filter: blur(15rem);
+    color: #e9f4fb;
+    font-size: 13rem;
+    font-family: "CityMonitor Noto Sans", "Noto Sans", sans-serif;
+    font-weight: 400;
+    box-sizing: border-box;
+    box-shadow: 0 8rem 24rem rgba(0,0,0,.3);
+    z-index: 110;
+    pointer-events: auto;
+    user-select: none;
+}
+.appearanceHeader { display: flex; align-items: center; justify-content: space-between; padding: 8rem 12rem; border-bottom: 1rem solid rgba(190,217,231,.22); cursor: move; }
+.appearanceEditor button { border: 1rem solid rgba(189,216,231,.35); border-radius: 4rem; background-color: rgba(12,30,44,.6); color: #f2f8fc; cursor: pointer; }
+.appearanceHeader button { width: 25rem; height: 25rem; font-size: 20rem; }
+.appearanceContent { padding: 10rem 12rem 12rem; }
+.appearanceTabs { display: flex; margin-bottom: 10rem; }
+.appearanceTabs button { flex: 1; padding: 6rem; margin-right: 4rem; font-size: 12rem; }
+.appearanceTabs button[aria-pressed="true"] { background-color: rgba(58,125,158,.95); }
+.appearancePreview { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10rem; }
+.appearancePreview span { display: block; width: 80rem; height: 38rem; border: 1rem solid #d6e7f2; border-radius: 4rem; }
+.appearanceEditor input { height: 25rem; padding: 2rem 5rem; border: 1rem solid rgba(189,216,231,.55); border-radius: 4rem; background-color: rgba(12,30,44,.82); color: #f2f8fc; font: inherit; box-sizing: border-box; }
+.appearancePreview input { width: 100rem; }
+.appearanceRow { display: flex; align-items: center; min-height: 34rem; }
+.appearanceRow > span { width: 100rem; flex: 0 0 100rem; font-size: 12rem; }
+.appearanceRow input { width: 43rem; flex: 0 0 43rem; text-align: right; }
+.appearanceSlider { position: relative; flex: 1; min-width: 60rem; height: 30rem; margin-right: 9rem; cursor: ew-resize; }
+.appearanceSlider:focus { outline: 1rem solid #71def8; }
+.appearanceTrack { position: absolute; top: 12rem; left: 8rem; right: 8rem; height: 7rem; border-radius: 5rem; background-color: rgba(4,18,29,.72); border: 1rem solid rgba(213,231,244,.65); pointer-events: none; }
+.appearanceFill { position: absolute; top: 0; left: 0; height: 100%; border-radius: 5rem; background-color: #449acd; }
+.appearanceThumb { position: absolute; top: 50%; width: 17rem; height: 17rem; transform: translate(-50%,-50%); border: 2rem solid #e9f4fb; border-radius: 50%; background-color: #579ac0; }
+.appearancePresets { display: flex; flex-wrap: wrap; margin-top: 8rem; }
+.appearancePresets button { width: 24rem; height: 24rem; margin: 0 7rem 7rem 0; border: 1rem solid #d6e7f2; }
+.appearanceReset { width: 100%; padding: 7rem; margin-top: 4rem; }
+
+.iconShade { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #000; border-radius: 50%; pointer-events: none; }
+
+// Literal filter values are emitted for Cohtml instead of a CSS variable in blur().
+@for $strength from 0 through 30 {
+    .blur#{$strength} {
+        @if $strength == 0 {
+            backdrop-filter: none !important;
+        } @else {
+            backdrop-filter: blur(#{$strength}rem) !important;
+        }
+    }
+}

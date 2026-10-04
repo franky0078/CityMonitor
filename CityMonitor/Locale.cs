@@ -218,6 +218,19 @@ namespace CityMonitor
                 { "CityMonitor.Tourism", "Tourismus" },
                 { "CityMonitor.Tourists", "Touristen" },
                 { "CityMonitor.Attractiveness", "Stadtattraktivität" },
+                { "CityMonitor.AppearanceTitle", "Fenster anpassen" },
+                { "CityMonitor.AppearanceWindow", "Fenster" },
+                { "CityMonitor.AppearanceHeader", "Obere Leiste" },
+                { "CityMonitor.AppearanceHex", "Hex-Farbe" },
+                { "CityMonitor.AppearanceRed", "Rot" },
+                { "CityMonitor.AppearanceGreen", "Grün" },
+                { "CityMonitor.AppearanceBlue", "Blau" },
+                { "CityMonitor.AppearanceTransparency", "Transparenz (%)" },
+                { "CityMonitor.AppearanceBlur", "Blur-Stärke" },
+                { "CityMonitor.AppearanceReset", "Bereich zurücksetzen" },
+                { "CityMonitor.Close", "Schließen" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundDarkening)), "Symbolhintergrund abdunkeln" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundDarkening)), "Dunkelt nur den Hintergrund der Symbole ab. Zeichnung und Statusring bleiben unverändert. 0 % = keine Abdunklung, 100 % = schwarzer Hintergrund." },
             };
         }
 

@@ -91,6 +91,7 @@ AAvailable settings include:
 - Icon size
 - Icon spacing
 - Color Thresholds can be customized
+- Color customization for Panel
 
 ## Update interval
 

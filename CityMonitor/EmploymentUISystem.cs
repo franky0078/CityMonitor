@@ -30,6 +30,7 @@ namespace CityMonitor
         private GetterValueBinding<bool> _iconPositionLockedBinding;
         private GetterValueBinding<bool> _iconVisibilityEditModeBinding;
         private GetterValueBinding<int> _iconBackgroundTransparencyBinding;
+        private GetterValueBinding<int> _iconBackgroundDarkeningBinding;
         private GetterValueBinding<int> _iconSizeBinding;
         private GetterValueBinding<int> _iconGapBinding;
         private GetterValueBinding<string> _hiddenIconsBinding;
@@ -103,6 +104,10 @@ namespace CityMonitor
             AddBinding(_iconBackgroundTransparencyBinding = new GetterValueBinding<int>(
                 Group, "iconBackgroundTransparency",
                 () => ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)));
+
+            AddBinding(_iconBackgroundDarkeningBinding = new GetterValueBinding<int>(
+                Group, "iconBackgroundDarkening",
+                () => ClampPercent(Mod.Setting?.IconBackgroundDarkening ?? 15)));
 
             AddBinding(_iconSizeBinding = new GetterValueBinding<int>(
                 Group, "iconSize",
@@ -248,6 +253,7 @@ namespace CityMonitor
             _iconPositionLockedBinding.Update();
             _iconVisibilityEditModeBinding.Update();
             _iconBackgroundTransparencyBinding.Update();
+            _iconBackgroundDarkeningBinding.Update();
             _iconSizeBinding.Update();
             _iconGapBinding.Update();
             _hiddenIconsBinding.Update();
@@ -284,6 +290,7 @@ namespace CityMonitor
                 $"IconPositionLocked={Mod.Setting?.IconPositionLocked}, " +
                 $"IconVisibilityEditMode={Mod.Setting?.IconVisibilityEditMode}, " +
                 $"IconBackgroundTransparency={ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)}%, " +
+                $"IconBackgroundDarkening={ClampPercent(Mod.Setting?.IconBackgroundDarkening ?? 15)}%, " +
                 $"IconSize={ClampIconSize(Mod.Setting?.IconSize ?? 30)}, " +
                 $"IconGap={ClampIconGap(Mod.Setting?.IconGap ?? 5)}, " +
                 $"UpdateInterval={_updateIntervalSeconds}s");

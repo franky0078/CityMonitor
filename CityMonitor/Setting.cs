@@ -97,6 +97,11 @@ namespace CityMonitor
 
         [SettingsUISection(kSection, kDisplayGroup)]
         [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        [SettingsUISlider(min = 0, max = 100, step = 5)]
+        public int IconBackgroundDarkening { get; set; } = 15;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
         [SettingsUISlider(min = 22, max = 50, step = 2)]
         public int IconSize { get; set; } = 30;
 
@@ -228,7 +233,7 @@ namespace CityMonitor
         // Versionsanzeige aus der Assembly
         [SettingsUISection(kSection, kAboutGroup)]
         public string ModVersion =>
-            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.3.2";
+            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.4.0";
 
         public bool IsIconOnlyModeDisabled()
         {
@@ -251,6 +256,7 @@ namespace CityMonitor
             IconPositionLocked = false;
             IconVisibilityEditMode = false;
             IconBackgroundTransparency = 40;
+            IconBackgroundDarkening = 15;
             IconSize = 30;
             IconGap = 5;
             HiddenIcons = "[]";

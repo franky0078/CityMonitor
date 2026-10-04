@@ -1,4 +1,6 @@
 const path = require("path");
+const fs = require("fs");
+const { sources, Compilation } = require("webpack");
 const MOD = require("./mod.json");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { CSSPresencePlugin } = require("./tools/css-presence");
@@ -69,6 +71,13 @@ module.exports = {
         ],
       },
       {
+        test: /\.ttf$/i,
+        type: "asset/resource",
+        generator: {
+          filename: "fonts/CityMonitor-[name][ext]",
+        },
+      },
+      {
         test: /\.(png|jpe?g|gif|svg)$/i,
         type: "asset/resource",
         generator: {
@@ -109,6 +118,15 @@ module.exports = {
     new CSSPresencePlugin(),
     {
       apply(compiler) {
+        compiler.hooks.thisCompilation.tap("CityMonitorFontLicense", (compilation) => {
+          compilation.hooks.processAssets.tap(
+            { name: "CityMonitorFontLicense", stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL },
+            () => compilation.emitAsset(
+              "fonts/CityMonitor-OFL.txt",
+              new sources.RawSource(fs.readFileSync(path.join(__dirname, "src/mods/fonts/OFL.txt")))
+            )
+          );
+        });
         let runCount = 0;
         compiler.hooks.done.tap("AfterDonePlugin", (stats) => {
           console.log(stats.toString({ colors: true }));

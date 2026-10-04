@@ -196,6 +196,19 @@ namespace CityMonitor
                 { "CityMonitor.Tourism", "Tourisme" },
                 { "CityMonitor.Tourists", "Touristes" },
                 { "CityMonitor.Attractiveness", "Attractivité de la ville" },
+                { "CityMonitor.AppearanceTitle", "Apparence de la fenêtre" },
+                { "CityMonitor.AppearanceWindow", "Fenêtre" },
+                { "CityMonitor.AppearanceHeader", "Barre supérieure" },
+                { "CityMonitor.AppearanceHex", "Couleur hexadécimale" },
+                { "CityMonitor.AppearanceRed", "Rouge" },
+                { "CityMonitor.AppearanceGreen", "Vert" },
+                { "CityMonitor.AppearanceBlue", "Bleu" },
+                { "CityMonitor.AppearanceTransparency", "Transparence (%)" },
+                { "CityMonitor.AppearanceBlur", "Intensité du flou" },
+                { "CityMonitor.AppearanceReset", "Réinitialiser la section" },
+                { "CityMonitor.Close", "Fermer" },
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconBackgroundDarkening)), "Assombrir le fond des icônes" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundDarkening)), "Assombrit uniquement le fond des icônes. Les symboles et les anneaux restent inchangés. 0 % = aucun assombrissement, 100 % = fond noir." },
             };
         }
 

@@ -3,6 +3,7 @@ import { bindValue, useValue } from "cs2/api";
 import {
     CityMonitorComponent,
     CityMonitorLauncher,
+    CityMonitorPanelTheme,
 } from "mods/city-monitor";
 
 const buttonLocation$ = bindValue<number>("cityMonitor", "buttonLocation");
@@ -17,9 +18,20 @@ const UniversalMenuCityMonitor = () =>
         ? <CityMonitorLauncher inUniversalModMenu />
         : null;
 
-const CityMonitorPanel = () => <CityMonitorComponent />;
-
 const register: ModRegistrar = (moduleRegistry) => {
+    let panelClass = "";
+    try {
+        panelClass = (moduleRegistry as any).registry.get(
+            "game-ui/game/components/tool-options/tool-options-panel.module.scss"
+        )?.classes?.toolOptionsPanel ?? "";
+    } catch (error) {
+        console.warn("[CityMonitor] Game panel theme unavailable", error);
+    }
+    const CityMonitorPanel = () => (
+        <CityMonitorPanelTheme.Provider value={panelClass}>
+            <CityMonitorComponent />
+        </CityMonitorPanelTheme.Provider>
+    );
     moduleRegistry.append("GameTopRight", StandardCityMonitor);
     moduleRegistry.append("UniversalModMenu", UniversalMenuCityMonitor);
     moduleRegistry.append("Game", CityMonitorPanel);
