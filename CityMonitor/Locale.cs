@@ -34,6 +34,9 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowPanel)),
                     "Blendet den City Monitor inklusive Schaltfläche im Spiel ein oder aus." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.LuminaNumberFix)), "Lumina-Zahlenkorrektur" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.LuminaNumberFix)), "Behebt Kästchen durch Sonderleerzeichen in Zahlenanzeigen wie Angestellte, Stufe und Lager bei aktivem Lumina. Standardmäßig ausgeschaltet." },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ButtonLocation)), "Position der Mod-Schaltfläche" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ButtonLocation)),
                     "Legt fest, ob die City-Monitor-Schaltfläche wie bisher einzeln oder im neuen Mod-Schaltflächenmenü angezeigt wird." },

@@ -163,7 +163,7 @@
 	
 
 	<!-- First public release -->
-	<ModVersion Value="1.4.0" />
+	<ModVersion Value="1.4.1" />
 
 	<!-- Tested Cities: Skylines II version -->
 	<GameVersion Value="1.6.*" />
@@ -171,12 +171,11 @@
 	<!-- City Monitor currently has no required mod dependencies. -->
 
 	<ChangeLog>
-		Version 1.4.0
+		Version 1.4.1
 
 
-		- new Design for Panel and Icon Bar
-		- add color customization
-		- Lumina font fix for German
+		- Lumina font fix for InfoPanel
+		- Add checkbox for Lumina font fix in the mod options(disabled by default)
 
 
 	</ChangeLog>

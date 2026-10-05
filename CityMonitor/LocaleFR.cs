@@ -34,6 +34,9 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowPanel)),
                     "Affiche ou masque City Monitor, y compris son bouton dans le jeu." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.LuminaNumberFix)), "Correction des nombres pour Lumina" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.LuminaNumberFix)), "Corrige les carrés causés par des espaces spéciaux dans les nombres des employés, du niveau et du stockage avec Lumina activé. Désactivée par défaut." },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ButtonLocation)), "Emplacement du bouton du mod" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ButtonLocation)),
                     "Définit si le bouton City Monitor apparaît à son emplacement d'origine ou dans le nouveau menu universel des mods." },

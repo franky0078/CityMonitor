@@ -22,6 +22,7 @@ namespace CityMonitor
 
         private ValueBinding<CityMonitorData> _dataBinding;
         private GetterValueBinding<bool> _showPanelBinding;
+        private GetterValueBinding<bool> _luminaNumberFixBinding;
         private GetterValueBinding<int> _buttonLocationBinding;
         private GetterValueBinding<bool> _compactValuesBinding;
         private GetterValueBinding<bool> _showLabelsBinding;
@@ -75,6 +76,9 @@ namespace CityMonitor
 
             AddBinding(_showPanelBinding = new GetterValueBinding<bool>(
                 Group, "showPanel", () => Mod.Setting?.ShowPanel ?? true));
+
+            AddBinding(_luminaNumberFixBinding = new GetterValueBinding<bool>(
+                Group, "luminaNumberFix", () => Mod.Setting?.LuminaNumberFix ?? false));
 
             AddBinding(_buttonLocationBinding = new GetterValueBinding<int>(
                 Group, "buttonLocation",
@@ -245,6 +249,7 @@ namespace CityMonitor
         private void OnSettingsApplied(Game.Settings.Setting setting)
         {
             _showPanelBinding.Update();
+            _luminaNumberFixBinding.Update();
             _buttonLocationBinding.Update();
             _compactValuesBinding.Update();
             _showLabelsBinding.Update();

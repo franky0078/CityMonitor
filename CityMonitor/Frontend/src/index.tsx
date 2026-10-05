@@ -1,5 +1,6 @@
 import { ModRegistrar } from "cs2/modding";
 import { bindValue, useValue } from "cs2/api";
+import { registerSelectedInfoFontFix } from "mods/selected-info-font-fix";
 import {
     CityMonitorComponent,
     CityMonitorLauncher,
@@ -19,6 +20,7 @@ const UniversalMenuCityMonitor = () =>
         : null;
 
 const register: ModRegistrar = (moduleRegistry) => {
+    registerSelectedInfoFontFix(moduleRegistry);
     let panelClass = "";
     try {
         panelClass = (moduleRegistry as any).registry.get(

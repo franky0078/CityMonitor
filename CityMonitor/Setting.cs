@@ -65,6 +65,9 @@ namespace CityMonitor
         public bool ShowPanel { get; set; } = true;
 
         [SettingsUISection(kSection, kGeneralGroup)]
+        public bool LuminaNumberFix { get; set; } = false;
+
+        [SettingsUISection(kSection, kGeneralGroup)]
         public ModButtonLocation ButtonLocation { get; set; } =
             ModButtonLocation.Standard;
 
@@ -233,7 +236,7 @@ namespace CityMonitor
         // Versionsanzeige aus der Assembly
         [SettingsUISection(kSection, kAboutGroup)]
         public string ModVersion =>
-            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.4.0";
+            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.4.1";
 
         public bool IsIconOnlyModeDisabled()
         {
@@ -248,6 +251,7 @@ namespace CityMonitor
         public override void SetDefaults()
         {
             ShowPanel = true;
+            LuminaNumberFix = false;
             ButtonLocation = ModButtonLocation.Standard;
             CompactValues = false;
             ShowLabels = false;

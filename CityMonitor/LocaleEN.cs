@@ -34,6 +34,9 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowPanel)),
                     "Shows or hides the City Monitor, including its in-game toggle button." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.LuminaNumberFix)), "Lumina number display fix" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.LuminaNumberFix)), "Fixes boxes caused by special spaces in number displays such as employees, level and storage when Lumina is enabled. Disabled by default." },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ButtonLocation)), "Mod button location" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ButtonLocation)),
                     "Sets whether the City Monitor button is shown in its original position or inside the new Universal Mod Menu." },

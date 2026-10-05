@@ -34,6 +34,9 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowPanel)),
                     "Mostra o nasconde City Monitor, incluso il relativo pulsante nel gioco." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.LuminaNumberFix)), "Correzione dei numeri per Lumina" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.LuminaNumberFix)), "Corregge i quadratini causati da spazi speciali nei numeri di dipendenti, livello e magazzino con Lumina attivo. Disattivata per impostazione predefinita." },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ButtonLocation)), "Posizione del pulsante della mod" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ButtonLocation)),
                     "Imposta se il pulsante di City Monitor viene mostrato nella posizione originale o nel nuovo menu universale delle mod." },
