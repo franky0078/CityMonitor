@@ -9,6 +9,7 @@ using Game.SceneFlow;
 using Game.Simulation;
 using Game.Tools;
 using Game.UI;
+using Game.UI.InGame;
 using CityMonitor.Logic;
 using CityMonitor.UI;
 using Unity.Collections;
@@ -63,10 +64,12 @@ namespace CityMonitor
         private float _updateIntervalSeconds = 15f;
         private CityMonitorData _lastData;
         private bool _hasPublishedData;
+        private PostInfoviewUISystem _postInfoviewSystem;
 
         protected override void OnCreate()
         {
             base.OnCreate();
+            _postInfoviewSystem = World.GetOrCreateSystemManaged<PostInfoviewUISystem>();
             Mod.Log.Info("EmploymentUISystem (Binding) gestartet.");
 
             SetupQueries();
@@ -232,7 +235,26 @@ namespace CityMonitor
                 return;
 
             _timer = 0f;
+            RefreshPostAvailability();
             CalculateAndUpdate();
+        }
+
+        private void RefreshPostAvailability()
+        {
+            if (Mod.Setting?.ShowPanel != true)
+                return;
+
+            bool iconOnlyMode = Mod.Setting.IconOnlyMode;
+            string hiddenItems = iconOnlyMode
+                ? Mod.Setting.HiddenIcons
+                : Mod.Setting.HiddenNormalStats;
+            bool editMode = Mod.Setting.IconVisibilityEditMode;
+
+            if (!editMode && IsItemHidden(hiddenItems, "post"))
+                return;
+
+            // Refresh the game's own indicator without switching the active infoview.
+            _postInfoviewSystem.RequestUpdate();
         }
 
         protected override void OnDestroy()

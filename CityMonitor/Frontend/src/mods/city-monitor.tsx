@@ -321,12 +321,14 @@ const Icon = ({
     size = 18,
     color = "#fff",
     white = false,
+    opacity = 1,
 }: {
     path?: string;
     src?: string;
     size?: number;
     color?: string;
     white?: boolean;
+    opacity?: number;
 }) => {
     const dim = size + "rem";
 
@@ -338,6 +340,7 @@ const Icon = ({
                     width: dim,
                     height: dim,
                     flexShrink: 0,
+                    opacity,
                     filter: white ? "brightness(0) invert(1)" : undefined,
                 }}
             />
@@ -350,7 +353,7 @@ const Icon = ({
             width={dim}
             height={dim}
             fill={color}
-            style={{ flexShrink: 0 }}
+            style={{ flexShrink: 0, opacity }}
         >
             <path d={path} />
         </svg>
@@ -771,18 +774,20 @@ const StatusRing = ({ percent, color, opacity = 1 }: { percent: number; color: s
         ? (percent > 0 ? Math.max(1, Math.round(clamp(percent, 0, 100))) : 0)
         : 0;
     const angle = fill / 100 * Math.PI * 2;
-    const x = 20 + 18.5 * Math.sin(angle);
-    const y = 20 - 18.5 * Math.cos(angle);
+    const x = 20 + 18 * Math.sin(angle);
+    const y = 20 - 18 * Math.cos(angle);
     const arc = fill >= 100
-        ? "M20 1.5 A18.5 18.5 0 1 1 20 38.5 A18.5 18.5 0 1 1 20 1.5"
-        : `M20 1.5 A18.5 18.5 0 ${fill > 50 ? 1 : 0} 1 ${x.toFixed(4)} ${y.toFixed(4)}`;
+        ? "M20 2 A18 18 0 1 1 20 38 A18 18 0 1 1 20 2"
+        : `M20 2 A18 18 0 ${fill > 50 ? 1 : 0} 1 ${x.toFixed(4)} ${y.toFixed(4)}`;
     return (
         <svg viewBox="0 0 40 40" aria-hidden="true"
-            style={{ position: "absolute", top: 0, left: 0,
-                width: "100%", height: "100%", zIndex: 1, opacity, pointerEvents: "none" }}>
-            <circle cx="20" cy="20" r="18.5" fill="none"
+            style={{
+                position: "absolute", top: 0, left: 0,
+                width: "100%", height: "100%", zIndex: 1, opacity, pointerEvents: "none"
+            }}>
+            <circle cx="20" cy="20" r="18" fill="none"
                 stroke="rgba(176,210,229,0.25)" strokeWidth="2.5" />
-            {fill > 0 && <path d={arc} fill="none" stroke={color} strokeWidth="2.5" />}
+            {fill > 0 && <path d={arc} fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round" />}
         </svg>
     );
 };
@@ -848,9 +853,11 @@ const StatusIcon = ({
     const [horizontalTooltipAnchor, setHorizontalTooltipAnchor] =
         useState<HorizontalTooltipAnchor>("center");
 
-    // Blur the scene behind the circle; opacity on this same element fades
-    // the completed icon without an opaque tint hiding the filtered scene.
+    // Fade each visual layer once; keep the shared container fully opaque.
     const tintOpacity = 1 - clamp(backgroundAppearance.transparency, 0, 100) / 100;
+    const layerOpacity = clamp(iconOpacity, 0, 1);
+    const symbolOpacity = layerOpacity * clamp(foregroundOpacity, 0, 1);
+    const warning = ringColor === STATUS_RED;
     const contentSize = Math.max(14, size);
     const glyphSize = Math.max(12, Math.min(size - 8, Math.round(size * 0.76)));
     const tooltipOffset = size + 6;
@@ -1011,14 +1018,10 @@ const StatusIcon = ({
             }}
         >
             <div
-                className={`${styles.iconSurface} ${backdropBlurClass(backgroundAppearance.blur)}`}
                 style={{
-                    backgroundColor: `rgba(${backgroundAppearance.red},${backgroundAppearance.green},${backgroundAppearance.blue},${0.93 * tintOpacity})`,
-                    opacity: clamp(iconOpacity, 0, 1),
                     width: contentSize + "rem",
                     height: contentSize + "rem",
                     borderRadius: "50%",
-                    boxShadow: "0 2rem 6rem rgba(0,0,0,0.3)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1030,25 +1033,40 @@ const StatusIcon = ({
                 }}
             >
                 <div aria-hidden="true"
-                    className={styles.iconBackdrop}
-                    style={{ backgroundColor: hovered
-                        ? `rgba(58,92,115,${0.25 * tintOpacity})`
-                        : "transparent" }}>
-                    <div className={styles.iconShade}
-                        style={{ backgroundColor: `rgba(0,0,0,${clamp(backgroundDarkening, 0, 100) / 100})` }} />
+                    className={`${styles.iconSurface} ${backdropBlurClass(backgroundAppearance.blur)}`}
+                    style={{
+                        position: "absolute",
+                        width: "100%",
+                        height: "100%",
+                        opacity: layerOpacity,
+                        backgroundColor: `rgba(${backgroundAppearance.red},${backgroundAppearance.green},${backgroundAppearance.blue},${0.93 * tintOpacity})`,
+                        boxShadow: "0 2rem 6rem rgba(0,0,0,0.3)",
+                        pointerEvents: "none",
+                    }}>
+                    <div aria-hidden="true"
+                        className={styles.iconBackdrop}
+                        style={{
+                            backgroundColor: hovered
+                                ? `rgba(58,92,115,${0.25 * tintOpacity})`
+                                : "transparent"
+                        }}>
+                        <div className={styles.iconShade}
+                            style={{ backgroundColor: `rgba(0,0,0,${clamp(backgroundDarkening, 0, 100) / 100})` }} />
+                        {warning && <div className={styles.iconShade}
+                            style={{ backgroundColor: "rgba(110,20,20,0.8)" }} />}
+                    </div>
                 </div>
-                <StatusRing percent={ringPercent} color={ringColor} opacity={foregroundOpacity} />
+                <StatusRing percent={ringPercent} color={ringColor} opacity={symbolOpacity} />
                 <div
                     style={{
                         position: "relative",
                         zIndex: 2,
-                        opacity: foregroundOpacity,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                     }}
                 >
-                    <Icon src={iconSrc} size={glyphSize} />
+                    <Icon src={iconSrc} size={glyphSize} opacity={symbolOpacity} />
                 </div>
             </div>
 
@@ -2255,7 +2273,7 @@ export const CityMonitorComponent = () => {
     const appearanceRef = useRef(appearance);
     const [appearanceOpen, setAppearanceOpen] = useState(false);
     const appearanceSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const saveAppearanceRef = useRef<() => void>(() => {});
+    const saveAppearanceRef = useRef<() => void>(() => { });
     useEffect(() => () => {
         if (appearanceSaveTimer.current !== null) {
             clearTimeout(appearanceSaveTimer.current);
@@ -2958,7 +2976,10 @@ export const CityMonitorComponent = () => {
                     "Arbeitsplätze"
                 ),
                 details: compactValues
-                    ? [{ value: String(data.openJobs) }]
+                    ? [
+                        { value: String(data.openJobs) },
+                        { value: sharePercent(data.openJobs, data.totalJobSlots).toFixed(1) + " %" },
+                    ]
                     : [
                         {
                             label: t(
@@ -2973,6 +2994,10 @@ export const CityMonitorComponent = () => {
                                 "Offen"
                             ),
                             value: String(data.openJobs),
+                        },
+                        {
+                            label: t("CityMonitor.OpenJobsShare", "Anteil offen"),
+                            value: sharePercent(data.openJobs, data.totalJobSlots).toFixed(1) + " %",
                         },
                     ],
                 ringPercent: sharePercent(data.openJobs, data.totalJobSlots),
@@ -3690,113 +3715,113 @@ export const CityMonitorComponent = () => {
                                     <div className={styles.legacyBody}>
                                         <AppearanceBackdrop value={appearance.window} panelClass={gamePanelClass} />
                                         <div className={styles.legacyBodyContent}>
-                                        {!compactValues && (
-                                            renderNormalStat("unemployed", <Row
-                                                iconSrc={alos}
-                                                label={t("CityMonitor.Unemployed", "Arbeitslose")}
-                                                value={String(data.unemployedCount)}
+                                            {!compactValues && (
+                                                renderNormalStat("unemployed", <Row
+                                                    iconSrc={alos}
+                                                    label={t("CityMonitor.Unemployed", "Arbeitslose")}
+                                                    value={String(data.unemployedCount)}
+                                                    showText={showText}
+                                                />)
+                                            )}
+
+                                            {renderNormalStat("unemployment", <Row
+                                                iconSrc={stat}
+                                                label={t("CityMonitor.UnemploymentRate", "Quote")}
+                                                value={data.unemploymentRate.toFixed(1) + " %"}
+                                                color={rateColor}
                                                 showText={showText}
-                                            />)
-                                        )}
+                                            />)}
 
-                                        {renderNormalStat("unemployment", <Row
-                                            iconSrc={stat}
-                                            label={t("CityMonitor.UnemploymentRate", "Quote")}
-                                            value={data.unemploymentRate.toFixed(1) + " %"}
-                                            color={rateColor}
-                                            showText={showText}
-                                        />)}
+                                            {renderNormalStat("homeless", <HomelessRow
+                                                showText={showText}
+                                                compactValues={compactValues}
+                                                t={t}
+                                                thresholds={thresholds}
+                                            />)}
 
-                                        {renderNormalStat("homeless", <HomelessRow
-                                            showText={showText}
-                                            compactValues={compactValues}
-                                            t={t}
-                                            thresholds={thresholds}
-                                        />)}
+                                            {renderNormalStat("jobs", <Row
+                                                iconSrc={work}
+                                                label={t("CityMonitor.OpenJobs", "Offene Stellen")}
+                                                value={
+                                                    compactValues
+                                                        ? String(data.openJobs)
+                                                        : `${data.openJobs} / ${data.totalJobSlots}`
+                                                }
+                                                color={openJobsStatusColor(
+                                                    data.openJobs,
+                                                    data.totalJobSlots,
+                                                    thresholds
+                                                )}
+                                                showText={showText}
+                                            />)}
 
-                                        {renderNormalStat("jobs", <Row
-                                            iconSrc={work}
-                                            label={t("CityMonitor.OpenJobs", "Offene Stellen")}
-                                            value={
-                                                compactValues
-                                                    ? String(data.openJobs)
-                                                    : `${data.openJobs} / ${data.totalJobSlots}`
-                                            }
-                                            color={openJobsStatusColor(
-                                                data.openJobs,
-                                                data.totalJobSlots,
-                                                thresholds
-                                            )}
-                                            showText={showText}
-                                        />)}
+                                            {hasVisibleEmploymentStats &&
+                                                hasVisibleSchoolStats && (
+                                                    <div
+                                                        style={{
+                                                            height: "1rem",
+                                                            background: "rgba(255,255,255,0.1)",
+                                                            margin: "6rem 0",
+                                                        }}
+                                                    />
+                                                )}
 
-                                        {hasVisibleEmploymentStats &&
-                                            hasVisibleSchoolStats && (
-                                                <div
-                                                    style={{
-                                                        height: "1rem",
-                                                        background: "rgba(255,255,255,0.1)",
-                                                        margin: "6rem 0",
-                                                    }}
-                                                />
-                                            )}
+                                            {renderNormalStat("elementary", <SchoolRow
+                                                iconSrc={edu1}
+                                                label={t("CityMonitor.ElementarySchool", "Grundschule")}
+                                                students={data.elementaryStudents}
+                                                free={data.elementaryFreeSlots}
+                                                showText={showText}
+                                                compactValues={compactValues}
+                                                thresholds={thresholds}
+                                            />)}
 
-                                        {renderNormalStat("elementary", <SchoolRow
-                                            iconSrc={edu1}
-                                            label={t("CityMonitor.ElementarySchool", "Grundschule")}
-                                            students={data.elementaryStudents}
-                                            free={data.elementaryFreeSlots}
-                                            showText={showText}
-                                            compactValues={compactValues}
-                                            thresholds={thresholds}
-                                        />)}
+                                            {renderNormalStat("highschool", <SchoolRow
+                                                iconSrc={edu2}
+                                                label={t("CityMonitor.HighSchool", "Oberschule")}
+                                                students={data.highStudents}
+                                                free={data.highFreeSlots}
+                                                showText={showText}
+                                                compactValues={compactValues}
+                                                thresholds={thresholds}
+                                            />)}
 
-                                        {renderNormalStat("highschool", <SchoolRow
-                                            iconSrc={edu2}
-                                            label={t("CityMonitor.HighSchool", "Oberschule")}
-                                            students={data.highStudents}
-                                            free={data.highFreeSlots}
-                                            showText={showText}
-                                            compactValues={compactValues}
-                                            thresholds={thresholds}
-                                        />)}
+                                            {renderNormalStat("college", <SchoolRow
+                                                iconSrc={edu3}
+                                                label={t("CityMonitor.College", "College")}
+                                                students={data.collegeStudents}
+                                                free={data.collegeFreeSlots}
+                                                showText={showText}
+                                                compactValues={compactValues}
+                                                thresholds={thresholds}
+                                            />)}
 
-                                        {renderNormalStat("college", <SchoolRow
-                                            iconSrc={edu3}
-                                            label={t("CityMonitor.College", "College")}
-                                            students={data.collegeStudents}
-                                            free={data.collegeFreeSlots}
-                                            showText={showText}
-                                            compactValues={compactValues}
-                                            thresholds={thresholds}
-                                        />)}
+                                            {renderNormalStat("university", <SchoolRow
+                                                iconSrc={edu4}
+                                                label={t("CityMonitor.University", "Universität")}
+                                                students={data.uniStudents}
+                                                free={data.uniFreeSlots}
+                                                showText={showText}
+                                                compactValues={compactValues}
+                                                thresholds={thresholds}
+                                            />)}
 
-                                        {renderNormalStat("university", <SchoolRow
-                                            iconSrc={edu4}
-                                            label={t("CityMonitor.University", "Universität")}
-                                            students={data.uniStudents}
-                                            free={data.uniFreeSlots}
-                                            showText={showText}
-                                            compactValues={compactValues}
-                                            thresholds={thresholds}
-                                        />)}
-
-                                        <NormalServiceRows
-                                            compactValues={compactValues}
-                                            showText={showText}
-                                            t={t}
-                                            thresholds={thresholds}
-                                            hiddenStatIds={hiddenNormalStatIds}
-                                            editMode={normalEditMode}
-                                            showSeparator={
-                                                hasVisibleServiceStats &&
-                                                (hasVisibleEmploymentStats ||
-                                                    hasVisibleSchoolStats)
-                                            }
-                                            onToggleVisibility={
-                                                toggleNormalStatVisibility
-                                            }
-                                        />
+                                            <NormalServiceRows
+                                                compactValues={compactValues}
+                                                showText={showText}
+                                                t={t}
+                                                thresholds={thresholds}
+                                                hiddenStatIds={hiddenNormalStatIds}
+                                                editMode={normalEditMode}
+                                                showSeparator={
+                                                    hasVisibleServiceStats &&
+                                                    (hasVisibleEmploymentStats ||
+                                                        hasVisibleSchoolStats)
+                                                }
+                                                onToggleVisibility={
+                                                    toggleNormalStatVisibility
+                                                }
+                                            />
                                         </div>
                                     </div>
                                 )}

@@ -95,7 +95,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Update interval" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
-                    "Sets how often unemployment, jobs, and school values are recalculated. Range: 0.5 to 60 seconds. Service indicators use the game bindings directly. Hidden icons are not recalculated or subscribed." },
+                    "Sets how often unemployment, jobs, and school values are recalculated. Range: 0.5 to 60 seconds. The post indicator is also requested to refresh at this interval. Service indicators use the game bindings directly. Hidden icons are not recalculated or subscribed." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UnemploymentGreenMax)), "Unemployment: green up to" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UnemploymentGreenMax)),
@@ -177,6 +177,7 @@ namespace CityMonitor
 
                 { "CityMonitor.Jobs", "Jobs" },
                 { "CityMonitor.OpenJobs", "Open jobs" },
+                { "CityMonitor.OpenJobsShare", "Open share" },
                 { "CityMonitor.Open", "Open" },
                 { "CityMonitor.Free", "Free" },
                 { "CityMonitor.Occupied", "Occupied" },

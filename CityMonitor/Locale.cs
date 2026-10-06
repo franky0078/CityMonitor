@@ -95,7 +95,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Aktualisierungsintervall" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
-                    "Legt fest, wie oft Arbeitslosigkeit, Arbeitsplätze und Schulwerte neu berechnet werden. Bereich: 0,5 bis 60 Sekunden. Die Serviceanzeigen verwenden die Spiel-Bindings direkt. Ausgeblendete Symbole werden nicht neu berechnet bzw. nicht abonniert." },
+                    "Legt fest, wie oft Arbeitslosigkeit, Arbeitsplätze und Schulwerte neu berechnet werden. Bereich: 0,5 bis 60 Sekunden. Die Postanzeige wird ebenfalls in diesem Intervall zur Aktualisierung aufgefordert. Die Serviceanzeigen verwenden die Spiel-Bindings direkt. Ausgeblendete Symbole werden nicht neu berechnet bzw. nicht abonniert." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UnemploymentGreenMax)), "Arbeitslosigkeit: Grün bis" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UnemploymentGreenMax)),
@@ -177,6 +177,7 @@ namespace CityMonitor
 
                 { "CityMonitor.Jobs", "Arbeitsplätze" },
                 { "CityMonitor.OpenJobs", "Offene Stellen" },
+                { "CityMonitor.OpenJobsShare", "Anteil offen" },
                 { "CityMonitor.Open", "Offen" },
                 { "CityMonitor.Free", "Frei" },
                 { "CityMonitor.Occupied", "Belegt" },

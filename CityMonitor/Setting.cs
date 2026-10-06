@@ -236,7 +236,7 @@ namespace CityMonitor
         // Versionsanzeige aus der Assembly
         [SettingsUISection(kSection, kAboutGroup)]
         public string ModVersion =>
-            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.4.2";
+            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.4.3";
 
         public bool IsIconOnlyModeDisabled()
         {

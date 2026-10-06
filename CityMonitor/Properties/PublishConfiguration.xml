@@ -163,7 +163,7 @@
 	
 
 	<!-- First public release -->
-	<ModVersion Value="1.4.2" />
+	<ModVersion Value="1.4.3" />
 
 	<!-- Tested Cities: Skylines II version -->
 	<GameVersion Value="1.6.*" />
@@ -171,11 +171,13 @@
 	<!-- City Monitor currently has no required mod dependencies. -->
 
 	<ChangeLog>
-		Version 1.4.2
+		Version 1.4.3
 
 
 		- Fixed empty status rings for small positive values
 		- Improved status ring precision
+		- Added a dark red icon background for categories with a critical status
+		- Added periodic refresh requests for the post service indicator. Updates still depend on the game's simulation data.
 
 
 	</ChangeLog>

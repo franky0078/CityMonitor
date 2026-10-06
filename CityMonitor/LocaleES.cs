@@ -95,7 +95,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UpdateIntervalSeconds)), "Intervalo de actualización" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UpdateIntervalSeconds)),
-                    "Define cada cuánto se recalculan el desempleo, los empleos y las plazas escolares. Intervalo: 0,5 a 60 segundos. Los servicios usan directamente los datos del juego. Los iconos ocultos no se recalculan ni se suscriben." },
+                    "Define cada cuánto se recalculan el desempleo, los empleos y las plazas escolares. Intervalo: 0,5 a 60 segundos. También se solicita actualizar el indicador postal en este intervalo. Los servicios usan directamente los datos del juego. Los iconos ocultos no se recalculan ni se suscriben." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.UnemploymentGreenMax)), "Desempleo: verde hasta" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.UnemploymentGreenMax)), "El estado es verde hasta esta tasa de desempleo." },
@@ -157,6 +157,7 @@ namespace CityMonitor
                 { "CityMonitor.HomelessPeople", "Personas sin hogar" },
                 { "CityMonitor.Jobs", "Empleos" },
                 { "CityMonitor.OpenJobs", "Puestos vacantes" },
+                { "CityMonitor.OpenJobsShare", "Porcentaje vacante" },
                 { "CityMonitor.Open", "Vacantes" },
                 { "CityMonitor.Free", "Libres" },
                 { "CityMonitor.Occupied", "Ocupadas" },
