@@ -766,9 +766,9 @@ const DragHandle = ({
 // Start at twelve o'clock; the coloured arc grows clockwise with the value.
 // Use ordinary SVG paths, matching the existing inline SVG UI icons.
 const StatusRing = ({ percent, color, opacity = 1 }: { percent: number; color: string; opacity?: number }) => {
-    // Round the visual fill to ten-percent steps; tooltip values stay exact.
+    // Use one-percent steps and keep positive values visible; tooltip values stay exact.
     const fill = Number.isFinite(percent)
-        ? Math.round(clamp(percent, 0, 100) / 10) * 10
+        ? (percent > 0 ? Math.max(1, Math.round(clamp(percent, 0, 100))) : 0)
         : 0;
     const angle = fill / 100 * Math.PI * 2;
     const x = 20 + 18.5 * Math.sin(angle);
