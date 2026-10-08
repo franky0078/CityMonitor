@@ -32,6 +32,8 @@ namespace CityMonitor
         private GetterValueBinding<bool> _iconPositionLockedBinding;
         private GetterValueBinding<bool> _iconVisibilityEditModeBinding;
         private GetterValueBinding<int> _iconBackgroundTransparencyBinding;
+        private GetterValueBinding<bool> _iconOpaqueOnHoverBinding;
+        private GetterValueBinding<bool> _allIconsOpaqueOnHoverBinding;
         private GetterValueBinding<int> _iconBackgroundDarkeningBinding;
         private GetterValueBinding<int> _iconSizeBinding;
         private GetterValueBinding<int> _iconGapBinding;
@@ -111,6 +113,14 @@ namespace CityMonitor
             AddBinding(_iconBackgroundTransparencyBinding = new GetterValueBinding<int>(
                 Group, "iconBackgroundTransparency",
                 () => ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)));
+
+            AddBinding(_iconOpaqueOnHoverBinding = new GetterValueBinding<bool>(
+                Group, "iconOpaqueOnHover",
+                () => Mod.Setting?.IconOpaqueOnHover ?? true));
+
+            AddBinding(_allIconsOpaqueOnHoverBinding = new GetterValueBinding<bool>(
+                Group, "allIconsOpaqueOnHover",
+                () => Mod.Setting?.AllIconsOpaqueOnHover ?? false));
 
             AddBinding(_iconBackgroundDarkeningBinding = new GetterValueBinding<int>(
                 Group, "iconBackgroundDarkening",
@@ -280,6 +290,8 @@ namespace CityMonitor
             _iconPositionLockedBinding.Update();
             _iconVisibilityEditModeBinding.Update();
             _iconBackgroundTransparencyBinding.Update();
+            _iconOpaqueOnHoverBinding.Update();
+            _allIconsOpaqueOnHoverBinding.Update();
             _iconBackgroundDarkeningBinding.Update();
             _iconSizeBinding.Update();
             _iconGapBinding.Update();

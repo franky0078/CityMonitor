@@ -73,6 +73,14 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
                     "Controls the transparency of the complete icon in compact icon mode. 0% = fully visible, 100% = maximum transparency. The icon, colored status ring, and dark circular background are affected; the hover tooltip remains fully visible." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconOpaqueOnHover)), "Show icons fully on hover" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconOpaqueOnHover)),
+                    "Shows the icon, status ring, and background under the mouse pointer with 0% icon transparency. Restores the configured icon transparency when the pointer leaves. Applies only to icon mode." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.AllIconsOpaqueOnHover)), "Show all icons fully on hover" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.AllIconsOpaqueOnHover)),
+                    "Shows all displayed icons with 0% icon transparency while the pointer is over the icon bar. Restores the configured transparency when the pointer leaves. Works independently of the option for individual icons." },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconSize)), "Icon size" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconSize)),
                     "Sets the size of the round status icons in compact icon mode. Range: 22 to 50." },

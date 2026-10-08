@@ -73,6 +73,14 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
                     "Controla la transparencia del icono completo en el modo compacto. 0 % = totalmente visible, 100 % = máxima transparencia. Afecta al icono, al anillo de estado y al fondo circular oscuro; la información emergente permanece visible." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconOpaqueOnHover)), "Mostrar iconos completamente al pasar el cursor" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconOpaqueOnHover)),
+                    "Muestra el icono, el anillo de estado y el fondo bajo el cursor con un 0 % de transparencia de iconos. Restaura la transparencia configurada al retirar el cursor. Solo se aplica al modo de iconos." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.AllIconsOpaqueOnHover)), "Mostrar todos los iconos completamente al pasar el cursor" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.AllIconsOpaqueOnHover)),
+                    "Muestra todos los iconos visibles con un 0 % de transparencia mientras el cursor está sobre la barra de iconos. Restaura la transparencia configurada al salir de la barra. Funciona independientemente de la opción para iconos individuales." },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconSize)), "Tamaño de iconos" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconSize)),
                     "Define el tamaño de los iconos de estado redondos en el modo compacto. Intervalo: 22 a 50." },

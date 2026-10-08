@@ -73,6 +73,14 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
                     "Contrôle la transparence de l'icône complète en mode compact. 0 % = entièrement visible, 100 % = transparence maximale. L'icône, l'anneau d'état et le fond circulaire sombre sont concernés ; l'infobulle reste entièrement visible." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconOpaqueOnHover)), "Afficher les icônes entièrement au survol" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconOpaqueOnHover)),
+                    "Affiche l’icône, l’anneau d’état et le fond sous le pointeur avec une transparence des icônes de 0 %. Rétablit la transparence configurée lorsque le pointeur quitte l’icône. Uniquement en mode icônes." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.AllIconsOpaqueOnHover)), "Afficher toutes les icônes entièrement au survol" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.AllIconsOpaqueOnHover)),
+                    "Affiche toutes les icônes visibles avec une transparence des icônes de 0 % lorsque le pointeur survole la barre. Rétablit la transparence configurée lorsque le pointeur quitte la barre. Fonctionne indépendamment de l’option pour les icônes individuelles." },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconSize)), "Taille des icônes" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconSize)),
                     "Définit la taille des icônes d'état rondes en mode compact. Plage : 22 à 50." },

@@ -73,6 +73,14 @@ namespace CityMonitor
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconBackgroundTransparency)),
                     "Steuert die Transparenz des kompletten Symbols im kompakten Symbolmodus. 0 % = vollständig sichtbar, 100 % = maximal transparent. Betroffen sind Symbol, farbiger Ring und die dunkle Kreisfläche; der Hover-Tooltip bleibt normal sichtbar." },
 
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconOpaqueOnHover)), "Icons beim Hover vollständig anzeigen" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconOpaqueOnHover)),
+                    "Zeigt das Symbol, den Statusring und den Hintergrund unter dem Mauszeiger mit 0 % Icon-Transparenz an. Beim Verlassen wird die eingestellte Icon-Transparenz wiederhergestellt. Gilt nur im Iconmodus." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.AllIconsOpaqueOnHover)), "Alle Icons beim Hover vollständig anzeigen" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.AllIconsOpaqueOnHover)),
+                    "Zeigt alle eingeblendeten Icons mit 0 % Icon-Transparenz an, solange sich der Mauszeiger über der Icon-Leiste befindet. Beim Verlassen gilt wieder die eingestellte Transparenz. Funktioniert unabhängig von der Option für einzelne Icons." },
+
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.IconSize)), "Icon-Größe" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.IconSize)),
                     "Legt die Größe der runden Status-Symbole im kompakten Symbolmodus fest. Bereich: 22 bis 50." },

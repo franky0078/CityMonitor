@@ -102,6 +102,7 @@
 		- Icon spacing
 		- Color Thresholds can be customized
 		- Color customization for Panel
+		- Optional full visibility of individual or all icons on hover.
 
 		## Update interval
 
@@ -163,7 +164,7 @@
 	
 
 	<!-- First public release -->
-	<ModVersion Value="1.4.3" />
+	<ModVersion Value="1.4.5" />
 
 	<!-- Tested Cities: Skylines II version -->
 	<GameVersion Value="1.6.*" />
@@ -171,13 +172,10 @@
 	<!-- City Monitor currently has no required mod dependencies. -->
 
 	<ChangeLog>
-		Version 1.4.3
+		Version 1.4.5
 
 
-		- Fixed empty status rings for small positive values
-		- Improved status ring precision
-		- Added a dark red icon background for categories with a critical status
-		- Added periodic refresh requests for the post service indicator. Updates still depend on the game's simulation data.
+		- added options to show one or all icons at full opacity on hover.
 
 
 	</ChangeLog>

@@ -100,6 +100,14 @@ namespace CityMonitor
 
         [SettingsUISection(kSection, kDisplayGroup)]
         [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool IconOpaqueOnHover { get; set; } = true;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool AllIconsOpaqueOnHover { get; set; } = false;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
         [SettingsUISlider(min = 0, max = 100, step = 5)]
         public int IconBackgroundDarkening { get; set; } = 15;
 
@@ -236,7 +244,7 @@ namespace CityMonitor
         // Versionsanzeige aus der Assembly
         [SettingsUISection(kSection, kAboutGroup)]
         public string ModVersion =>
-            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.4.3";
+            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.4.5";
 
         public bool IsIconOnlyModeDisabled()
         {
@@ -260,6 +268,8 @@ namespace CityMonitor
             IconPositionLocked = false;
             IconVisibilityEditMode = false;
             IconBackgroundTransparency = 40;
+            IconOpaqueOnHover = true;
+            AllIconsOpaqueOnHover = false;
             IconBackgroundDarkening = 15;
             IconSize = 30;
             IconGap = 5;

@@ -123,6 +123,8 @@ const iconBackgroundTransparency$ = bindValue<number>(
     "cityMonitor",
     "iconBackgroundTransparency"
 );
+const iconOpaqueOnHover$ = bindValue<boolean>("cityMonitor", "iconOpaqueOnHover", true);
+const allIconsOpaqueOnHover$ = bindValue<boolean>("cityMonitor", "allIconsOpaqueOnHover", false);
 const iconBackgroundDarkening$ = bindValue<number>("cityMonitor", "iconBackgroundDarkening", 15);
 const iconSize$ = bindValue<number>("cityMonitor", "iconSize");
 const iconGap$ = bindValue<number>("cityMonitor", "iconGap");
@@ -804,6 +806,7 @@ interface StatusIconProps {
     ringColor: string;
     ringPercent?: number;
     iconOpacity: number;
+    opaqueOnHover?: boolean;
     foregroundOpacity?: number;
     backgroundDarkening?: number;
     backgroundAppearance?: SurfaceAppearance;
@@ -829,6 +832,7 @@ const StatusIcon = ({
     ringColor,
     ringPercent = 0,
     iconOpacity,
+    opaqueOnHover = false,
     foregroundOpacity = 1,
     backgroundDarkening = 15,
     backgroundAppearance = defaultAppearance.window,
@@ -846,6 +850,7 @@ const StatusIcon = ({
     onActivate,
 }: StatusIconProps) => {
     const [hovered, setHovered] = useState(false);
+    const [pointerOver, setPointerOver] = useState(false);
     const [tooltipSide, setTooltipSide] =
         useState<TooltipPlacement>(
             orientation === "horizontal" ? "bottom" : "right"
@@ -855,7 +860,7 @@ const StatusIcon = ({
 
     // Fade each visual layer once; keep the shared container fully opaque.
     const tintOpacity = 1 - clamp(backgroundAppearance.transparency, 0, 100) / 100;
-    const layerOpacity = clamp(iconOpacity, 0, 1);
+    const layerOpacity = opaqueOnHover && pointerOver ? 1 : clamp(iconOpacity, 0, 1);
     const symbolOpacity = layerOpacity * clamp(foregroundOpacity, 0, 1);
     const warning = ringColor === STATUS_RED;
     const contentSize = Math.max(14, size);
@@ -932,6 +937,7 @@ const StatusIcon = ({
                 onActivate();
             }}
             onMouseEnter={(e) => {
+                setPointerOver(true);
                 if (reorderActive) {
                     setHovered(false);
                     if (!isReordering && onReorderEnter) {
@@ -990,7 +996,10 @@ const StatusIcon = ({
 
                 setHovered(true);
             }}
-            onMouseLeave={() => setHovered(false)}
+            onMouseLeave={() => {
+                setPointerOver(false);
+                setHovered(false);
+            }}
             onMouseDown={(e) => {
                 if (e.button === 0 && canReorder && onReorderStart) {
                     e.preventDefault();
@@ -2035,6 +2044,9 @@ export const CityMonitorComponent = () => {
     const iconPositionLocked = useValue(iconPositionLocked$);
     const iconVisibilityEditMode = useValue(iconVisibilityEditMode$);
     const iconBackgroundTransparency = useValue(iconBackgroundTransparency$);
+    const iconOpaqueOnHover = useValue(iconOpaqueOnHover$);
+    const allIconsOpaqueOnHover = useValue(allIconsOpaqueOnHover$);
+    const [iconBarHovered, setIconBarHovered] = useState(false);
     const iconBackgroundDarkening = useValue(iconBackgroundDarkening$);
     const iconSizeSetting = useValue(iconSize$);
     const iconGapSetting = useValue(iconGap$);
@@ -2294,6 +2306,10 @@ export const CityMonitorComponent = () => {
     const [minimized, setMinimized] = useState(false);
     const [visible, setVisible] = useState(true);
     const [dragging, setDragging] = useState(false);
+
+    useEffect(() => {
+        setIconBarHovered(false);
+    }, [iconOnlyMode, showPanelSetting, visible, minimized]);
 
     const panelRef = useRef<HTMLDivElement>(null);
     const dragRef = useRef({
@@ -3411,6 +3427,8 @@ export const CityMonitorComponent = () => {
                     >
                         {iconOnlyMode ? (
                             <div
+                                onMouseEnter={() => setIconBarHovered(true)}
+                                onMouseLeave={() => setIconBarHovered(false)}
                                 style={{
                                     width:
                                         (iconOrientation === "horizontal"
@@ -3462,7 +3480,8 @@ export const CityMonitorComponent = () => {
 
                                         const currentForegroundOpacity =
                                             iconVisibilityEditMode && isHidden ? 0.45 : 1;
-                                        const currentIconOpacity = iconOpacity;
+                                        const currentIconOpacity =
+                                            allIconsOpaqueOnHover && iconBarHovered ? 1 : iconOpacity;
 
                                         const gapAfter =
                                             index <
@@ -3507,6 +3526,7 @@ export const CityMonitorComponent = () => {
                                                     backgroundAppearance={appearance.window}
                                                     backgroundDarkening={iconBackgroundDarkening}
                                                     foregroundOpacity={currentForegroundOpacity}
+                                                    opaqueOnHover={iconOpaqueOnHover}
                                                     iconOpacity={
                                                         currentIconOpacity
                                                     }
@@ -3558,6 +3578,7 @@ export const CityMonitorComponent = () => {
                                                     backgroundAppearance={appearance.window}
                                                     backgroundDarkening={iconBackgroundDarkening}
                                                     foregroundOpacity={currentForegroundOpacity}
+                                                    opaqueOnHover={iconOpaqueOnHover}
                                                     iconOpacity={
                                                         currentIconOpacity
                                                     }
@@ -3620,6 +3641,7 @@ export const CityMonitorComponent = () => {
                                                 backgroundAppearance={appearance.window}
                                                 backgroundDarkening={iconBackgroundDarkening}
                                                 foregroundOpacity={currentForegroundOpacity}
+                                                opaqueOnHover={iconOpaqueOnHover}
                                                 iconOpacity={
                                                     currentIconOpacity
                                                 }
