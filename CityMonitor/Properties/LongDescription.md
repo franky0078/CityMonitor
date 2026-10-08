@@ -83,6 +83,7 @@ Available settings include:
 - Icon spacing
 - Color Thresholds can be customized
 - Color customization for Panel
+- Optional full visibility of individual or all icons on hover.
 
 ## Update interval
 
