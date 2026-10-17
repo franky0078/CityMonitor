@@ -64,7 +64,9 @@ namespace CityMonitor
         [SettingsUISection(kSection, kGeneralGroup)]
         public bool ShowPanel { get; set; } = true;
 
-        [SettingsUISection(kSection, kGeneralGroup)]
+        // Legacy Lumina fix is no longer registered in the frontend.
+        // Restore SettingsUISection(kSection, kGeneralGroup) when re-enabling it.
+        [SettingsUIHidden]
         public bool LuminaNumberFix { get; set; } = false;
 
         [SettingsUISection(kSection, kGeneralGroup)]
@@ -244,7 +246,7 @@ namespace CityMonitor
         // Versionsanzeige aus der Assembly
         [SettingsUISection(kSection, kAboutGroup)]
         public string ModVersion =>
-            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.4.5";
+            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.4.6";
 
         public bool IsIconOnlyModeDisabled()
         {
