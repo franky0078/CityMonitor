@@ -8,8 +8,7 @@ Instead of repeatedly opening multiple information views, City Monitor can displ
 ![City Monitor](CityMonitor/Properties/Screenshot01.jpg)
 
 
-## Monitored statistics
-
+**Monitored statistics**
 
 - Unemployment rate and number of unemployed citizens
 - Homelessness rate and number of homeless citizens
@@ -36,7 +35,7 @@ Instead of repeatedly opening multiple information views, City Monitor can displ
 - City attractiveness
 
 
-## Compact icon mode &amp; normal panel mode
+**Compact icon mode &amp; normal panel mode**
 
 The compact icon mode displays the monitored values as a configurable status bar without the normal panel background.
 
@@ -56,24 +55,24 @@ Features include:
 When icon editing is enabled, icons can be reordered by dragging them. Right-clicking an icon hides or restores it.
 
 
-## Direct information view access
+**Direct information view access**
 
 When icon editing is disabled, clicking a status icon opens the corresponding Cities: Skylines II information view.
 Clicking the same icon again closes the information view.
 
 
-## Update interval
+**Update interval**
 
 The update interval for locally calculated employment and education statistics can be configured between 0.5 and 60 seconds.
 Many city service indicators use the game's UI bindings directly and therefore update independently of this interval.
 
 
-## Performance
+**Performance**
 
 In compact icon mode, hidden locally calculated indicators are skipped where possible. Service indicators are subscribed only when their corresponding icons are active.
 
 
-## Credits and inspiration
+**Credits and inspiration**
 
 City Monitor was inspired by City Stats by kendallroth:
 
@@ -86,13 +85,13 @@ Special thanks to kendallroth for the original City Stats mod and for the inspir
 City Monitor is an independent project and is not officially affiliated with City Stats or its developer.
 
 
-## Transparency note
+**Transparency note**
 
 - Some parts of the code were developed with AI assistance.
 - Parts of the UI implementation, debugging and troubleshooting were also created with AI assistance.
 
 
-## Feedback and bug reports
+**Feedback and bug reports**	
 
 When reporting a problem, please include:
 
