@@ -1,6 +1,8 @@
 const path = require("path");
 const fs = require("fs");
 const { sources, Compilation } = require("webpack");
+// Synchronize before loading mod.json, including standalone npm builds.
+require("./tools/sync-version")();
 const MOD = require("./mod.json");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { CSSPresencePlugin } = require("./tools/css-presence");

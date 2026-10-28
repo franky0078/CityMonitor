@@ -1,4 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="modversion.props" />
 
 	<PropertyGroup>
 		<Configurations>Debug;Release</Configurations>
@@ -6,9 +8,6 @@
 		<AssemblyName>CityMonitor</AssemblyName>
 		<RootNamespace>CityMonitor</RootNamespace>
 
-		<Version>1.4.6</Version>
-		<AssemblyVersion>1.4.6.0</AssemblyVersion>
-		<FileVersion>1.4.6.0</FileVersion>
 
 		<PublishConfigurationPath>Properties\PublishConfiguration.xml</PublishConfigurationPath>
 
@@ -49,11 +48,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<UpToDateCheckInput
-			Include="Frontend\src\**\*.ts;Frontend\src\**\*.tsx;Frontend\src\**\*.css;Frontend\src\**\*.scss;Frontend\src\**\*.png;Frontend\src\**\*.jpg;Frontend\src\**\*.jpeg;Frontend\src\**\*.gif;Frontend\src\**\*.svg;Frontend\src\**\*.ttf"
-			Exclude="Frontend\node_modules\**" />
+		<UpToDateCheckInput Include="Frontend\src\**\*.ts;Frontend\src\**\*.tsx;Frontend\src\**\*.css;Frontend\src\**\*.scss;Frontend\src\**\*.png;Frontend\src\**\*.jpg;Frontend\src\**\*.jpeg;Frontend\src\**\*.gif;Frontend\src\**\*.svg;Frontend\src\**\*.ttf" Exclude="Frontend\node_modules\**" />
 		<UpToDateCheckInput Include="Frontend\types\**\*.ts" />
 		<UpToDateCheckInput Include="Frontend\tools\**\*.js" />
+		<UpToDateCheckInput Include="modversion.props" />
 		<UpToDateCheckInput Include="Frontend\mod.json" />
 		<UpToDateCheckInput Include="Frontend\package.json" />
 		<UpToDateCheckInput Include="Frontend\package-lock.json" />
@@ -61,40 +59,25 @@
 		<UpToDateCheckInput Include="Frontend\webpack.config.js" />
 	</ItemGroup>
 
-	<Target
-		Name="RestoreCityMonitorUI"
-		Condition="'$(EnableCityMonitorUIBuild)' == 'true'"
-		Inputs="$(UIProjectDirectory)\package.json;$(UIProjectDirectory)\package-lock.json"
-		Outputs="$(UIProjectDirectory)\node_modules\.city-monitor-restored">
+	<Target Name="RestoreCityMonitorUI" Condition="'$(EnableCityMonitorUIBuild)' == 'true'" Inputs="$(UIProjectDirectory)\package.json;$(UIProjectDirectory)\package-lock.json" Outputs="$(UIProjectDirectory)\node_modules\.city-monitor-restored">
 
 		<Message Text="Restoring City Monitor frontend dependencies..." Importance="high" />
 
-		<Exec
-			Command="npm install --no-audit --no-fund"
-			WorkingDirectory="$(UIProjectDirectory)"
-			ConsoleToMSBuild="true"
-			StandardOutputImportance="high"
-			StandardErrorImportance="high" />
+		<Exec Command="npm install --no-audit --no-fund" WorkingDirectory="$(UIProjectDirectory)" ConsoleToMSBuild="true" StandardOutputImportance="high" StandardErrorImportance="high" />
 
-		<Touch
-			Files="$(UIProjectDirectory)\node_modules\.city-monitor-restored"
-			AlwaysCreate="true" />
+		<Touch Files="$(UIProjectDirectory)\node_modules\.city-monitor-restored" AlwaysCreate="true" />
 	</Target>
 
-	<Target
-		Name="BuildCityMonitorUI"
-		AfterTargets="AfterBuild"
-		DependsOnTargets="RestoreCityMonitorUI"
-		Condition="'$(EnableCityMonitorUIBuild)' == 'true'">
+	<!-- Synchronize before compilation/publishing, even when UI compilation is disabled. -->
+	<Target Name="SyncCityMonitorVersion" BeforeTargets="PrepareForBuild;Publish" Condition="'$(DesignTimeBuild)' != 'true'">
+		<Exec Command="node &quot;$(UIProjectDirectory)\tools\sync-version.js&quot;" WorkingDirectory="$(MSBuildProjectDirectory)" />
+	</Target>
+
+	<Target Name="BuildCityMonitorUI" AfterTargets="AfterBuild" DependsOnTargets="RestoreCityMonitorUI" Condition="'$(EnableCityMonitorUIBuild)' == 'true'">
 
 		<Message Text="Building City Monitor frontend..." Importance="high" />
 
-		<Exec
-			Command="npm run build"
-			WorkingDirectory="$(UIProjectDirectory)"
-			ConsoleToMSBuild="true"
-			StandardOutputImportance="high"
-			StandardErrorImportance="high" />
+		<Exec Command="npm run build" WorkingDirectory="$(UIProjectDirectory)" ConsoleToMSBuild="true" StandardOutputImportance="high" StandardErrorImportance="high" />
 	</Target>
 
 </Project>

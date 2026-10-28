@@ -55,8 +55,8 @@ export function AppearanceBackdrop({ value, panelClass, header = false }: {
 }
 
 type Translate = (key: string, fallback: string) => string;
-function AppearanceSlider({ label, value, max, onChange }: {
-    label: string; value: number; max: number; onChange: (value: number) => void;
+export function AppearanceSlider({ label, value, max, min = 0, onChange }: {
+    label: string; value: number; max: number; min?: number; onChange: (value: number) => void;
 }) {
     const track = useRef<HTMLDivElement>(null);
     const [text, setText] = useState(String(value));
@@ -72,43 +72,43 @@ function AppearanceSlider({ label, value, max, onChange }: {
             event.preventDefault();
             const rect = track.current.getBoundingClientRect();
             if (rect.width > 0) updateRef.current(Math.round(Math.max(0, Math.min(1,
-                (event.clientX - rect.left) / rect.width)) * max));
+                (event.clientX - rect.left) / rect.width)) * (max - min) + min));
         };
         const stop = () => { active.current = false; };
         window.addEventListener("mousemove", update);
         window.addEventListener("mouseup", stop);
         return () => { window.removeEventListener("mousemove", update); window.removeEventListener("mouseup", stop); };
-    }, [max]);
+    }, [max, min]);
     const commit = () => {
         editing.current = false;
         if (cancelled.current) { cancelled.current = false; setText(String(value)); return; }
         const n = Number(text.trim().replace(",", "."));
-        if (text.trim() && Number.isFinite(n)) onChange(Math.round(Math.max(0, Math.min(max, n))));
+        if (text.trim() && Number.isFinite(n)) onChange(Math.round(Math.max(min, Math.min(max, n))));
         else setText(String(value));
     };
     return <div className={styles.appearanceRow}>
         <span>{label}</span>
         <div className={styles.appearanceSlider} role="slider" aria-label={label}
-            aria-valuemin={0} aria-valuemax={max} aria-valuenow={value} tabIndex={0}
+            aria-valuemin={min} aria-valuemax={max} aria-valuenow={value} tabIndex={0}
             onMouseDown={event => {
                 if (event.button !== 0 || !track.current) return;
                 event.preventDefault(); event.stopPropagation(); active.current = true;
                 const rect = track.current.getBoundingClientRect();
-                if (rect.width > 0) onChange(Math.round(Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)) * max));
+                if (rect.width > 0) onChange(Math.round(Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)) * (max - min) + min));
             }}
             onKeyDown={event => {
                 const step = event.shiftKey ? 10 : 1;
                 let next = value;
                 if (event.key === "ArrowRight" || event.key === "ArrowUp") next += step;
                 else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next -= step;
-                else if (event.key === "Home") next = 0;
+                else if (event.key === "Home") next = min;
                 else if (event.key === "End") next = max;
                 else return;
-                event.preventDefault(); event.stopPropagation(); onChange(Math.max(0, Math.min(max, next)));
+                event.preventDefault(); event.stopPropagation(); onChange(Math.max(min, Math.min(max, next)));
             }}>
             <div ref={track} className={styles.appearanceTrack}>
-                <div className={styles.appearanceFill} style={{ width: `${value / max * 100}%` }} />
-                <div className={styles.appearanceThumb} style={{ left: `${value / max * 100}%` }} />
+                <div className={styles.appearanceFill} style={{ width: `${(value - min) / (max - min) * 100}%` }} />
+                <div className={styles.appearanceThumb} style={{ left: `${(value - min) / (max - min) * 100}%` }} />
             </div>
         </div>
         <input aria-label={label} value={text} onFocus={() => { editing.current = true; cancelled.current = false; }}
@@ -121,9 +121,11 @@ function AppearanceSlider({ label, value, max, onChange }: {
     </div>;
 }
 
-export function AppearanceEditor({ value, panelClass, initialPosition, t, onChange, onClose }: {
+export function AppearanceEditor({ value, panelClass, initialPosition, t, onChange, onClose, targetLabels, defaults = defaultAppearance }: {
     value: WindowAppearance; panelClass: string; initialPosition: { x: number; y: number };
     t: Translate; onChange: (value: WindowAppearance) => void; onClose: () => void;
+    targetLabels?: { window: string; header: string };
+    defaults?: WindowAppearance;
 }) {
     const [target, setTarget] = useState<"window" | "header">("window");
     const [position, setPosition] = useState(value.editorPosition ?? initialPosition);
@@ -183,13 +185,17 @@ export function AppearanceEditor({ value, panelClass, initialPosition, t, onChan
             drag.current = { mx: event.clientX, my: event.clientY, x: position.x, y: position.y, scale: rect ? rect.width / 320 : 1 };
         }}>
             <strong>{t("CityMonitor.AppearanceTitle", "Fenster anpassen")}</strong>
-            <button onClick={onClose} title={t("CityMonitor.Close", "Schließen")}>×</button>
+            <button onClick={onClose} title={t("CityMonitor.Close", "Schließen")} aria-label={t("CityMonitor.Close", "Schließen")}>
+                <svg aria-hidden="true" viewBox="0 0 20 20" style={{width:"16rem",height:"16rem",display:"block",pointerEvents:"none"}}>
+                    <path d="M5 5 L15 15 M15 5 L5 15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+            </button>
         </div>
         <div className={styles.appearanceContent}>
             <div className={styles.appearanceTabs}>
                 {(["window", "header"] as const).map(key => <button key={key} aria-pressed={target === key}
                     onClick={() => { hexEditing.current = false; setTarget(key); }}>
-                    {t(key === "window" ? "CityMonitor.AppearanceWindow" : "CityMonitor.AppearanceHeader", key === "window" ? "Fenster" : "Obere Leiste")}</button>)}
+                    {targetLabels?.[key] ?? t(key === "window" ? "CityMonitor.AppearanceWindow" : "CityMonitor.AppearanceHeader", key === "window" ? "Fenster" : "Obere Leiste")}</button>)}
             </div>
             <div className={styles.appearancePreview}>
                 <span style={{ backgroundColor: surfaceColor(selected), opacity: 1 - selected.transparency / 100 }} />
@@ -207,7 +213,7 @@ export function AppearanceEditor({ value, panelClass, initialPosition, t, onChan
                 value={selected[key]} max={max} onChange={next => setSurface({ ...selected, [key]: next })} />)}
             <div className={styles.appearancePresets}>{presets.map(color => <button key={color}
                 aria-label={`#${color.toString(16).padStart(6, "0")}`} style={{ backgroundColor: `#${color.toString(16).padStart(6, "0")}` }} onClick={() => setHexColor(color)} />)}</div>
-            <button className={styles.appearanceReset} onClick={() => setSurface({ ...defaultAppearance[target] })}>
+            <button className={styles.appearanceReset} onClick={() => setSurface({ ...defaults[target] })}>
                 {t("CityMonitor.AppearanceReset", "Bereich zurücksetzen")}</button>
         </div>
     </div>;

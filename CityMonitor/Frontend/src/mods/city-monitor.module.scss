@@ -129,7 +129,7 @@
     font-weight: 400;
     box-sizing: border-box;
     box-shadow: 0 8rem 24rem rgba(0,0,0,.3);
-    z-index: 110;
+    z-index: 210;
     pointer-events: auto;
     user-select: none;
 }
@@ -168,3 +168,64 @@
         }
     }
 }
+
+
+.iconBarSurface > .appearanceBackdrop { border-radius: 7rem; }
+
+.visualOptions {
+    position: absolute; width: 420rem; max-width: 95vw; box-sizing: border-box;
+    border: 1rem solid rgba(176,210,229,.37); border-radius: 7rem;
+    box-shadow: 0 8rem 24rem rgba(0,0,0,.3); color: #fff; z-index: 200;
+    font-family: "CityMonitor Noto Sans", "Noto Sans", sans-serif; font-size: 13rem;
+    pointer-events: auto;
+}
+.visualOptionsContent { position: relative; padding: 8rem 8rem 12rem; box-sizing: border-box; }
+.visualOptionsContent .appearanceRow > span { width: 190rem; flex: 0 0 190rem; }
+.visualOptions button { color: #fff; background: rgba(255,255,255,.12); border: 1rem solid rgba(190,217,231,.22); border-radius: 3rem; cursor: pointer; font-family: inherit; }
+.visualOptions input { color: #fff; background: rgba(12,30,44,.82); border: 1rem solid rgba(189,216,231,.55); border-radius: 3rem; font: inherit; }
+.visualOptionRow { display: flex; align-items: center; justify-content: space-between; min-height: 25rem; margin: 2rem 0; }
+.visualOptionRow > span { flex: 1; margin-right: 8rem; }
+.visualOptionRow button { padding: 4rem 7rem; min-width: 27rem; }
+.visualChoices { display: flex; }
+.visualChoices button { margin-left: 3rem; }
+.visualOptionRow button[aria-checked="true"], .visualChoices button[aria-pressed="true"] { background-color: rgba(58,125,158,.95); }
+
+// Cohtml/game control styles can override inherited fonts. Bind controls directly
+// to the bundled font, including Latin umlauts; symbols are drawn as SVG paths.
+.visualOptions button,
+.visualOptions input,
+.appearanceEditor button,
+.appearanceEditor input {
+    font-family: "CityMonitor Noto Sans", "Noto Sans", sans-serif !important;
+    font-size: 12rem !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    letter-spacing: normal !important;
+}
+.visualOptions .appearanceHeader button,
+.appearanceEditor .appearanceHeader button,
+.visualOptionRow button[role="checkbox"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// Keep right-aligned numeric values clear of the input border.
+.visualOptions .appearanceRow input,
+.appearanceEditor .appearanceRow input {
+    box-sizing: border-box;
+    padding-left: 5rem !important;
+    padding-right: 7rem !important;
+}
+
+.visualOptions .visualOptionRow button[role="checkbox"] {
+    width: 21rem; min-width: 21rem; height: 21rem; min-height: 21rem;
+    padding: 2rem; box-sizing: border-box; flex-shrink: 0;
+}
+.visualOptions .visualOptionRow button[role="checkbox"] svg {
+    width: 13rem !important; height: 13rem !important;
+}
+.visualOptionsContent .appearanceRow { min-height: 29rem; }
+.visualOptionsContent .appearanceReset { box-sizing: border-box; }
+
+.visualOptionsScroll { position: relative; width: 100%; min-height: 0; }

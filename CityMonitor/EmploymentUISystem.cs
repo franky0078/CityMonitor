@@ -57,6 +57,22 @@ namespace CityMonitor
         private GetterValueBinding<int> _crimeRiskGreenMaxBinding;
         private GetterValueBinding<int> _crimeRiskYellowMaxBinding;
 
+        private GetterValueBinding<bool> _showStatusRingBinding;
+        private GetterValueBinding<bool> _segmentedStatusRingBinding;
+        private GetterValueBinding<bool> _showIconValuesBinding;
+        private GetterValueBinding<int> _iconValuePositionBinding;
+        private GetterValueBinding<bool> _iconBarBackgroundBinding;
+        private GetterValueBinding<bool> _iconBarBlurBinding;
+        private GetterValueBinding<int> _iconBarBlurStrengthBinding;
+        private GetterValueBinding<int> _iconBarRedBinding;
+        private GetterValueBinding<int> _iconBarGreenBinding;
+        private GetterValueBinding<int> _iconBarBlueBinding;
+        private GetterValueBinding<int> _iconBarTransparencyBinding;
+        private GetterValueBinding<bool> _warningOpaqueBinding;
+        private GetterValueBinding<bool> _criticalEnlargementBinding;
+        private GetterValueBinding<bool> _normalRowReorderBinding;
+        private GetterValueBinding<string> _normalRowOrderBinding;
+
         private EntityQuery _potentialWorkforceQuery;
         private EntityQuery _workplaceQuery;
         private EntityQuery _schoolQuery;
@@ -75,6 +91,22 @@ namespace CityMonitor
             Mod.Log.Info("EmploymentUISystem (Binding) gestartet.");
 
             SetupQueries();
+            AddBinding(_iconBarBlurStrengthBinding = new GetterValueBinding<int>(Group, "iconBarBlurStrength", () => System.Math.Max(0, System.Math.Min(30, Mod.Setting?.IconBarBlurStrength ?? 10))));
+            AddBinding(_showStatusRingBinding = new GetterValueBinding<bool>(Group, "showStatusRing", () => Mod.Setting?.ShowStatusRing ?? true));
+            AddBinding(_segmentedStatusRingBinding = new GetterValueBinding<bool>(Group, "segmentedStatusRing", () => Mod.Setting?.SegmentedStatusRing ?? false));
+            AddBinding(_showIconValuesBinding = new GetterValueBinding<bool>(Group, "showIconValues", () => Mod.Setting?.ShowIconValues ?? false));
+            AddBinding(_iconValuePositionBinding = new GetterValueBinding<int>(Group, "iconValuePosition", () => System.Math.Max(0, System.Math.Min(2, (int)(Mod.Setting?.IconValuePosition ?? IconValuePlacement.Below)))));
+            AddBinding(_iconBarBackgroundBinding = new GetterValueBinding<bool>(Group, "iconBarBackground", () => Mod.Setting?.IconBarBackground ?? false));
+            AddBinding(_iconBarBlurBinding = new GetterValueBinding<bool>(Group, "iconBarBlur", () => Mod.Setting?.IconBarBlur ?? true));
+            AddBinding(_iconBarRedBinding = new GetterValueBinding<int>(Group, "iconBarRed", () => System.Math.Max(0, System.Math.Min(255, Mod.Setting?.IconBarRed ?? 25))));
+            AddBinding(_iconBarGreenBinding = new GetterValueBinding<int>(Group, "iconBarGreen", () => System.Math.Max(0, System.Math.Min(255, Mod.Setting?.IconBarGreen ?? 43))));
+            AddBinding(_iconBarBlueBinding = new GetterValueBinding<int>(Group, "iconBarBlue", () => System.Math.Max(0, System.Math.Min(255, Mod.Setting?.IconBarBlue ?? 57))));
+            AddBinding(_iconBarTransparencyBinding = new GetterValueBinding<int>(Group, "iconBarTransparency", () => System.Math.Max(0, System.Math.Min(100, Mod.Setting?.IconBarTransparency ?? 40))));
+            AddBinding(_warningOpaqueBinding = new GetterValueBinding<bool>(Group, "warningOpaque", () => Mod.Setting?.WarningOpaque ?? false));
+            AddBinding(_criticalEnlargementBinding = new GetterValueBinding<bool>(Group, "criticalEnlargement", () => Mod.Setting?.CriticalEnlargement ?? false));
+            AddBinding(_normalRowReorderBinding = new GetterValueBinding<bool>(Group, "normalRowReorder", () => Mod.Setting?.NormalRowReorder ?? false));
+            AddBinding(_normalRowOrderBinding = new GetterValueBinding<string>(Group, "normalRowOrder", () => Mod.Setting?.NormalRowOrder ?? "[]"));
+
 
             AddBinding(_dataBinding = new ValueBinding<CityMonitorData>(
                 Group, "data", default, new ValueWriter<CityMonitorData>()));
@@ -220,6 +252,53 @@ namespace CityMonitor
                 }
             }));
 
+            AddBinding(new TriggerBinding<string, int>(Group, "setVisualOption", (key, value) =>
+            {
+                if (Mod.Setting == null) return;
+                switch (key)
+                {
+                    case "IconOnlyMode": Mod.Setting.IconOnlyMode = value != 0; break;
+                    case "ShowLabels": Mod.Setting.ShowLabels = value != 0; break;
+                    case "CompactValues": Mod.Setting.CompactValues = value != 0; break;
+                    case "IconOrientation": Mod.Setting.IconOrientation = (IconBarOrientation)(System.Math.Max(0, System.Math.Min(1, value))); break;
+                    case "IconPositionLocked": Mod.Setting.IconPositionLocked = value != 0; break;
+                    case "IconVisibilityEditMode": Mod.Setting.IconVisibilityEditMode = value != 0; break;
+                    case "IconBackgroundTransparency": Mod.Setting.IconBackgroundTransparency = System.Math.Max(0, System.Math.Min(100, value)); break;
+                    case "IconOpaqueOnHover": Mod.Setting.IconOpaqueOnHover = value != 0; break;
+                    case "AllIconsOpaqueOnHover": Mod.Setting.AllIconsOpaqueOnHover = value != 0; break;
+                    case "IconBackgroundDarkening": Mod.Setting.IconBackgroundDarkening = System.Math.Max(0, System.Math.Min(100, value)); break;
+                    case "IconSize": Mod.Setting.IconSize = System.Math.Max(22, System.Math.Min(50, value)); break;
+                    case "IconGap": Mod.Setting.IconGap = System.Math.Max(0, System.Math.Min(20, value)); break;
+                    case "ShowStatusRing": Mod.Setting.ShowStatusRing = value != 0; break;
+                    case "SegmentedStatusRing": Mod.Setting.SegmentedStatusRing = value != 0; break;
+                    case "ShowIconValues": Mod.Setting.ShowIconValues = value != 0; break;
+                    case "IconValuePosition": Mod.Setting.IconValuePosition = (IconValuePlacement)(System.Math.Max(0, System.Math.Min(2, value))); break;
+                    case "IconBarBackground": Mod.Setting.IconBarBackground = value != 0; break;
+                    case "IconBarBlur": Mod.Setting.IconBarBlur = value != 0; break;
+                    case "IconBarBlurStrength": Mod.Setting.IconBarBlurStrength = System.Math.Max(0, System.Math.Min(30, value)); break;
+                    case "IconBarRed": Mod.Setting.IconBarRed = System.Math.Max(0, System.Math.Min(255, value)); break;
+                    case "IconBarGreen": Mod.Setting.IconBarGreen = System.Math.Max(0, System.Math.Min(255, value)); break;
+                    case "IconBarBlue": Mod.Setting.IconBarBlue = System.Math.Max(0, System.Math.Min(255, value)); break;
+                    case "IconBarTransparency": Mod.Setting.IconBarTransparency = System.Math.Max(0, System.Math.Min(100, value)); break;
+                    case "WarningOpaque": Mod.Setting.WarningOpaque = value != 0; break;
+                    case "CriticalEnlargement": Mod.Setting.CriticalEnlargement = value != 0; break;
+                    case "NormalRowReorder": Mod.Setting.NormalRowReorder = value != 0; break;
+                    case "ShowAllIcons": Mod.Setting.HiddenIcons = "[]"; break;
+                    case "ResetIconOrder": Mod.Setting.IconOrder = "[]"; break;
+                    case "ShowAllNormalStats": Mod.Setting.HiddenNormalStats = "[]"; break;
+                    case "ResetNormalRowOrder": Mod.Setting.NormalRowOrder = "[]"; break;
+                    default: return;
+                }
+                Mod.Setting.ApplyAndSave();
+            }));
+
+            AddBinding(new TriggerBinding<string>(Group, "saveNormalRowOrder", (json) =>
+            {
+                if (Mod.Setting == null) return;
+                Mod.Setting.NormalRowOrder = string.IsNullOrWhiteSpace(json) ? "[]" : json;
+                Mod.Setting.ApplyAndSave();
+            }));
+
             AddBinding(new TriggerBinding<string>(Group, "saveIconOrder", (json) =>
             {
                 if (Mod.Setting != null)
@@ -280,6 +359,21 @@ namespace CityMonitor
         // Änderungen aus den Optionen sofort übernehmen
         private void OnSettingsApplied(Game.Settings.Setting setting)
         {
+            _showStatusRingBinding.Update();
+            _segmentedStatusRingBinding.Update();
+            _showIconValuesBinding.Update();
+            _iconValuePositionBinding.Update();
+            _iconBarBackgroundBinding.Update();
+            _iconBarBlurBinding.Update();
+            _iconBarBlurStrengthBinding.Update();
+            _iconBarRedBinding.Update();
+            _iconBarGreenBinding.Update();
+            _iconBarBlueBinding.Update();
+            _iconBarTransparencyBinding.Update();
+            _warningOpaqueBinding.Update();
+            _criticalEnlargementBinding.Update();
+            _normalRowReorderBinding.Update();
+            _normalRowOrderBinding.Update();
             _showPanelBinding.Update();
             _luminaNumberFixBinding.Update();
             _buttonLocationBinding.Update();

@@ -27,7 +27,8 @@ City Monitor provides a compact overview of important city statistics and servic
 - Tourism
 - City attractiveness
 
-## Compact icon mode
+
+## Compact icon mode &amp; normal panel mode
 
 The compact icon mode displays the monitored values as a configurable status bar without the normal panel background.
 
@@ -41,54 +42,23 @@ Features include:
 - Individual icons can be hidden
 - Hover tooltips with detailed values
 - Colored status rings for quick visual feedback
+- Ingame options UI for configuring (right-click on the Mod Icon)
 - Language support for German, English, French, Spanish and Italian
 
 When icon editing is enabled, icons can be reordered by dragging them. Right-clicking an icon hides or restores it.
+
 
 ## Direct information view access
 
 When icon editing is disabled, clicking a status icon opens the corresponding Cities: Skylines II information view.
 Clicking the same icon again closes the information view.
 
-Examples include:
-
-- Population
-- Education
-- Fire &amp; Rescue
-- Healthcare &amp; Deathcare
-- Garbage Management
-- Police
-- Traffic
-- Electricity
-- Water &amp; Sewage
-- Roads
-- Bicycles
-- Post
-- Tourism
-
-## Display options
-
-City Monitor can be configured in the game options.
-
-Available settings include:
-
-- Compact values
-- Show labels
-- Compact icon mode
-- Horizontal or vertical icon orientation
-- Lock or unlock the icon bar position
-- Edit icon visibility and order
-- Icon transparency
-- Icon size
-- Icon spacing
-- Color Thresholds can be customized
-- Color customization for Panel
-- Optional full visibility of individual or all icons on hover.
 
 ## Update interval
 
 The update interval for locally calculated employment and education statistics can be configured between 0.5 and 60 seconds.
 Many city service indicators use the game's UI bindings directly and therefore update independently of this interval.
+
 
 ## Performance
 
@@ -107,10 +77,12 @@ Special thanks to kendallroth for the original City Stats mod and for the inspir
 
 City Monitor is an independent project and is not officially affiliated with City Stats or its developer.
 
+
 ## Transparency note
 
 - Some parts of the code were developed with AI assistance.
 - Parts of the UI implementation, debugging and troubleshooting were also created with AI assistance.
+
 
 ## Feedback and bug reports
 
@@ -119,4 +91,3 @@ When reporting a problem, please include:
 - A description of the issue
 - The City Monitor display mode being used
 - The affected status icon or statistic
-- Your configured update interval

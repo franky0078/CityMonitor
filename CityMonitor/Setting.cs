@@ -11,6 +11,8 @@ namespace CityMonitor
         Horizontal = 1
     }
 
+    public enum IconValuePlacement { Below = 0, Left = 1, Right = 2 }
+
     public enum ModButtonLocation
     {
         Standard = 0,
@@ -58,6 +60,78 @@ namespace CityMonitor
 
         [SettingsUIHidden]
         public string IconOrder { get; set; } = "[]";
+
+        [SettingsUIHidden]
+        public string NormalRowOrder { get; set; } = "[]";
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool ShowStatusRing { get; set; } = true;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool SegmentedStatusRing { get; set; } = false;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool ShowIconValues { get; set; } = false;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public IconValuePlacement IconValuePosition { get; set; } = IconValuePlacement.Below;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool IconBarBackground { get; set; } = false;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool IconBarBlur { get; set; } = true;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        [SettingsUISlider(min = 0, max = 30, step = 1)]
+        public int IconBarBlurStrength { get; set; } = 10;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        [SettingsUISlider(min = 0, max = 255, step = 1)]
+        public int IconBarRed { get; set; } = 25;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        [SettingsUISlider(min = 0, max = 255, step = 1)]
+        public int IconBarGreen { get; set; } = 43;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        [SettingsUISlider(min = 0, max = 255, step = 1)]
+        public int IconBarBlue { get; set; } = 57;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        [SettingsUISlider(min = 0, max = 100, step = 1)]
+        public int IconBarTransparency { get; set; } = 40;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool WarningOpaque { get; set; } = false;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeDisabled))]
+        public bool CriticalEnlargement { get; set; } = false;
+
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeEnabled))]
+        public bool NormalRowReorder { get; set; } = false;
+
+        [SettingsUIButton]
+        [SettingsUISection(kSection, kDisplayGroup)]
+        [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeEnabled))]
+        public bool ResetNormalRowOrder
+        {
+            set { NormalRowOrder = "[]"; ApplyAndSave(); }
+        }
 
         public Setting(IMod mod) : base(mod) { }
 
@@ -246,7 +320,7 @@ namespace CityMonitor
         // Versionsanzeige aus der Assembly
         [SettingsUISection(kSection, kAboutGroup)]
         public string ModVersion =>
-            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.4.6";
+            typeof(Mod).Assembly.GetName().Version?.ToString(3) ?? "1.5.1";
 
         public bool IsIconOnlyModeDisabled()
         {
@@ -260,6 +334,21 @@ namespace CityMonitor
 
         public override void SetDefaults()
         {
+            NormalRowOrder = "[]";
+            ShowStatusRing = true;
+            SegmentedStatusRing = false;
+            ShowIconValues = false;
+            IconValuePosition = IconValuePlacement.Below;
+            IconBarBackground = false;
+            IconBarBlur = true;
+            IconBarBlurStrength = 10;
+            IconBarRed = 25;
+            IconBarGreen = 43;
+            IconBarBlue = 57;
+            IconBarTransparency = 40;
+            WarningOpaque = false;
+            CriticalEnlargement = false;
+            NormalRowReorder = false;
             ShowPanel = true;
             LuminaNumberFix = false;
             ButtonLocation = ModButtonLocation.Standard;

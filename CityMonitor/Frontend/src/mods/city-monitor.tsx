@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback, useEffect, createContext, useContext } from "react";
+import { VisualOptions, setVisualOption } from "./visual-options";
+import { NormalRowLayout, NormalRowContext } from "./normal-row-layout";
 import styles from "./city-monitor.module.scss";
 import { AppearanceEditor, AppearanceBackdrop, backdropBlurClass, defaultAppearance, normalizeAppearance, type WindowAppearance, type SurfaceAppearance } from "./appearance-editor";
 import { bindValue, trigger, useValue } from "cs2/api";
@@ -133,6 +135,21 @@ const hiddenNormalStats$ = bindValue<string>(
     "cityMonitor",
     "hiddenNormalStats"
 );
+const showStatusRing$ = bindValue<boolean>("cityMonitor", "showStatusRing");
+const segmentedStatusRing$ = bindValue<boolean>("cityMonitor", "segmentedStatusRing");
+const showIconValues$ = bindValue<boolean>("cityMonitor", "showIconValues");
+const iconValuePosition$ = bindValue<number>("cityMonitor", "iconValuePosition");
+const iconBarBackground$ = bindValue<boolean>("cityMonitor", "iconBarBackground");
+const iconBarBlurStrength$ = bindValue<number>("cityMonitor", "iconBarBlurStrength");
+const iconBarBlur$ = bindValue<boolean>("cityMonitor", "iconBarBlur");
+const iconBarRed$ = bindValue<number>("cityMonitor", "iconBarRed");
+const iconBarGreen$ = bindValue<number>("cityMonitor", "iconBarGreen");
+const iconBarBlue$ = bindValue<number>("cityMonitor", "iconBarBlue");
+const iconBarTransparency$ = bindValue<number>("cityMonitor", "iconBarTransparency");
+const warningOpaque$ = bindValue<boolean>("cityMonitor", "warningOpaque");
+const criticalEnlargement$ = bindValue<boolean>("cityMonitor", "criticalEnlargement");
+const normalRowReorder$ = bindValue<boolean>("cityMonitor", "normalRowReorder");
+
 const iconOrder$ = bindValue<string>("cityMonitor", "iconOrder");
 const unemploymentGreenMax$ = bindValue<number>("cityMonitor", "unemploymentGreenMax");
 const unemploymentYellowMax$ = bindValue<number>("cityMonitor", "unemploymentYellowMax");
@@ -362,6 +379,7 @@ const Icon = ({
     );
 };
 
+const OPTIONS_TOGGLE_EVENT = "cityMonitor:toggleOptions";
 const PANEL_TOGGLE_EVENT = "cityMonitor:togglePanel";
 let sharedPanelVisible = true;
 const panelVisibilityListeners = new Set<(visible: boolean) => void>();
@@ -411,9 +429,16 @@ export const CityMonitorLauncher = ({
     const launcherIconSize = inUniversalModMenu ? 32 * toolbarScale : 40;
 
     return (
+        <Tooltip tooltip={t("CityMonitor.LauncherHint", "Linksklick: Anzeige · Rechtsklick: Darstellungsoptionen")}>
         <button
-            onClick={() => window.dispatchEvent(new Event(PANEL_TOGGLE_EVENT))}
-            title={t("CityMonitor.Toggle", "Stadt Monitor ein-/ausblenden")}
+            onClick={(event) => { if (event.button === 0) window.dispatchEvent(new Event(PANEL_TOGGLE_EVENT)); }}
+            onMouseDown={(event) => {
+                if (event.button !== 2) return;
+                event.preventDefault(); event.stopPropagation();
+                window.dispatchEvent(new Event(OPTIONS_TOGGLE_EVENT));
+            }}
+            onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); }}
+            title={t("CityMonitor.LauncherHint", "Linksklick: Anzeige · Rechtsklick: Darstellungsoptionen")}
             style={{
                 display: "flex",
                 alignItems: "center",
@@ -437,6 +462,7 @@ export const CityMonitorLauncher = ({
                 color="#fff"
             />
         </button>
+        </Tooltip>
     );
 };
 
@@ -504,14 +530,20 @@ const EditableNormalStat = ({
     title: string;
     children: React.ReactNode;
 }) => {
+    const rowOrder = useContext(NormalRowContext);
     if (hidden && !editMode) {
         return null;
     }
 
     return (
         <div
-            title={editMode ? title : undefined}
+            data-normal-stat={id}
+            title={rowOrder.enabled ? rowOrder.hint : editMode ? title : undefined}
+            onMouseEnter={() => rowOrder.move(id)}
             onMouseDown={(event) => {
+                if (rowOrder.enabled && event.button === 0) {
+                    event.preventDefault(); event.stopPropagation(); rowOrder.start(id); return;
+                }
                 if (!editMode || event.button !== 2) {
                     return;
                 }
@@ -525,8 +557,10 @@ const EditableNormalStat = ({
                 event.stopPropagation();
             }}
             style={{
+                outline: rowOrder.dragging === id ? "1rem solid #80d5ff" : undefined,
+                transform: rowOrder.dragging === id ? "translateX(3rem)" : undefined,
                 opacity: editMode && hidden ? 0.45 : 1,
-                cursor: editMode ? "context-menu" : undefined,
+                cursor: rowOrder.enabled ? "move" : editMode ? "context-menu" : undefined,
                 borderRadius: "3rem",
                 backgroundColor:
                     editMode && hidden
@@ -713,6 +747,9 @@ const DragHandle = ({
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             style={{
+                position: "relative",
+                zIndex: 3,
+                boxSizing: "border-box",
                 width: "18rem",
                 height: "18rem",
                 minWidth: "18rem",
@@ -770,7 +807,7 @@ const DragHandle = ({
 
 // Start at twelve o'clock; the coloured arc grows clockwise with the value.
 // Use ordinary SVG paths, matching the existing inline SVG UI icons.
-const StatusRing = ({ percent, color, opacity = 1 }: { percent: number; color: string; opacity?: number }) => {
+const StatusRing = ({ percent, color, opacity = 1, segmented = false, gaugePercent = percent, critical = false }: { percent: number; color: string; opacity?: number; segmented?: boolean; gaugePercent?: number; critical?: boolean }) => {
     // Use one-percent steps and keep positive values visible; tooltip values stay exact.
     const fill = Number.isFinite(percent)
         ? (percent > 0 ? Math.max(1, Math.round(clamp(percent, 0, 100))) : 0)
@@ -787,9 +824,20 @@ const StatusRing = ({ percent, color, opacity = 1 }: { percent: number; color: s
                 position: "absolute", top: 0, left: 0,
                 width: "100%", height: "100%", zIndex: 1, opacity, pointerEvents: "none"
             }}>
-            <circle cx="20" cy="20" r="18" fill="none"
-                stroke="rgba(176,210,229,0.25)" strokeWidth="2.5" />
-            {fill > 0 && <path d={arc} fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round" />}
+            {segmented ? Array.from({ length: 12 }, (_, i) => {
+                const start = (i * 30 + 5) * Math.PI / 180;
+                const end = (i * 30 + 25) * Math.PI / 180;
+                const path = (a: number, b: number) => `M${20 + 18 * Math.sin(a)} ${20 - 18 * Math.cos(a)} A18 18 0 0 1 ${20 + 18 * Math.sin(b)} ${20 - 18 * Math.cos(b)}`;
+                const amount = critical ? 1 : clamp(gaugePercent / 100 * 12 - i, 0, 1);
+                const segmentColor = critical ? STATUS_RED : color === STATUS_INFO || color === STATUS_INACTIVE ? color
+                    : i < 4 ? STATUS_GREEN : i < 8 ? STATUS_YELLOW : STATUS_RED;
+                return <g key={i}>
+                    <path d={path(start, end)} fill="none" stroke="rgba(12,16,19,0.8)" strokeWidth="3" strokeLinecap="round" />
+                    {amount > 0 && <path d={path(start, start + (end - start) * amount)} fill="none" stroke={segmentColor} strokeWidth="3" strokeLinecap="round" />}
+                </g>;
+            }) : <><circle cx="20" cy="20" r="18" fill="none"
+                stroke="rgba(12,16,19,0.8)" strokeWidth="2.5" />
+            {fill > 0 && <path d={arc} fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round" />}</>}
         </svg>
     );
 };
@@ -799,7 +847,18 @@ const sharePercent = (part: number, total: number) =>
         ? clamp(part / total * 100, 0, 100)
         : 0;
 
+const ICON_VALUE_WIDTH = 44;
+const ICON_VALUE_GAP = 4;
+const ICON_VALUE_HEIGHT = 18;
+
+const IconDisplayContext = createContext({
+    showRing: true, segmented: false, showValues: false, valuePosition: 0,
+    warningOpaque: false, criticalEnlargement: false,
+    gaugeProgress: (_id: string, _percent: number): number => 0,
+});
+
 interface StatusIconProps {
+    monitorId?: string;
     iconSrc: string;
     label: string;
     details: TooltipDetail[];
@@ -826,6 +885,7 @@ interface StatusIconProps {
 
 // Statussymbol mit Tooltip und Bearbeitungsfunktionen
 const StatusIcon = ({
+    monitorId = "",
     iconSrc,
     label,
     details,
@@ -849,6 +909,7 @@ const StatusIcon = ({
     onReorderEnter,
     onActivate,
 }: StatusIconProps) => {
+    const display = useContext(IconDisplayContext);
     const [hovered, setHovered] = useState(false);
     const [pointerOver, setPointerOver] = useState(false);
     const [tooltipSide, setTooltipSide] =
@@ -860,12 +921,23 @@ const StatusIcon = ({
 
     // Fade each visual layer once; keep the shared container fully opaque.
     const tintOpacity = 1 - clamp(backgroundAppearance.transparency, 0, 100) / 100;
-    const layerOpacity = opaqueOnHover && pointerOver ? 1 : clamp(iconOpacity, 0, 1);
+    const alertOpaque = display.warningOpaque && (ringColor === STATUS_RED ||
+        (ringColor === STATUS_YELLOW && display.gaugeProgress(monitorId, ringPercent) >= 50));
+    const layerOpacity = alertOpaque || (opaqueOnHover && pointerOver) ? 1 : clamp(iconOpacity, 0, 1);
     const symbolOpacity = layerOpacity * clamp(foregroundOpacity, 0, 1);
     const warning = ringColor === STATUS_RED;
+    const criticalScale = display.criticalEnlargement && ringColor === STATUS_RED ? 1.25 : 1;
+    const reservedSize = Math.ceil(size * criticalScale);
+    // Keep vertical columns aligned; along the bar only enlarged icons need extra space.
+    const reservedWidth = orientation === "vertical" && display.criticalEnlargement ? Math.ceil(size * 1.25) : reservedSize;
+    const cellWidth = display.showValues ? (display.valuePosition === 0 ? Math.max(reservedWidth, ICON_VALUE_WIDTH)
+        : reservedWidth + ICON_VALUE_WIDTH + ICON_VALUE_GAP) : reservedWidth;
+    const cellHeight = reservedSize + (display.showValues && display.valuePosition === 0 ? ICON_VALUE_HEIGHT : 0);
+    const visibleValue = monitorId === "tourism" ? (details[0]?.value ?? "–")
+        : ringColor === STATUS_INACTIVE ? "–" : `${ringPercent.toFixed(1).replace(/\.0$/, "")} %`;
     const contentSize = Math.max(14, size);
     const glyphSize = Math.max(12, Math.min(size - 8, Math.round(size * 0.76)));
-    const tooltipOffset = size + 6;
+    const tooltipOffset = (orientation === "horizontal" ? cellHeight : cellWidth) + 6;
 
     const tooltipMinWidth = details.length > 1 ? 160 : 118;
 
@@ -906,8 +978,9 @@ const StatusIcon = ({
         <div
             style={{
                 position: "relative",
-                width: size + "rem",
-                height: size + "rem",
+                width: cellWidth + "rem",
+                height: cellHeight + "rem",
+                flexDirection: display.valuePosition === 0 ? "column" : "row",
                 marginBottom:
                     orientation === "vertical"
                         ? gapAfter + "rem"
@@ -1026,6 +1099,11 @@ const StatusIcon = ({
                 e.stopPropagation();
             }}
         >
+            {display.showValues && display.valuePosition === 1 && <span style={{ width: `${ICON_VALUE_WIDTH}rem`, marginRight: `${ICON_VALUE_GAP}rem`,
+                display: "flex", justifyContent: "flex-end", alignItems: "center",
+                textAlign: "right", fontSize: "13rem", fontWeight: "bold", lineHeight: "18rem", whiteSpace: "nowrap",
+                color: ringColor === STATUS_INACTIVE ? "#eee" : ringColor, opacity: foregroundOpacity,
+                flexShrink: 0, position: "relative", zIndex: 2, pointerEvents: "none" }}>{visibleValue}</span>}
             <div
                 style={{
                     width: contentSize + "rem",
@@ -1037,7 +1115,9 @@ const StatusIcon = ({
                     position: "relative",
                     transform: isReordering
                         ? "scale(1.10)"
-                        : "none",
+                        : `scale(${criticalScale})`,
+                    flexShrink: 0,
+                    margin: `${(reservedSize - size) / 2}rem ${(reservedWidth - size) / 2}rem`,
                     transition: "transform 100ms ease",
                 }}
             >
@@ -1065,7 +1145,7 @@ const StatusIcon = ({
                             style={{ backgroundColor: "rgba(110,20,20,0.8)" }} />}
                     </div>
                 </div>
-                <StatusRing percent={ringPercent} color={ringColor} opacity={symbolOpacity} />
+                {display.showRing && <StatusRing percent={ringPercent} color={ringColor} opacity={symbolOpacity} segmented={display.segmented || warning} critical={warning} gaugePercent={display.gaugeProgress(monitorId, ringPercent)} />}
                 <div
                     style={{
                         position: "relative",
@@ -1078,6 +1158,14 @@ const StatusIcon = ({
                     <Icon src={iconSrc} size={glyphSize} opacity={symbolOpacity} />
                 </div>
             </div>
+
+            {display.showValues && display.valuePosition !== 1 && <span style={{
+                width: display.valuePosition === 0 ? undefined : `${ICON_VALUE_WIDTH}rem`, marginLeft: display.valuePosition === 0 ? 0 : `${ICON_VALUE_GAP}rem`,
+                display: "flex", justifyContent: display.valuePosition === 0 ? "center" : "flex-start", alignItems: "center",
+                textAlign: display.valuePosition === 0 ? "center" : "left", fontSize: "13rem", fontWeight: "bold",
+                lineHeight: "18rem", whiteSpace: "nowrap", color: ringColor === STATUS_INACTIVE ? "#eee" : ringColor,
+                opacity: foregroundOpacity, flexShrink: 0, position: "relative", zIndex: 2, pointerEvents: "none" }}>{visibleValue}</span>}
+
 
             {isReordering && (
                 <div
@@ -1805,6 +1893,8 @@ interface NormalServiceRowsProps {
     hiddenStatIds: Set<string>;
     editMode: boolean;
     showSeparator: boolean;
+    children: React.ReactNode;
+    reorderEnabled: boolean;
     onToggleVisibility: (id: string) => void;
 }
 
@@ -1817,6 +1907,8 @@ const NormalServiceRows = ({
     hiddenStatIds,
     editMode,
     showSeparator,
+    children,
+    reorderEnabled,
     onToggleVisibility,
 }: NormalServiceRowsProps) => {
     const fireHazard = useValue(infoview.averageFireHazard$);
@@ -1892,25 +1984,10 @@ const NormalServiceRows = ({
         );
     };
 
-    const hasVisibleService =
-        editMode ||
-        NORMAL_SERVICE_IDS.some((id) => !hiddenStatIds.has(id));
-
-    if (!hasVisibleService) {
-        return null;
-    }
-
     return (
-        <>
-            {showSeparator && (
-                <div
-                    style={{
-                        height: "1rem",
-                        background: "rgba(255,255,255,0.1)",
-                        margin: "6rem 0",
-                    }}
-                />
-            )}
+        <NormalRowLayout ids={ALL_NORMAL_STAT_IDS} enabled={reorderEnabled} className={styles.legacyBodyContent}>
+            {children}
+            {showSeparator && <div data-row-separator="services" style={{height: "1rem", background: "rgba(255,255,255,0.1)", margin: "6rem 0"}} />}
 
             {renderStat("fire", <Row
                 iconSrc={ICON_FIRE}
@@ -2022,7 +2099,7 @@ const NormalServiceRows = ({
                 color={availabilityStatusColor(attractivenessPercent, thresholds)}
                 showText={showText}
             />)}
-        </>
+        </NormalRowLayout>
     );
 };
 
@@ -2034,6 +2111,21 @@ export const CityMonitorComponent = () => {
         localization.translate(id, fallback) ?? fallback;
 
     const data = useValue(data$);
+    const showStatusRing = useValue(showStatusRing$);
+    const segmentedStatusRing = useValue(segmentedStatusRing$);
+    const showIconValues = useValue(showIconValues$);
+    const iconValuePosition = useValue(iconValuePosition$);
+    const iconBarBackground = useValue(iconBarBackground$);
+    const iconBarBlur = useValue(iconBarBlur$);
+    const iconBarBlurStrength = useValue(iconBarBlurStrength$);
+    const iconBarRed = useValue(iconBarRed$);
+    const iconBarGreen = useValue(iconBarGreen$);
+    const iconBarBlue = useValue(iconBarBlue$);
+    const iconBarTransparency = useValue(iconBarTransparency$);
+    const warningOpaque = useValue(warningOpaque$);
+    const criticalEnlargement = useValue(criticalEnlargement$);
+    const normalRowReorder = useValue(normalRowReorder$);
+
     const savedRaw = useValue(uiState$);
 
     const showPanelSetting = useValue(showPanel$);
@@ -2115,6 +2207,25 @@ export const CityMonitorComponent = () => {
         crimeRiskGreenMax,
         crimeRiskYellowMax,
     });
+
+    const gaugeProgress = (id: string, percent: number) => {
+        let green = thresholds.availabilityGreenMin;
+        let yellow = thresholds.availabilityYellowMin;
+        let increasing = false;
+        if (id === "unemployment") { green = thresholds.unemploymentGreenMax; yellow = thresholds.unemploymentYellowMax; increasing = true; }
+        else if (id === "homeless") { green = thresholds.homelessGreenMax; yellow = thresholds.homelessYellowMax; increasing = true; }
+        else if (id === "fire") { green = thresholds.fireHazardGreenMax; yellow = thresholds.fireHazardYellowMax; increasing = true; }
+        else if (id === "police") { green = thresholds.crimeRiskGreenMax; yellow = thresholds.crimeRiskYellowMax; increasing = true; }
+        else if (id === "traffic") { green = thresholds.trafficGreenMin; yellow = thresholds.trafficYellowMin; }
+        else if (id === "jobs") { green = thresholds.openJobsGreenMin; yellow = thresholds.openJobsYellowMin; }
+        else if (["elementary", "highschool", "college", "university"].includes(id)) { green = thresholds.schoolGreenMin; yellow = thresholds.schoolYellowMin; }
+        const risk = increasing ? percent : 100 - percent;
+        const greenEnd = increasing ? green : 100 - green;
+        const yellowEnd = increasing ? yellow : 100 - yellow;
+        if (risk <= greenEnd) return greenEnd > 0 ? clamp(risk / greenEnd, 0, 1) * 100 / 3 : 0;
+        if (risk <= yellowEnd) return 100 / 3 + (risk - greenEnd) / Math.max(0.001, yellowEnd - greenEnd) * 100 / 3;
+        return 200 / 3 + clamp((risk - yellowEnd) / Math.max(0.001, 100 - yellowEnd), 0, 1) * 100 / 3;
+    };
 
     const [hiddenIconIds, setHiddenIconIds] =
         useState<Set<string>>(new Set());
@@ -2250,9 +2361,13 @@ export const CityMonitorComponent = () => {
             (id) => !hiddenIconIds.has(id)
         ).length;
 
+    const iconBarPadding = 8;
+    const iconReservedSize = criticalEnlargement ? Math.ceil(iconSize * 1.25) : iconSize;
+    const iconCellWidth = showIconValues ? (iconValuePosition === 0 ? Math.max(iconReservedSize, ICON_VALUE_WIDTH) : iconReservedSize + ICON_VALUE_WIDTH + ICON_VALUE_GAP) : iconReservedSize;
+    const iconCellHeight = iconReservedSize + (showIconValues && iconValuePosition === 0 ? ICON_VALUE_HEIGHT : 0);
     const iconBarLengthRem =
         displayedIconIdCount > 0
-            ? displayedIconIdCount * iconSize +
+            ? displayedIconIdCount * (iconOrientation === "horizontal" ? iconCellWidth : iconCellHeight) +
             Math.max(0, displayedIconIdCount - 1) *
             iconGap
             : 0;
@@ -2284,6 +2399,28 @@ export const CityMonitorComponent = () => {
     const [appearance, setAppearance] = useState<WindowAppearance>(defaultAppearance);
     const appearanceRef = useRef(appearance);
     const [appearanceOpen, setAppearanceOpen] = useState(false);
+    const [visualOptionsOpen, setVisualOptionsOpen] = useState(false);
+    const appearanceTarget = iconOnlyMode ? "bar" : "normal";
+    useEffect(() => {
+        const toggle = () => { setVisualOptionsOpen(value => !value); setAppearanceOpen(false); };
+        window.addEventListener(OPTIONS_TOGGLE_EVENT, toggle);
+        return () => window.removeEventListener(OPTIONS_TOGGLE_EVENT, toggle);
+    }, []);
+    const barAppearance: WindowAppearance = {
+        window: { red: iconBarRed, green: iconBarGreen, blue: iconBarBlue, transparency: iconBarTransparency, blur: iconBarBlur ? iconBarBlurStrength : 0 },
+        header: appearance.window, editorPosition: appearance.editorPosition,
+    };
+    const updateBarAppearance = (next: WindowAppearance) => {
+        const keys = {red: "IconBarRed", green: "IconBarGreen", blue: "IconBarBlue", transparency: "IconBarTransparency", blur: "IconBarBlurStrength"} as const;
+        for (const key of Object.keys(keys) as (keyof typeof keys)[]) {
+            if (next.window[key] !== barAppearance.window[key]) {
+                setVisualOption(keys[key], next.window[key]);
+                if (key === "blur") setVisualOption("IconBarBlur", next.window.blur > 0 ? 1 : 0);
+            }
+        }
+        if (JSON.stringify(next.header) !== JSON.stringify(appearance.window) || JSON.stringify(next.editorPosition) !== JSON.stringify(appearance.editorPosition))
+            updateAppearance({ ...appearance, window: next.header, editorPosition: next.editorPosition });
+    };
     const appearanceSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const saveAppearanceRef = useRef<() => void>(() => { });
     useEffect(() => () => {
@@ -2355,17 +2492,17 @@ export const CityMonitorComponent = () => {
             : 96;
 
     const widthRem = iconOnlyMode
-        ? iconOrientation === "horizontal"
+        ? iconBarPadding * 2 + (iconOrientation === "horizontal"
             ? Math.max(
-                iconSize,
+                iconCellWidth,
                 iconBarLengthWithHandleRem
             )
             : Math.max(
-                iconSize,
+                iconCellWidth,
                 showDragHandle
                     ? dragHandleSize
                     : 0
-            )
+            ))
         : minimized
             ? 80
             : clamp(userWidth ?? DEFAULT_W, MIN_W, 400);
@@ -2520,6 +2657,7 @@ export const CityMonitorComponent = () => {
         displayedIconIdCount,
         iconSize,
         iconGap,
+        iconCellHeight,
     ]);
 
     useEffect(() => {
@@ -2601,6 +2739,7 @@ export const CityMonitorComponent = () => {
         displayedIconIdCount,
         iconSize,
         iconGap,
+        iconCellHeight,
         visible,
         widthRem,
         data,
@@ -3371,7 +3510,26 @@ export const CityMonitorComponent = () => {
     }
 
     return (
-        <>
+        <IconDisplayContext.Provider value={{ showRing: showStatusRing, segmented: segmentedStatusRing,
+            showValues: showIconValues, valuePosition: iconValuePosition,
+            warningOpaque, criticalEnlargement, gaugeProgress }}>
+            <Portal>
+                <VisualOptions open={visualOptionsOpen} t={t} panelClass={gamePanelClass} appearance={appearance}
+                    onClose={() => { setVisualOptionsOpen(false); setAppearanceOpen(false); }}
+                    onColors={() => setAppearanceOpen(value => !value)} />
+                    {appearanceOpen && <AppearanceEditor key={appearanceTarget}
+                        value={appearanceTarget === "bar" ? barAppearance : appearance} panelClass={gamePanelClass} t={t}
+                        initialPosition={{ x: pos.x + widthRem + 12, y: pos.y }}
+                        onChange={appearanceTarget === "bar" ? updateBarAppearance : updateAppearance}
+                        targetLabels={appearanceTarget === "bar" ? { window: t("CityMonitor.Visual.BarColor", "Leistenhintergrund"), header: t("CityMonitor.Visual.IconColor", "Symbolhintergrund") } : undefined}
+                        defaults={appearanceTarget === "bar" ? { ...defaultAppearance, window: { red: 25, green: 43, blue: 57, transparency: 40, blur: 10 }, header: defaultAppearance.window } : defaultAppearance}
+                        onClose={() => {
+                            setAppearanceOpen(false);
+                            if (appearanceSaveTimer.current !== null) clearTimeout(appearanceSaveTimer.current);
+                            appearanceSaveTimer.current = null;
+                            save();
+                        }} />}
+            </Portal>
             {visible && data && (
                 <Portal>
                     {(dragging || resizing) && (
@@ -3404,7 +3562,7 @@ export const CityMonitorComponent = () => {
                             position: "absolute",
                             top: pos.y + "rem",
                             left: pos.x + "rem",
-                            width:
+                            width: iconOnlyMode && iconOrientation === "horizontal" ? undefined :
                                 (iconOnlyMode
                                     ? widthRem
                                     : Math.max(0, widthRem - 2)) + "rem",
@@ -3427,41 +3585,36 @@ export const CityMonitorComponent = () => {
                     >
                         {iconOnlyMode ? (
                             <div
+                                className={styles.iconBarSurface}
                                 onMouseEnter={() => setIconBarHovered(true)}
                                 onMouseLeave={() => setIconBarHovered(false)}
                                 style={{
-                                    width:
-                                        (iconOrientation === "horizontal"
-                                            ? Math.max(
-                                                iconSize,
-                                                iconBarLengthWithHandleRem
-                                            )
-                                            : Math.max(
-                                                iconSize,
-                                                showDragHandle
-                                                    ? dragHandleSize
-                                                    : 0
-                                            )) + "rem",
+                                    width: iconOrientation === "horizontal" ? undefined : widthRem + "rem",
                                     height:
                                         iconOrientation === "horizontal"
                                             ? Math.max(
-                                                iconSize,
+                                                iconCellHeight,
                                                 showDragHandle
                                                     ? dragHandleSize
                                                     : 0
-                                            ) + "rem"
+                                            ) + iconBarPadding * 2 + "rem"
                                             : undefined,
-                                    display: "flex",
+                                    display: iconOrientation === "horizontal" ? "inline-flex" : "flex",
                                     flexDirection:
                                         iconOrientation === "horizontal"
                                             ? "row"
                                             : "column",
                                     alignItems: "center",
-                                    padding: 0,
+                                    padding: `${iconBarPadding}rem`,
+                                    boxSizing: "border-box",
+                                    position: "relative",
+                                    borderRadius: "7rem",
                                     cursor: "default",
                                     overflow: "visible",
                                 }}
                             >
+                                {iconBarBackground && <AppearanceBackdrop value={{ red: iconBarRed, green: iconBarGreen,
+                                    blue: iconBarBlue, transparency: iconBarTransparency, blur: iconBarBlur ? iconBarBlurStrength : 0 }} panelClass={gamePanelClass} />}
                                 {showDragHandle && (
                                     <DragHandle
                                         orientation={iconOrientation}
@@ -3512,6 +3665,7 @@ export const CityMonitorComponent = () => {
                                             return (
                                                 <StatusIcon
                                                     key={item.id}
+                                                monitorId={item.id}
                                                     iconSrc={item.iconSrc}
                                                     label={item.label}
                                                     details={[
@@ -3567,6 +3721,7 @@ export const CityMonitorComponent = () => {
                                             return (
                                                 <ServiceStatusIcon
                                                     key={item.id}
+                                                monitorId={item.id}
                                                     service={item.service}
                                                     iconSrc={item.iconSrc}
                                                     label={item.label}
@@ -3628,6 +3783,7 @@ export const CityMonitorComponent = () => {
                                         return (
                                             <StatusIcon
                                                 key={item.id}
+                                                monitorId={item.id}
                                                 iconSrc={item.iconSrc}
                                                 label={item.label}
                                                 details={
@@ -3708,21 +3864,6 @@ export const CityMonitorComponent = () => {
                                 >
                                     <AppearanceBackdrop value={appearance.header} panelClass={gamePanelClass} header />
                                     <div aria-hidden="true" className={styles.headerSeparator} />
-                                    <Tooltip tooltip={t("CityMonitor.AppearanceTitle", "Fenster anpassen")}>
-                                        <button title={t("CityMonitor.AppearanceTitle", "Fenster anpassen")}
-                                            aria-pressed={appearanceOpen}
-                                            onClick={() => setAppearanceOpen(!appearanceOpen)}
-                                            onMouseDown={event => event.stopPropagation()}
-                                            style={{ ...headerBtnStyle, display: "flex", alignItems: "center", height: "20rem" }}>
-                                            <svg viewBox="0 0 24 24" width="17rem" height="17rem" aria-hidden="true">
-                                                <path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.5-3.3l-.5-.6a1 1 0 0 1 .8-1.6H17A4 4 0 0 0 21 11c0-4.4-4-8-9-8Z" fill="none" stroke="white" strokeWidth="1.6" />
-                                                <circle cx="7" cy="11" r="1.5" fill="#FF5A5A" />
-                                                <circle cx="10" cy="7" r="1.5" fill="#FFD84D" />
-                                                <circle cx="15" cy="7" r="1.5" fill="#7CFC00" />
-                                                <circle cx="18" cy="11" r="1.5" fill="#4DA3FF" />
-                                            </svg>
-                                        </button>
-                                    </Tooltip>
                                     <button
                                         onClick={toggleMin}
                                         onMouseDown={(e) => e.stopPropagation()}
@@ -3736,7 +3877,22 @@ export const CityMonitorComponent = () => {
                                 {!minimized && (
                                     <div className={styles.legacyBody}>
                                         <AppearanceBackdrop value={appearance.window} panelClass={gamePanelClass} />
-                                        <div className={styles.legacyBodyContent}>
+                                            <NormalServiceRows reorderEnabled={normalRowReorder}
+                                                compactValues={compactValues}
+                                                showText={showText}
+                                                t={t}
+                                                thresholds={thresholds}
+                                                hiddenStatIds={hiddenNormalStatIds}
+                                                editMode={normalEditMode}
+                                                showSeparator={
+                                                    hasVisibleServiceStats &&
+                                                    (hasVisibleEmploymentStats ||
+                                                        hasVisibleSchoolStats)
+                                                }
+                                                onToggleVisibility={
+                                                    toggleNormalStatVisibility
+                                                }
+                                            >
                                             {!compactValues && (
                                                 renderNormalStat("unemployed", <Row
                                                     iconSrc={alos}
@@ -3828,23 +3984,7 @@ export const CityMonitorComponent = () => {
                                                 thresholds={thresholds}
                                             />)}
 
-                                            <NormalServiceRows
-                                                compactValues={compactValues}
-                                                showText={showText}
-                                                t={t}
-                                                thresholds={thresholds}
-                                                hiddenStatIds={hiddenNormalStatIds}
-                                                editMode={normalEditMode}
-                                                showSeparator={
-                                                    hasVisibleServiceStats &&
-                                                    (hasVisibleEmploymentStats ||
-                                                        hasVisibleSchoolStats)
-                                                }
-                                                onToggleVisibility={
-                                                    toggleNormalStatVisibility
-                                                }
-                                            />
-                                        </div>
+                                        </NormalServiceRows>
                                     </div>
                                 )}
 
@@ -3896,18 +4036,9 @@ export const CityMonitorComponent = () => {
                             </>
                         )}
                     </div>
-                    {appearanceOpen && !iconOnlyMode && <AppearanceEditor
-                        value={appearance} panelClass={gamePanelClass} t={t}
-                        initialPosition={{ x: pos.x + widthRem + 12, y: pos.y }}
-                        onChange={updateAppearance}
-                        onClose={() => {
-                            setAppearanceOpen(false);
-                            if (appearanceSaveTimer.current !== null) clearTimeout(appearanceSaveTimer.current);
-                            appearanceSaveTimer.current = null;
-                            save();
-                        }} />}
+
                 </Portal>
             )}
-        </>
+        </IconDisplayContext.Provider>
     );
 };
