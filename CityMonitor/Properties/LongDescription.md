@@ -30,7 +30,6 @@ City Monitor provides a compact overview of important city statistics and servic
 
 **Compact icon mode &amp; normal panel mode**
 
-The compact icon mode displays the monitored values as a configurable status bar without the normal panel background.
 
 Features include:
 

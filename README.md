@@ -37,8 +37,6 @@ Instead of repeatedly opening multiple information views, City Monitor can displ
 
 **Compact icon mode &amp; normal panel mode**
 
-The compact icon mode displays the monitored values as a configurable status bar without the normal panel background.
-
 Features include:
 
 - Horizontal or vertical layout
