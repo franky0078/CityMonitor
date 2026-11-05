@@ -112,6 +112,8 @@ const showPanel$ = bindValue<boolean>("cityMonitor", "showPanel");
 const compactValues$ = bindValue<boolean>("cityMonitor", "compactValues");
 const showLabels$ = bindValue<boolean>("cityMonitor", "showLabels");
 const iconOnlyMode$ = bindValue<boolean>("cityMonitor", "iconOnlyMode");
+// The backend acknowledges a fresh settings snapshot for each UI mount.
+const layoutRevision$ = bindValue<number>("cityMonitor", "layoutRevision", 0);
 const iconOrientation$ = bindValue<number>("cityMonitor", "iconOrientation");
 const iconPositionLocked$ = bindValue<boolean>(
     "cityMonitor",
@@ -2127,6 +2129,14 @@ export const CityMonitorComponent = () => {
     const normalRowReorder = useValue(normalRowReorder$);
 
     const savedRaw = useValue(uiState$);
+    const layoutRevision = useValue(layoutRevision$);
+    const initialLayoutRevision = useRef(layoutRevision);
+    const layoutReady = layoutRevision > initialLayoutRevision.current;
+    const [layoutRestored, setLayoutRestored] = useState(false);
+
+    useEffect(() => {
+        trigger("cityMonitor", "refreshUiSettings");
+    }, []);
 
     const showPanelSetting = useValue(showPanel$);
     const compactValues = useValue(compactValues$);
@@ -2513,12 +2523,13 @@ export const CityMonitorComponent = () => {
     const defaultPositionApplied = useRef(false);
 
     useEffect(() => {
-        if (applied.current || !savedRaw) return;
+        if (applied.current || !layoutReady) return;
 
         applied.current = true;
+        setLayoutRestored(true);
 
         try {
-            const s = JSON.parse(savedRaw);
+            const s = JSON.parse(savedRaw || "{}");
             const savedAppearance = normalizeAppearance(s.appearance);
             appearanceRef.current = savedAppearance;
             setAppearance(savedAppearance);
@@ -2551,7 +2562,7 @@ export const CityMonitorComponent = () => {
             }
         } catch {
         }
-    }, [savedRaw]);
+    }, [savedRaw, layoutReady]);
 
     const save = (
         override: Partial<{
@@ -2561,6 +2572,8 @@ export const CityMonitorComponent = () => {
             width: number | null;
         }> = {}
     ) => {
+        if (!layoutRestored) return;
+
         const s = {
             layoutVersion: 2,
             pos,
@@ -2582,74 +2595,88 @@ export const CityMonitorComponent = () => {
     // Ohne gespeicherte UI-Position startet die kompakte Leiste
     // horizontal zentriert und etwas unterhalb der Bildschirmmitte.
     useEffect(() => {
-        if (
-            defaultPositionApplied.current ||
-            hasValidSavedPosition.current ||
-            !iconOnlyMode ||
-            !visible ||
-            !panelRef.current
-        ) {
-            return;
-        }
+        if (!layoutRestored || !showPanelSetting || dragging || resizing) return;
 
-        const rect =
-            panelRef.current.getBoundingClientRect();
-        const viewportWidth =
-            document.documentElement?.clientWidth ||
-            window.innerWidth ||
-            0;
-        const viewportHeight =
-            document.documentElement?.clientHeight ||
-            window.innerHeight ||
-            0;
+        let frame = window.requestAnimationFrame(() => {
+            frame = window.requestAnimationFrame(() => {
+                if (
+                    defaultPositionApplied.current ||
+                    hasValidSavedPosition.current ||
+                    !iconOnlyMode ||
+                    !visible ||
+                    !panelRef.current
+                ) {
+                    return;
+                }
 
-        if (
-            viewportWidth <= 0 ||
-            viewportHeight <= 0 ||
-            rect.width <= 0 ||
-            rect.height <= 0
-        ) {
-            return;
-        }
+                const rect =
+                    panelRef.current.getBoundingClientRect();
+                const viewportWidth =
+                    document.documentElement?.clientWidth ||
+                    window.innerWidth ||
+                    0;
+                const viewportHeight =
+                    document.documentElement?.clientHeight ||
+                    window.innerHeight ||
+                    0;
 
-        const pxPerRem =
-            widthRem > 0
-                ? rect.width / widthRem
-                : 1;
+                if (
+                    viewportWidth <= 0 ||
+                    viewportHeight <= 0 ||
+                    rect.width <= 0 ||
+                    rect.height <= 0
+                ) {
+                    return;
+                }
 
-        if (pxPerRem <= 0) {
-            return;
-        }
+                const pxPerRem =
+                    widthRem > 0
+                        ? rect.width / widthRem
+                        : 1;
 
-        const targetCenterY =
-            viewportHeight * 0.58;
+                if (pxPerRem <= 0) {
+                    return;
+                }
 
-        const maxX =
-            Math.max(0, viewportWidth - rect.width);
-        const maxY =
-            Math.max(0, viewportHeight - rect.height);
+                const targetCenterY =
+                    viewportHeight * 0.58;
 
-        const targetXPx = clamp(
-            (viewportWidth - rect.width) / 2,
-            0,
-            maxX
-        );
-        const targetYPx = clamp(
-            targetCenterY - rect.height / 2,
-            0,
-            maxY
-        );
+                const maxX =
+                    Math.max(0, viewportWidth - rect.width);
+                const maxY =
+                    Math.max(0, viewportHeight - rect.height);
 
-        const nextPos = {
-            x: targetXPx / pxPerRem,
-            y: targetYPx / pxPerRem,
-        };
+                const targetXPx = clamp(
+                    (viewportWidth - rect.width) / 2,
+                    0,
+                    maxX
+                );
+                const targetYPx = clamp(
+                    targetCenterY - rect.height / 2,
+                    0,
+                    maxY
+                );
 
-        defaultPositionApplied.current = true;
-        posRef.current = nextPos;
-        setPos(nextPos);
+                const nextPos = {
+                    x: targetXPx / pxPerRem,
+                    y: targetYPx / pxPerRem,
+                };
+
+                defaultPositionApplied.current = true;
+                posRef.current = nextPos;
+                setPos(nextPos);
+            });
+        });
+        return () => window.cancelAnimationFrame(frame);
     }, [
+        layoutRestored,
+        showPanelSetting,
+        dragging,
+        resizing,
+        pos.x,
+        pos.y,
         savedRaw,
+        data,
         iconOnlyMode,
         visible,
         widthRem,
@@ -2661,79 +2688,92 @@ export const CityMonitorComponent = () => {
     ]);
 
     useEffect(() => {
-        if (
-            !iconOnlyMode ||
-            !visible ||
-            !panelRef.current
-        ) {
-            return;
-        }
+        if (!layoutRestored || !showPanelSetting || dragging || resizing) return;
 
-        const rect =
-            panelRef.current.getBoundingClientRect();
-        const viewportWidth =
-            document.documentElement?.clientWidth ||
-            window.innerWidth ||
-            0;
-        const viewportHeight =
-            document.documentElement?.clientHeight ||
-            window.innerHeight ||
-            0;
+        let frame = window.requestAnimationFrame(() => {
+            frame = window.requestAnimationFrame(() => {
+                if (
+                    !iconOnlyMode ||
+                    !visible ||
+                    !panelRef.current
+                ) {
+                    return;
+                }
 
-        if (
-            viewportWidth <= 0 ||
-            viewportHeight <= 0 ||
-            rect.width <= 0 ||
-            rect.height <= 0
-        ) {
-            return;
-        }
+                const rect =
+                    panelRef.current.getBoundingClientRect();
+                const viewportWidth =
+                    document.documentElement?.clientWidth ||
+                    window.innerWidth ||
+                    0;
+                const viewportHeight =
+                    document.documentElement?.clientHeight ||
+                    window.innerHeight ||
+                    0;
 
-        const pxPerRem =
-            widthRem > 0
-                ? rect.width / widthRem
-                : 1;
+                if (
+                    viewportWidth <= 0 ||
+                    viewportHeight <= 0 ||
+                    rect.width <= 0 ||
+                    rect.height <= 0
+                ) {
+                    return;
+                }
 
-        if (pxPerRem <= 0) {
-            return;
-        }
+                const pxPerRem =
+                    widthRem > 0
+                        ? rect.width / widthRem
+                        : 1;
 
-        let nx = posRef.current.x;
-        let ny = posRef.current.y;
+                if (pxPerRem <= 0) {
+                    return;
+                }
 
-        if (rect.right > viewportWidth) {
-            nx -=
-                (rect.right - viewportWidth) /
-                pxPerRem;
-        }
+                let nx = posRef.current.x;
+                let ny = posRef.current.y;
 
-        if (rect.bottom > viewportHeight) {
-            ny -=
-                (rect.bottom - viewportHeight) /
-                pxPerRem;
-        }
+                if (rect.right > viewportWidth) {
+                    nx -=
+                        (rect.right - viewportWidth) /
+                        pxPerRem;
+                }
 
-        if (rect.left < 0) {
-            nx += -rect.left / pxPerRem;
-        }
+                if (rect.bottom > viewportHeight) {
+                    ny -=
+                        (rect.bottom - viewportHeight) /
+                        pxPerRem;
+                }
 
-        if (rect.top < 0) {
-            ny += -rect.top / pxPerRem;
-        }
+                if (rect.left < 0) {
+                    nx += -rect.left / pxPerRem;
+                }
 
-        nx = Math.max(0, nx);
-        ny = Math.max(0, ny);
+                if (rect.top < 0) {
+                    ny += -rect.top / pxPerRem;
+                }
 
-        if (
-            Math.abs(nx - posRef.current.x) > 0.01 ||
-            Math.abs(ny - posRef.current.y) > 0.01
-        ) {
-            const nextPos = { x: nx, y: ny };
-            posRef.current = nextPos;
-            setPos(nextPos);
-            save({ pos: nextPos });
-        }
+                nx = Math.max(0, nx);
+                ny = Math.max(0, ny);
+
+                if (
+                    Math.abs(nx - posRef.current.x) > 0.01 ||
+                    Math.abs(ny - posRef.current.y) > 0.01
+                ) {
+                    const nextPos = { x: nx, y: ny };
+                    posRef.current = nextPos;
+                    setPos(nextPos);
+                    // Do not persist automatic viewport corrections during game loading.
+                }
+            });
+        });
+        return () => window.cancelAnimationFrame(frame);
     }, [
+        layoutRestored,
+        showPanelSetting,
+        dragging,
+        resizing,
+        pos.x,
+        pos.y,
         iconOnlyMode,
         iconOrientation,
         displayedIconIdCount,
@@ -2749,17 +2789,18 @@ export const CityMonitorComponent = () => {
 
     useEffect(() => {
         const previous = previousLayout.current;
+        previousLayout.current = { compactValues, showText, iconOnlyMode };
+        if (!layoutRestored) return;
 
         if (
             previous.compactValues !== compactValues ||
             previous.showText !== showText ||
             previous.iconOnlyMode !== iconOnlyMode
         ) {
-            previousLayout.current = { compactValues, showText, iconOnlyMode };
             setUserWidth(null);
             save({ width: null });
         }
-    }, [compactValues, showText, iconOnlyMode]);
+    }, [compactValues, showText, iconOnlyMode, layoutRestored]);
 
     const onHeaderDown = useCallback(
         (e: React.MouseEvent) => {
@@ -3530,7 +3571,7 @@ export const CityMonitorComponent = () => {
                             save();
                         }} />}
             </Portal>
-            {visible && data && (
+            {layoutRestored && visible && data && (
                 <Portal>
                     {(dragging || resizing) && (
                         <div

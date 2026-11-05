@@ -60,6 +60,7 @@
 		- Hover tooltips with detailed values
 		- Colored status rings for quick visual feedback
 		- Ingame options UI for configuring (right-click on the Mod Icon)
+		- Color Thresholds can be customized
 		- Language support for German, English, French, Spanish and Italian
 
 		When icon editing is enabled, icons can be reordered by dragging them. Right-clicking an icon hides or restores it.
@@ -101,7 +102,7 @@
 		- Parts of the UI implementation, debugging and troubleshooting were also created with AI assistance.
 
 
-		**Feedback and bug reports**	
+		**Feedback and bug reports**
 
 		When reporting a problem, please include:
 
@@ -123,7 +124,7 @@
 	<Screenshot Value="Properties/Screenshot07.jpg" />
 	<Screenshot Value="Properties/Screenshot08.jpg" />
 	<Screenshot Value="Properties/Screenshot09.jpg" />
-	<Screenshot Value="Properties/Screenshot10.jpg" />
+
 
 	<Tag Value="Code Mod" />
 
@@ -132,7 +133,7 @@
 	
 
 	<!-- First public release -->
-	<ModVersion Value="1.5.0" />
+	<ModVersion Value="1.5.1" />
 
 	<!-- Tested Cities: Skylines II version -->
 	<GameVersion Value="1.6.*" />
@@ -140,15 +141,10 @@
 	<!-- City Monitor currently has no required mod dependencies. -->
 
 	<ChangeLog>
-		Version 1.5.0
+		Version 1.5.1
 
-		- Added ingame options for configuring the compact icon bar and Normal Panel.
-		- Added optional segmented green-yellow-red status gauges.
-		- Added optional values below, left or right of status icons.
-		- Added an optional blurred icon bar background with RGB color and transparency controls.
-		- Added optional full opacity from the midpoint of the yellow warning range toward red.
-		- Added optional 25% enlargement for red status icons.
-		- Added drag-and-drop row ordering in normal mode, with saved order and reset.
+		- fix for horizontal/vertical layout switching issue
+		
 	</ChangeLog>
 
 	<ExternalLink Type="github" Url="https://github.com/franky0078/CityMonitor" />

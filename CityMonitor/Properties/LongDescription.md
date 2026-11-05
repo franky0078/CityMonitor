@@ -30,7 +30,6 @@ City Monitor provides a compact overview of important city statistics and servic
 
 **Compact icon mode &amp; normal panel mode**
 
-
 Features include:
 
 - Horizontal or vertical layout
@@ -42,6 +41,7 @@ Features include:
 - Hover tooltips with detailed values
 - Colored status rings for quick visual feedback
 - Ingame options UI for configuring (right-click on the Mod Icon)
+- Color Thresholds can be customized
 - Language support for German, English, French, Spanish and Italian
 
 When icon editing is enabled, icons can be reordered by dragging them. Right-clicking an icon hides or restores it.
@@ -83,7 +83,7 @@ City Monitor is an independent project and is not officially affiliated with Cit
 - Parts of the UI implementation, debugging and troubleshooting were also created with AI assistance.
 
 
-**Feedback and bug reports**	
+**Feedback and bug reports**
 
 When reporting a problem, please include:
 

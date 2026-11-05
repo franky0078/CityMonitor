@@ -22,6 +22,9 @@ namespace CityMonitor
         private const string Group = "cityMonitor";
 
         private ValueBinding<CityMonitorData> _dataBinding;
+        private ValueBinding<string> _uiStateBinding;
+        private ValueBinding<int> _layoutRevisionBinding;
+        private int _layoutRevision;
         private GetterValueBinding<bool> _showPanelBinding;
         private GetterValueBinding<bool> _luminaNumberFixBinding;
         private GetterValueBinding<int> _buttonLocationBinding;
@@ -219,13 +222,22 @@ namespace CityMonitor
             }
 
             // Persistenter UI-Zustand und Symbolkonfiguration
-            AddBinding(new ValueBinding<string>(Group, "uiState", Mod.Setting?.UiState ?? ""));
+            AddBinding(_uiStateBinding = new ValueBinding<string>(Group, "uiState", Mod.Setting?.UiState ?? ""));
+            AddBinding(_layoutRevisionBinding = new ValueBinding<int>(Group, "layoutRevision", 0));
+            AddBinding(new TriggerBinding(Group, "refreshUiSettings", () =>
+            {
+                // A new game UI must receive current settings before restoring its layout.
+                _uiStateBinding.Update(Mod.Setting?.UiState ?? "");
+                RefreshSettingsBindings();
+                _layoutRevisionBinding.Update(++_layoutRevision);
+            }));
 
             AddBinding(new TriggerBinding<string>(Group, "saveUiState", (json) =>
             {
                 if (Mod.Setting != null)
                 {
                     Mod.Setting.UiState = json;
+                    _uiStateBinding.Update(json);
                     Mod.Setting.ApplyAndSave();
                 }
             }));
@@ -309,6 +321,8 @@ namespace CityMonitor
                     Mod.Setting.ApplyAndSave();
                 }
             }));
+
+            RefreshSettingsBindings();
         }
 
         protected override void OnUpdate()
@@ -358,6 +372,25 @@ namespace CityMonitor
 
         // Änderungen aus den Optionen sofort übernehmen
         private void OnSettingsApplied(Game.Settings.Setting setting)
+        {
+            RefreshSettingsBindings();
+
+            Mod.Log.Info(
+                $"UI settings applied: ShowPanel={Mod.Setting?.ShowPanel}, " +
+                $"CompactValues={Mod.Setting?.CompactValues}, " +
+                $"ShowLabels={Mod.Setting?.ShowLabels}, " +
+                $"IconOnlyMode={Mod.Setting?.IconOnlyMode}, " +
+                $"IconOrientation={Mod.Setting?.IconOrientation}, " +
+                $"IconPositionLocked={Mod.Setting?.IconPositionLocked}, " +
+                $"IconVisibilityEditMode={Mod.Setting?.IconVisibilityEditMode}, " +
+                $"IconBackgroundTransparency={ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)}%, " +
+                $"IconBackgroundDarkening={ClampPercent(Mod.Setting?.IconBackgroundDarkening ?? 15)}%, " +
+                $"IconSize={ClampIconSize(Mod.Setting?.IconSize ?? 30)}, " +
+                $"IconGap={ClampIconGap(Mod.Setting?.IconGap ?? 5)}, " +
+                $"UpdateInterval={_updateIntervalSeconds}s");
+        }
+
+        private void RefreshSettingsBindings()
         {
             _showStatusRingBinding.Update();
             _segmentedStatusRingBinding.Update();
@@ -413,20 +446,6 @@ namespace CityMonitor
                 Mod.Setting?.UpdateIntervalSeconds ?? 15f);
 
             _timer = _updateIntervalSeconds;
-
-            Mod.Log.Info(
-                $"UI settings applied: ShowPanel={Mod.Setting?.ShowPanel}, " +
-                $"CompactValues={Mod.Setting?.CompactValues}, " +
-                $"ShowLabels={Mod.Setting?.ShowLabels}, " +
-                $"IconOnlyMode={Mod.Setting?.IconOnlyMode}, " +
-                $"IconOrientation={Mod.Setting?.IconOrientation}, " +
-                $"IconPositionLocked={Mod.Setting?.IconPositionLocked}, " +
-                $"IconVisibilityEditMode={Mod.Setting?.IconVisibilityEditMode}, " +
-                $"IconBackgroundTransparency={ClampPercent(Mod.Setting?.IconBackgroundTransparency ?? 40)}%, " +
-                $"IconBackgroundDarkening={ClampPercent(Mod.Setting?.IconBackgroundDarkening ?? 15)}%, " +
-                $"IconSize={ClampIconSize(Mod.Setting?.IconSize ?? 30)}, " +
-                $"IconGap={ClampIconGap(Mod.Setting?.IconGap ?? 5)}, " +
-                $"UpdateInterval={_updateIntervalSeconds}s");
         }
 
         private static float ClampUpdateInterval(float value)
