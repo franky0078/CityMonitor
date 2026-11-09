@@ -61,7 +61,10 @@
 		- Colored status rings for quick visual feedback
 		- Ingame options UI for configuring (right-click on the Mod Icon)
 		- Color Thresholds can be customized
-		- Language support for German, English, French, Spanish and Italian
+		- Optional detailed hover tooltips with raw service figures and localized units
+		- Company profitability monitoring for commercial, industrial and office companies
+		- Language support for all 12 in-game languages: English, German, French, Spanish (Spain), Italian, Japanese, Korean, Polish, Portuguese (Brazil), Russian, Simplified Chinese and Traditional Chinese
+
 
 		When icon editing is enabled, icons can be reordered by dragging them. Right-clicking an icon hides or restores it.
 
@@ -133,7 +136,7 @@
 	
 
 	<!-- First public release -->
-	<ModVersion Value="1.5.1" />
+	<ModVersion Value="1.6.0" />
 
 	<!-- Tested Cities: Skylines II version -->
 	<GameVersion Value="1.6.*" />
@@ -141,10 +144,12 @@
 	<!-- City Monitor currently has no required mod dependencies. -->
 
 	<ChangeLog>
-		Version 1.5.1
+		Version 1.6.0
 
-		- fix for horizontal/vertical layout switching issue
-		
+		- added support for all ingame languages (English, German, French, Spanish, Italian, Japanese, Korean, Polish, Portuguese-Brazilian, Russian, Simplified Chinese, Traditional Chinese)
+		- added option for detailed tooltips when hovering over status icons
+		- 
+
 	</ChangeLog>
 
 	<ExternalLink Type="github" Url="https://github.com/franky0078/CityMonitor" />

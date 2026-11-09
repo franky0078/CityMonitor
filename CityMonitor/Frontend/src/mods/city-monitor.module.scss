@@ -1,3 +1,10 @@
+// Keep the bundled Latin font and use the game's locale-specific fallback stack.
+$monitorFont: "CityMonitor Noto Sans", var(--fontFamily, "Noto Sans"), sans-serif;
+
+.monitorPanel {
+    font-family: $monitorFont;
+}
+
 // Use a private family name so another mod's global Noto Sans face cannot replace it.
 @font-face {
     font-family: "CityMonitor Noto Sans";
@@ -125,7 +132,7 @@
     backdrop-filter: blur(15rem);
     color: #e9f4fb;
     font-size: 13rem;
-    font-family: "CityMonitor Noto Sans", "Noto Sans", sans-serif;
+    font-family: $monitorFont;
     font-weight: 400;
     box-sizing: border-box;
     box-shadow: 0 8rem 24rem rgba(0,0,0,.3);
@@ -176,7 +183,7 @@
     position: absolute; width: 420rem; max-width: 95vw; box-sizing: border-box;
     border: 1rem solid rgba(176,210,229,.37); border-radius: 7rem;
     box-shadow: 0 8rem 24rem rgba(0,0,0,.3); color: #fff; z-index: 200;
-    font-family: "CityMonitor Noto Sans", "Noto Sans", sans-serif; font-size: 13rem;
+    font-family: $monitorFont; font-size: 13rem;
     pointer-events: auto;
 }
 .visualOptionsContent { position: relative; padding: 8rem 8rem 12rem; box-sizing: border-box; }
@@ -196,7 +203,7 @@
 .visualOptions input,
 .appearanceEditor button,
 .appearanceEditor input {
-    font-family: "CityMonitor Noto Sans", "Noto Sans", sans-serif !important;
+    font-family: $monitorFont !important;
     font-size: 12rem !important;
     font-weight: 400 !important;
     font-style: normal !important;
@@ -229,3 +236,24 @@
 .visualOptionsContent .appearanceReset { box-sizing: border-box; }
 
 .visualOptionsScroll { position: relative; width: 100%; min-height: 0; }
+
+.tooltipValueRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.tooltipValueRow > span {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11rem;
+    line-height: 16rem;
+    margin-right: 10rem;
+}
+
+.tooltipValueRow > strong {
+    color: #fff;
+    font-size: 14rem;
+    line-height: 17rem;
+    white-space: nowrap;
+}

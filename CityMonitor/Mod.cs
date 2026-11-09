@@ -49,6 +49,34 @@ namespace CityMonitor
                 "it-IT",
                 new LocaleIT(Setting));
 
+            GameManager.instance.localizationManager.AddSource(
+                "ja-JP",
+                new LocaleJA(Setting));
+
+            GameManager.instance.localizationManager.AddSource(
+                "ko-KR",
+                new LocaleKO(Setting));
+
+            GameManager.instance.localizationManager.AddSource(
+                "pl-PL",
+                new LocalePL(Setting));
+
+            GameManager.instance.localizationManager.AddSource(
+                "pt-BR",
+                new LocalePTBR(Setting));
+
+            GameManager.instance.localizationManager.AddSource(
+                "ru-RU",
+                new LocaleRU(Setting));
+
+            GameManager.instance.localizationManager.AddSource(
+                "zh-HANS",
+                new LocaleZHHANS(Setting));
+
+            GameManager.instance.localizationManager.AddSource(
+                "zh-HANT",
+                new LocaleZHHANT(Setting));
+
             AssetDatabase.global.LoadSettings(
                 nameof(CityMonitor),
                 Setting,

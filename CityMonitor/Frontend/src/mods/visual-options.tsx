@@ -7,7 +7,7 @@ type Translate = (key: string, fallback: string) => string;
 export const setVisualOption = (key: string, value: number) => trigger("cityMonitor", "setVisualOption", key, Math.round(value));
 const definitions = [
     ["IconOnlyMode", "toggle"], ["ShowLabels", "toggle"], ["NormalRowReorder", "toggle"],
-    ["CompactValues", "toggle"], ["IconOrientation", "orientation"], ["IconPositionLocked", "toggle"],
+    ["CompactValues", "toggle"], ["DetailedTooltips", "toggle"], ["IconOrientation", "orientation"], ["IconPositionLocked", "toggle"],
     ["IconVisibilityEditMode", "toggle"], ["IconSize", "slider", 22, 50], ["IconGap", "slider", 0, 20],
     ["ShowStatusRing", "toggle"], ["SegmentedStatusRing", "toggle"], ["ShowIconValues", "toggle"],
     ["IconValuePosition", "position"], ["IconBackgroundTransparency", "slider", 0, 100],
@@ -45,7 +45,7 @@ export function VisualOptions({ open, t, panelClass, appearance, onClose, onColo
     onClose: () => void; onColors: () => void;
 }) {
     const iconMode = !!useValue(bindings.IconOnlyMode);
-    const normalKeys = new Set(["CompactValues", "ShowLabels", "IconVisibilityEditMode", "NormalRowReorder"]);
+    const normalKeys = new Set(["CompactValues", "DetailedTooltips", "ShowLabels", "IconVisibilityEditMode", "NormalRowReorder"]);
     const visibleDefinitions = definitions.filter(([key]) => key === "IconOnlyMode" ||
         (iconMode ? key !== "ShowLabels" && key !== "NormalRowReorder" : normalKeys.has(key)));
     const [pos, setPos] = useState({x: 80, y: 80});

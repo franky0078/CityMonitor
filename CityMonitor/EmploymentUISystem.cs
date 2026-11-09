@@ -29,6 +29,7 @@ namespace CityMonitor
         private GetterValueBinding<bool> _luminaNumberFixBinding;
         private GetterValueBinding<int> _buttonLocationBinding;
         private GetterValueBinding<bool> _compactValuesBinding;
+        private GetterValueBinding<bool> _detailedTooltipsBinding;
         private GetterValueBinding<bool> _showLabelsBinding;
         private GetterValueBinding<bool> _iconOnlyModeBinding;
         private GetterValueBinding<int> _iconOrientationBinding;
@@ -126,6 +127,8 @@ namespace CityMonitor
 
             AddBinding(_compactValuesBinding = new GetterValueBinding<bool>(
                 Group, "compactValues", () => Mod.Setting?.CompactValues ?? false));
+            AddBinding(_detailedTooltipsBinding = new GetterValueBinding<bool>(
+                Group, "detailedTooltips", () => Mod.Setting?.DetailedTooltips ?? false));
 
             AddBinding(_showLabelsBinding = new GetterValueBinding<bool>(
                 Group, "showLabels", () => Mod.Setting?.ShowLabels ?? false));
@@ -272,6 +275,7 @@ namespace CityMonitor
                     case "IconOnlyMode": Mod.Setting.IconOnlyMode = value != 0; break;
                     case "ShowLabels": Mod.Setting.ShowLabels = value != 0; break;
                     case "CompactValues": Mod.Setting.CompactValues = value != 0; break;
+                    case "DetailedTooltips": Mod.Setting.DetailedTooltips = value != 0; break;
                     case "IconOrientation": Mod.Setting.IconOrientation = (IconBarOrientation)(System.Math.Max(0, System.Math.Min(1, value))); break;
                     case "IconPositionLocked": Mod.Setting.IconPositionLocked = value != 0; break;
                     case "IconVisibilityEditMode": Mod.Setting.IconVisibilityEditMode = value != 0; break;
@@ -411,6 +415,7 @@ namespace CityMonitor
             _luminaNumberFixBinding.Update();
             _buttonLocationBinding.Update();
             _compactValuesBinding.Update();
+            _detailedTooltipsBinding.Update();
             _showLabelsBinding.Update();
             _iconOnlyModeBinding.Update();
             _iconOrientationBinding.Update();

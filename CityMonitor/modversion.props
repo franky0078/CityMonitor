@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <!-- Change only this value (major.minor.patch), then rebuild the project. -->
-    <ModVersion>1.5.1</ModVersion>
+    <ModVersion>1.6.0</ModVersion>
     <Version>$(ModVersion)</Version>
     <AssemblyVersion>$(ModVersion).0</AssemblyVersion>
     <FileVersion>$(ModVersion).0</FileVersion>

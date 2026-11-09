@@ -151,6 +151,9 @@ namespace CityMonitor
         public bool CompactValues { get; set; } = false;
 
         [SettingsUISection(kSection, kDisplayGroup)]
+        public bool DetailedTooltips { get; set; }
+
+        [SettingsUISection(kSection, kDisplayGroup)]
         [SettingsUIHideByCondition(typeof(Setting), nameof(IsIconOnlyModeEnabled))]
         public bool ShowLabels { get; set; } = false;
 
@@ -353,6 +356,7 @@ namespace CityMonitor
             LuminaNumberFix = false;
             ButtonLocation = ModButtonLocation.Standard;
             CompactValues = false;
+            DetailedTooltips = false;
             ShowLabels = false;
             IconOnlyMode = false;
             IconOrientation = IconBarOrientation.Horizontal;

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect, createContext, useContext } f
 import { VisualOptions, setVisualOption } from "./visual-options";
 import { NormalRowLayout, NormalRowContext } from "./normal-row-layout";
 import styles from "./city-monitor.module.scss";
+import { DetailedServiceValues, hasDetailedValues, TooltipValueRow, useCompanyProfitability } from "./service-tooltip";
 import { AppearanceEditor, AppearanceBackdrop, backdropBlurClass, defaultAppearance, normalizeAppearance, type WindowAppearance, type SurfaceAppearance } from "./appearance-editor";
 import { bindValue, trigger, useValue } from "cs2/api";
 import { Portal, Tooltip } from "cs2/ui";
@@ -31,6 +32,7 @@ const ICON_PARKING = "Media/Game/Icons/Parking.svg";
 const ICON_BICYCLE = "Media/Game/Icons/Bicycle.svg";
 const ICON_POST = "Media/Game/Icons/PostService.svg";
 const ICON_TOURISM = "Media/Game/Icons/Tourism.svg";
+const ICON_PROFITABILITY = "Media/Game/Icons/CompanyProfitable.svg";
 const ICON_ATTRACTIVENESS = "Media/Game/Icons/Attractions.svg";
 
 // The same native tool-options theme used by Enhanced Graphics and Textures.
@@ -59,6 +61,7 @@ const ALL_ICON_IDS = [
     "post",
     "tourism",
     "attractiveness",
+    "profitability",
 ] as const;
 
 const NORMAL_SERVICE_IDS = [
@@ -77,6 +80,7 @@ const NORMAL_SERVICE_IDS = [
     "post",
     "tourism",
     "attractiveness",
+    "profitability",
 ] as const;
 
 const ALL_NORMAL_STAT_IDS = [
@@ -110,6 +114,7 @@ const data$ = bindValue<CityMonitorData>("cityMonitor", "data");
 const uiState$ = bindValue<string>("cityMonitor", "uiState");
 const showPanel$ = bindValue<boolean>("cityMonitor", "showPanel");
 const compactValues$ = bindValue<boolean>("cityMonitor", "compactValues");
+const detailedTooltips$ = bindValue<boolean>("cityMonitor", "detailedTooltips", false);
 const showLabels$ = bindValue<boolean>("cityMonitor", "showLabels");
 const iconOnlyMode$ = bindValue<boolean>("cityMonitor", "iconOnlyMode");
 // The backend acknowledges a fresh settings snapshot for each UI mount.
@@ -523,6 +528,7 @@ const EditableNormalStat = ({
     editMode,
     onToggleVisibility,
     title,
+    tooltip,
     children,
 }: {
     id: string;
@@ -530,9 +536,12 @@ const EditableNormalStat = ({
     editMode: boolean;
     onToggleVisibility: (id: string) => void;
     title: string;
+    tooltip?: React.ReactNode;
     children: React.ReactNode;
 }) => {
     const rowOrder = useContext(NormalRowContext);
+    const [hovered, setHovered] = useState(false);
+    const showTooltip = !!tooltip && !editMode && !rowOrder.enabled;
     if (hidden && !editMode) {
         return null;
     }
@@ -541,7 +550,11 @@ const EditableNormalStat = ({
         <div
             data-normal-stat={id}
             title={rowOrder.enabled ? rowOrder.hint : editMode ? title : undefined}
-            onMouseEnter={() => rowOrder.move(id)}
+            onMouseEnter={() => {
+                rowOrder.move(id);
+                if (showTooltip) setHovered(true);
+            }}
+            onMouseLeave={() => { if (hovered) setHovered(false); }}
             onMouseDown={(event) => {
                 if (rowOrder.enabled && event.button === 0) {
                     event.preventDefault(); event.stopPropagation(); rowOrder.start(id); return;
@@ -571,7 +584,11 @@ const EditableNormalStat = ({
                 transition: "opacity 120ms ease, background-color 120ms ease",
             }}
         >
-            {children}
+            {showTooltip ? (
+                <Tooltip tooltip={hovered ? <div className={styles.monitorPanel}>{tooltip}</div> : null}>
+                    <div>{children}</div>
+                </Tooltip>
+            ) : children}
         </div>
     );
 };
@@ -726,7 +743,8 @@ type ServiceKind =
     | "parkingBike"
     | "post"
     | "tourism"
-    | "attractiveness";
+    | "attractiveness"
+    | "profitability";
 
 interface DragHandleProps {
     orientation: IconOrientationMode;
@@ -864,6 +882,7 @@ interface StatusIconProps {
     iconSrc: string;
     label: string;
     details: TooltipDetail[];
+    extraDetails?: React.ReactNode;
     ringColor: string;
     ringPercent?: number;
     iconOpacity: number;
@@ -891,6 +910,7 @@ const StatusIcon = ({
     iconSrc,
     label,
     details,
+    extraDetails,
     ringColor,
     ringPercent = 0,
     iconOpacity,
@@ -941,7 +961,7 @@ const StatusIcon = ({
     const glyphSize = Math.max(12, Math.min(size - 8, Math.round(size * 0.76)));
     const tooltipOffset = (orientation === "horizontal" ? cellHeight : cellWidth) + 6;
 
-    const tooltipMinWidth = details.length > 1 ? 160 : 118;
+    const tooltipMinWidth = extraDetails ? 190 : details.length > 1 ? 160 : 118;
 
     const horizontalAnchorStyle: React.CSSProperties =
         horizontalTooltipAnchor === "left"
@@ -1195,6 +1215,7 @@ const StatusIcon = ({
                         position: "absolute",
                         ...tooltipPositionStyle,
                         minWidth: tooltipMinWidth + "rem",
+                        maxWidth: extraDetails ? "340rem" : undefined,
                         padding: "6rem 9rem",
                         borderRadius: "6rem",
                         backgroundColor: "rgba(15, 20, 25, 0.86)",
@@ -1218,47 +1239,9 @@ const StatusIcon = ({
                     </div>
 
                     {details.map((detail, index) => (
-                        <div
-                            key={index}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: detail.label
-                                    ? "space-between"
-                                    : "flex-start",
-                                width: "100%",
-                                marginTop:
-                                    index === 0
-                                        ? 0
-                                        : "2rem",
-                                whiteSpace: "nowrap",
-                            }}
-                        >
-                            {detail.label && (
-                                <span
-                                    style={{
-                                        color: "rgba(255,255,255,0.68)",
-                                        fontSize: "11rem",
-                                        lineHeight: "16rem",
-                                        marginRight: "10rem",
-                                    }}
-                                >
-                                    {detail.label}
-                                </span>
-                            )}
-
-                            <span
-                                style={{
-                                    color: "#fff",
-                                    fontSize: "14rem",
-                                    lineHeight: "17rem",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                {detail.value}
-                            </span>
-                        </div>
+                        <TooltipValueRow key={index} label={detail.label}>{detail.value}</TooltipValueRow>
                     ))}
+                    {extraDetails}
 
                     {canToggleVisibility && visibilityHint && (
                         <div
@@ -1287,6 +1270,7 @@ interface ServiceStatusIconProps
         "details" | "ringColor" | "ringPercent"
     > {
     compactValues: boolean;
+    detailedTooltips: boolean;
     t: Translate;
     thresholds: StatusThresholds;
 }
@@ -1467,7 +1451,7 @@ const GarbageProcessingStatusIcon = (
                             ),
                             value: percent.toFixed(0) + " %",
                         },
-                        {
+                        ...(!props.detailedTooltips ? [{
                             label: props.t(
                                 "CityMonitor.GarbageProduction",
                                 "Müll"
@@ -1484,7 +1468,7 @@ const GarbageProcessingStatusIcon = (
                             value:
                                 Math.max(0, Math.round(Number(processingRate) || 0)) +
                                 " t/Mo.",
-                        },
+                        }] : []),
                     ]
             }
             ringColor={availabilityStatusColor(percent, props.thresholds)}
@@ -1558,7 +1542,7 @@ const PoliceStatusIcon = (
                             ),
                             value: jailPercent.toFixed(0) + " %",
                         },
-                        {
+                        ...(!props.detailedTooltips ? [{
                             label: props.t(
                                 "CityMonitor.CrimePerMonth",
                                 "Straftaten / Monat"
@@ -1566,7 +1550,7 @@ const PoliceStatusIcon = (
                             value: String(
                                 Math.max(0, Math.round(Number(crimePerMonth) || 0))
                             ),
-                        },
+                        }] : []),
                     ]
             }
             ringColor={riskStatusColor(crimePercent, props.thresholds)}
@@ -1830,13 +1814,33 @@ const AttractivenessStatusIcon = (
     );
 };
 
+const ProfitabilityStatusIcon = (props: ServiceStatusIconProps) => {
+    const { lowest, details } = useCompanyProfitability(props.t);
+    return <StatusIcon
+        {...props}
+        details={details}
+        ringColor={lowest === undefined ? STATUS_INACTIVE : availabilityStatusColor(lowest, props.thresholds)}
+        ringPercent={lowest}
+    />;
+};
+
 const ServiceStatusIcon = ({
     service,
-    ...props
+    ...options
 }: ServiceStatusIconProps & {
     service: ServiceKind;
 }) => {
+    const props = {
+        ...options,
+        extraDetails: options.detailedTooltips && hasDetailedValues(service)
+            ? <DetailedServiceValues id={service} t={options.t} />
+            : undefined,
+    };
+
     switch (service) {
+        case "profitability":
+            return <ProfitabilityStatusIcon {...props} />;
+
         case "homeless":
             return <HomelessStatusIcon {...props} />;
 
@@ -1889,6 +1893,7 @@ const ServiceStatusIcon = ({
 
 interface NormalServiceRowsProps {
     compactValues: boolean;
+    detailedTooltips: boolean;
     showText: boolean;
     t: Translate;
     thresholds: StatusThresholds;
@@ -1903,6 +1908,7 @@ interface NormalServiceRowsProps {
 // Servicewerte für den normalen Panelmodus
 const NormalServiceRows = ({
     compactValues,
+    detailedTooltips,
     showText,
     t,
     thresholds,
@@ -1967,6 +1973,9 @@ const NormalServiceRows = ({
     const waterSewagePercent = Math.min(waterPercent, sewagePercent);
 
     const renderStat = (id: string, row: React.ReactNode) => {
+        const tooltip = detailedTooltips && hasDetailedValues(id)
+            ? <DetailedServiceValues id={id} t={t} />
+            : undefined;
         const hidden = hiddenStatIds.has(id);
         const action = hidden
             ? t("CityMonitor.ShowStat", "Rechtsklick: Anzeige einblenden")
@@ -1980,6 +1989,7 @@ const NormalServiceRows = ({
                 editMode={editMode}
                 onToggleVisibility={onToggleVisibility}
                 title={action}
+                tooltip={tooltip}
             >
                 {row}
             </EditableNormalStat>
@@ -2101,8 +2111,36 @@ const NormalServiceRows = ({
                 color={availabilityStatusColor(attractivenessPercent, thresholds)}
                 showText={showText}
             />)}
+            {renderStat("profitability", <NormalProfitabilityRow
+                showText={showText}
+                t={t}
+                thresholds={thresholds}
+                tooltipEnabled={!editMode && !reorderEnabled}
+            />)}
         </NormalRowLayout>
     );
+};
+
+const NormalProfitabilityRow = ({ showText, t, thresholds, tooltipEnabled }: {
+    showText: boolean;
+    t: Translate;
+    thresholds: StatusThresholds;
+    tooltipEnabled: boolean;
+}) => {
+    const { lowest, details } = useCompanyProfitability(t);
+    const row = <Row
+        iconSrc={ICON_PROFITABILITY}
+        label={t("CityMonitor.CompanyProfitability", "Unternehmensrentabilität")}
+        value={lowest === undefined ? "–" : lowest.toFixed(0) + " %"}
+        color={lowest === undefined ? STATUS_INACTIVE : availabilityStatusColor(lowest, thresholds)}
+        showText={showText}
+    />;
+    if (!tooltipEnabled) return row;
+    return <Tooltip tooltip={<div className={styles.monitorPanel}>
+        {details.map(detail => <TooltipValueRow key={detail.label} label={detail.label}>{detail.value}</TooltipValueRow>)}
+    </div>}>
+        <div>{row}</div>
+    </Tooltip>;
 };
 
 // Hauptkomponente und persistenter UI-Zustand
@@ -2140,6 +2178,8 @@ export const CityMonitorComponent = () => {
 
     const showPanelSetting = useValue(showPanel$);
     const compactValues = useValue(compactValues$);
+    const detailedTooltips = useValue(detailedTooltips$);
+    const compactTooltipValues = compactValues && !detailedTooltips;
     const showText = useValue(showLabels$);
     const iconOnlyMode = useValue(iconOnlyMode$);
     const iconOrientationSetting = useValue(iconOrientation$);
@@ -2189,7 +2229,7 @@ export const CityMonitorComponent = () => {
             },
         ];
 
-        if (!compactValues) {
+        if (!compactTooltipValues) {
             details.push({
                 label: t("CityMonitor.Free", "Frei"),
                 value: String(free),
@@ -3025,6 +3065,7 @@ export const CityMonitorComponent = () => {
                 editMode={iconVisibilityEditMode && !iconOnlyMode}
                 onToggleVisibility={toggleNormalStatVisibility}
                 title={action}
+                tooltip={detailedTooltips && hasDetailedValues(id) ? <DetailedServiceValues id={id} t={t} /> : undefined}
             >
                 {row}
             </EditableNormalStat>
@@ -3125,7 +3166,7 @@ export const CityMonitorComponent = () => {
                     "CityMonitor.Unemployment",
                     "Arbeitslosigkeit"
                 ),
-                details: compactValues
+                details: compactTooltipValues
                     ? [
                         {
                             value:
@@ -3171,7 +3212,7 @@ export const CityMonitorComponent = () => {
                     "CityMonitor.Jobs",
                     "Arbeitsplätze"
                 ),
-                details: compactValues
+                details: compactTooltipValues
                     ? [
                         { value: String(data.openJobs) },
                         { value: sharePercent(data.openJobs, data.totalJobSlots).toFixed(1) + " %" },
@@ -3415,6 +3456,12 @@ export const CityMonitorComponent = () => {
                     "Stadtattraktivität"
                 ),
             },
+            {
+                id: "profitability",
+                service: "profitability",
+                iconSrc: ICON_PROFITABILITY,
+                label: t("CityMonitor.CompanyProfitability", "Unternehmensrentabilität"),
+            },
         ]
         : [];
 
@@ -3451,6 +3498,7 @@ export const CityMonitorComponent = () => {
         post: ["post", "mail"],
         tourism: ["tourism"],
         attractiveness: ["tourism", "attraction"],
+        profitability: ["companyprofitability", "profitability", "companyprofit"],
     };
 
     const normalizeInfoviewText = (
@@ -3598,7 +3646,7 @@ export const CityMonitorComponent = () => {
 
                     <div
                         ref={panelRef}
-                        className={iconOnlyMode ? undefined : styles.legacySurface}
+                        className={iconOnlyMode ? styles.monitorPanel : `${styles.monitorPanel} ${styles.legacySurface}`}
                         style={{
                             position: "absolute",
                             top: pos.y + "rem",
@@ -3611,7 +3659,6 @@ export const CityMonitorComponent = () => {
                             color: "#fff",
                             borderRadius: "7rem",
                             fontSize: "13rem",
-                            fontFamily: '"CityMonitor Noto Sans", "Noto Sans", sans-serif',
                             fontWeight: 400,
                             border: iconOnlyMode
                                 ? "none"
@@ -3766,9 +3813,8 @@ export const CityMonitorComponent = () => {
                                                     service={item.service}
                                                     iconSrc={item.iconSrc}
                                                     label={item.label}
-                                                    compactValues={
-                                                        compactValues
-                                                    }
+                                                    compactValues={compactTooltipValues}
+                                                    detailedTooltips={detailedTooltips}
                                                     t={t}
                                                     thresholds={thresholds}
                                                     backgroundAppearance={appearance.window}
@@ -3827,9 +3873,10 @@ export const CityMonitorComponent = () => {
                                                 monitorId={item.id}
                                                 iconSrc={item.iconSrc}
                                                 label={item.label}
-                                                details={
-                                                    item.details ?? []
-                                                }
+                                                details={item.details ?? []}
+                                                extraDetails={detailedTooltips && hasDetailedValues(item.id)
+                                                    ? <DetailedServiceValues id={item.id} t={t} />
+                                                    : undefined}
                                                 ringPercent={item.ringPercent}
                                                 ringColor={
                                                     item.ringColor ??
@@ -3920,6 +3967,7 @@ export const CityMonitorComponent = () => {
                                         <AppearanceBackdrop value={appearance.window} panelClass={gamePanelClass} />
                                             <NormalServiceRows reorderEnabled={normalRowReorder}
                                                 compactValues={compactValues}
+                                                detailedTooltips={detailedTooltips}
                                                 showText={showText}
                                                 t={t}
                                                 thresholds={thresholds}
