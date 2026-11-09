@@ -1,47 +1,57 @@
 import { useValue, type ValueBinding } from "cs2/api";
 import { infoview, type IndicatorValue } from "cs2/bindings";
-import { Localized, LocElementType, Unit } from "cs2/l10n";
-import type { ReactNode } from "react";
+import { useLocalization, type Localization, type LocComponent, type LocalizedNumberProps, type LocalizedFractionProps } from "cs2/l10n";
+import type { ModuleRegistry } from "cs2/modding";
+import { Component, type ReactNode } from "react";
 import styles from "./city-monitor.module.scss";
 
 type Translate = (id: string, fallback: string) => string;
-type Metric = readonly [key: string, fallback: string, binding: ValueBinding<number>, unit?: Unit];
+// Unit IDs are wire values. The game formatters can render them as plain text.
+const units = {
+    Integer: "integer", IntegerPerMonth: "integerPerMonth", Percentage: "percentage",
+    Power: "power", Energy: "energy", VolumePerMonth: "volumePerMonth",
+    Weight: "weight", WeightPerMonth: "weightPerMonth",
+    Money: "money", MoneyPerMonth: "moneyPerMonth",
+} as const;
+type MetricUnit = typeof units[keyof typeof units];
+
+type Metric = readonly [key: string, fallback: string, binding: ValueBinding<number>, unit?: MetricUnit];
 
 const metrics: Readonly<Record<string, readonly Metric[]>> = {
     electricity: [
-        ["Import", "Import", infoview.electricityImport$, Unit.Power],
-        ["Export", "Export", infoview.electricityExport$, Unit.Power],
+        ["Import", "Import", infoview.electricityImport$, units.Power],
+        ["Export", "Export", infoview.electricityExport$, units.Power],
     ],
     water: [
-        ["WaterCapacity", "Water production capacity", infoview.waterCapacity$, Unit.VolumePerMonth],
-        ["WaterConsumption", "Water consumption", infoview.waterConsumption$, Unit.VolumePerMonth],
-        ["Import", "Import", infoview.waterImport$, Unit.VolumePerMonth],
-        ["WaterExport", "Water export", infoview.waterExport$, Unit.VolumePerMonth],
-        ["SewageProduction", "Sewage production", infoview.sewageConsumption$, Unit.VolumePerMonth],
-        ["SewageTreatment", "Sewage treatment capacity", infoview.sewageCapacity$, Unit.VolumePerMonth],
-        ["SewageExport", "Sewage export", infoview.sewageExport$, Unit.VolumePerMonth],
+        ["WaterCapacity", "Water production capacity", infoview.waterCapacity$, units.VolumePerMonth],
+        ["WaterConsumption", "Water consumption", infoview.waterConsumption$, units.VolumePerMonth],
+        ["Import", "Import", infoview.waterImport$, units.VolumePerMonth],
+        ["WaterExport", "Water export", infoview.waterExport$, units.VolumePerMonth],
+        ["SewageProduction", "Sewage production", infoview.sewageConsumption$, units.VolumePerMonth],
+        ["SewageTreatment", "Sewage treatment capacity", infoview.sewageCapacity$, units.VolumePerMonth],
+        ["SewageExport", "Sewage export", infoview.sewageExport$, units.VolumePerMonth],
     ],
     healthcare: [
         ["SickOrInjured", "Sick or injured", infoview.sickCount$],
         ["Patients", "Patients", infoview.patientCount$],
         ["Capacity", "Capacity", infoview.patientCapacity$],
-        ["AverageHealth", "Average health", infoview.averageHealth$, Unit.Percentage],
+        ["AverageHealth", "Average health", infoview.averageHealth$, units.Percentage],
     ],
     cemetery: [
         ["Occupied", "Occupied", infoview.cemeteryUse$],
         ["Capacity", "Capacity", infoview.cemeteryCapacity$],
     ],
     crematorium: [
-        ["Deaths", "Deaths", infoview.deathRate$, Unit.BodiesPerMonth],
-        ["ProcessingRate", "Processing", infoview.processingRate$, Unit.BodiesPerMonth],
+        ["Deaths", "Deaths", infoview.deathRate$, units.IntegerPerMonth],
+        ["ProcessingRate", "Processing", infoview.processingRate$, units.IntegerPerMonth],
     ],
     garbageProcessing: [
-        ["GarbageProduction", "Garbage", infoview.garbageProductionRate$, Unit.WeightPerMonth],
-        ["ProcessingRate", "Processing", infoview.garbageProcessingRate$, Unit.WeightPerMonth],
+        ["GarbageProduction", "Garbage", infoview.garbageProductionRate$, units.WeightPerMonth],
+        ["ProcessingRate", "Processing", infoview.garbageProcessingRate$, units.WeightPerMonth],
     ],
     landfill: [
-        ["Stored", "Stored", infoview.storedGarbage$, Unit.Weight],
-        ["Capacity", "Capacity", infoview.landfillCapacity$, Unit.Weight],
+        ["Stored", "Stored", infoview.storedGarbage$, units.Weight],
+        ["Capacity", "Capacity", infoview.landfillCapacity$, units.Weight],
     ],
     police: [
         ["Arrested", "Arrested", infoview.arrestedCriminals$],
@@ -52,18 +62,18 @@ const metrics: Readonly<Record<string, readonly Metric[]>> = {
         ["PrisonCapacity", "Prison capacity", infoview.prisonCapacity$],
         ["Criminals", "Current criminals", infoview.criminals$],
         ["CrimePerMonth", "Crimes / month", infoview.crimePerMonth$],
-        ["CrimeSuccess", "Crime success rate", infoview.escapedRate$, Unit.Percentage],
+        ["CrimeSuccess", "Crime success rate", infoview.escapedRate$, units.Percentage],
     ],
     parkingCar: [
         ["Parked", "Parked", infoview.parkedCars$],
         ["Capacity", "Capacity", infoview.parkingCapacity$],
-        ["ParkingIncome", "Parking income", infoview.parkingIncome$, Unit.MoneyPerMonth],
+        ["ParkingIncome", "Parking income", infoview.parkingIncome$, units.MoneyPerMonth],
     ],
     post: [
-        ["MailProduction", "Mail rate", infoview.mailProductionRate$, Unit.IntegerPerMonth],
+        ["MailProduction", "Mail rate", infoview.mailProductionRate$, units.IntegerPerMonth],
     ],
     tourism: [
-        ["AverageHotelPrice", "Average hotel price", infoview.averageHotelPrice$, Unit.Money],
+        ["AverageHotelPrice", "Average hotel price", infoview.averageHotelPrice$, units.Money],
     ],
     elementary: [["EligibleStudents", "Eligible students", infoview.elementaryEligible$]],
     highschool: [["EligibleStudents", "Eligible students", infoview.highSchoolEligible$]],
@@ -71,23 +81,76 @@ const metrics: Readonly<Record<string, readonly Metric[]>> = {
     university: [["EligibleStudents", "Eligible students", infoview.universityEligible$]],
 };
 
-export function TooltipValueRow({ label, children }: { label?: string; children: ReactNode }) {
-    return <div className={styles.tooltipValueRow}>
-        {label && <span>{label}</span>}
-        <strong>{children}</strong>
+export function TooltipValueRow({ label, children, summary = false }: {
+    label?: string; children: ReactNode; summary?: boolean;
+}) {
+    const className = summary ? `${styles.tooltipValueRow} ${styles.tooltipSummaryRow}` : styles.tooltipValueRow;
+    return <div className={className}>
+        {label && <span style={{
+            color: "#b8b8b8", fontSize: "11rem", fontWeight: 400, lineHeight: "15rem", marginRight: "10rem",
+        }}>{label}</span>}
+        <span style={{
+            color: "#fff", fontSize: "11rem", fontWeight: summary ? 700 : 400, lineHeight: "15rem", whiteSpace: "nowrap",
+        }}>{children}</span>
     </div>;
 }
 
-function GameNumber({ value, unit, signed = false }: { value: number; unit: Unit; signed?: boolean }) {
-    return <Localized value={{ __Type: LocElementType.Number, value, unit, signed }} />;
+let renderNumber: LocComponent<LocalizedNumberProps>["renderString"] | undefined;
+let renderFraction: LocComponent<LocalizedFractionProps>["renderString"] | undefined;
+
+export function registerTooltipFormatters(registry: ModuleRegistry) {
+    renderNumber = registry.registry.get("game-ui/common/localization/localized-number.tsx")?.LocalizedNumber?.renderString;
+    renderFraction = registry.registry.get("game-ui/common/localization/localized-fraction.tsx")?.LocalizedFraction?.renderString;
 }
+
+const fallbackUnits: Partial<Record<MetricUnit, string>> = {
+    integerPerMonth: "/mo.", percentage: "%", power: "kW", energy: "kWh",
+    volumePerMonth: "m³/mo.", weight: "t", weightPerMonth: "t/mo.",
+    money: "₡", moneyPerMonth: "₡/mo.",
+};
+
+function formatMetric(localization: Localization, value: number, unit: MetricUnit, signed = false, total?: number) {
+    try {
+        const text = total === undefined
+            ? renderNumber?.(localization, { value, unit: unit as LocalizedNumberProps["unit"], signed })
+            : renderFraction?.(localization, { value, total, unit: unit as LocalizedFractionProps["unit"] });
+        if (typeof text === "string" && text.length && !/<[a-z][a-z0-9]*>/i.test(text)) {
+            return text.replace(/[\u00a0\u2000-\u200b\u202f\u205f\u2060\ufeff]/g, " ");
+        }
+    } catch (error) {
+        console.debug("[CityMonitor] Tooltip formatter unavailable", error);
+    }
+    const prefix = signed && value > 0 ? "+" : "";
+    const current = Number(value.toFixed(2)).toString();
+    const quantity = total === undefined ? prefix + current : current + " / " + Number(total.toFixed(2));
+    const suffix = fallbackUnits[unit];
+    return suffix ? quantity + " " + suffix : quantity;
+}
+
+function GameNumber({ value, unit, signed, total }: {
+    value: number; unit: MetricUnit; signed?: boolean; total?: number;
+}) {
+    return <>{formatMetric(useLocalization(), value, unit, signed, total)}</>;
+}
+
+export function TooltipDivider() {
+    return <div aria-hidden="true" style={{
+        display: "block", width: "100%", height: "1rem", minHeight: "1rem",
+        flexShrink: 0, marginTop: "4rem", marginBottom: "4rem", backgroundColor: "rgba(255, 255, 255, 0.42)",
+    }} />;
+}
+
+const detailGroupStarts = new Set(["Import", "SewageProduction", "Sentenced", "Criminals"]);
 
 function MetricRow({ metric: [key, fallback, binding, unit], t }: { metric: Metric; t: Translate }) {
     const value = useValue(binding);
     if (!Number.isFinite(value)) return null;
-    return <TooltipValueRow label={t("CityMonitor." + key, fallback)}>
-        <GameNumber value={value} unit={unit ?? Unit.Integer} />
-    </TooltipValueRow>;
+    return <>
+        {detailGroupStarts.has(key) && <TooltipDivider />}
+        <TooltipValueRow label={t("CityMonitor." + key, fallback)}>
+            <GameNumber value={value} unit={unit ?? units.Integer} />
+        </TooltipValueRow>
+    </>;
 }
 
 function ElectricityDetails({ t }: { t: Translate }) {
@@ -96,18 +159,18 @@ function ElectricityDetails({ t }: { t: Translate }) {
     const battery = useValue(infoview.batteryCharge$);
     return <>
         {Number.isFinite(production) && <TooltipValueRow label={t("CityMonitor.Production", "Production")}>
-            <GameNumber value={production} unit={Unit.Power} />
+            <GameNumber value={production} unit={units.Power} />
         </TooltipValueRow>}
         {Number.isFinite(consumption) && <TooltipValueRow label={t("CityMonitor.Consumption", "Consumption")}>
-            <GameNumber value={consumption} unit={Unit.Power} />
+            <GameNumber value={consumption} unit={units.Power} />
         </TooltipValueRow>}
         {Number.isFinite(production) && Number.isFinite(consumption) &&
             <TooltipValueRow label={t("CityMonitor.PowerBalance", "Local power balance")}>
-                <GameNumber value={production - consumption} unit={Unit.Power} signed />
+                <GameNumber value={production - consumption} unit={units.Power} signed />
             </TooltipValueRow>}
         {battery && Number.isFinite(battery.current) && Number.isFinite(battery.max) &&
             <TooltipValueRow label={t("CityMonitor.BatteryCharge", "Battery charge")}>
-                <Localized value={{ __Type: LocElementType.Fraction, value: battery.current, total: battery.max, unit: Unit.Energy }} />
+                <GameNumber value={battery.current} total={battery.max} unit={units.Energy} />
             </TooltipValueRow>}
     </>;
 }
@@ -117,10 +180,10 @@ function BikeParkingDetails({ t }: { t: Translate }) {
     if (!parking || !Number.isFinite(parking.x) || !Number.isFinite(parking.y)) return null;
     return <>
         <TooltipValueRow label={t("CityMonitor.Parked", "Parked")}>
-            <GameNumber value={parking.x} unit={Unit.Integer} />
+            <GameNumber value={parking.x} unit={units.Integer} />
         </TooltipValueRow>
         <TooltipValueRow label={t("CityMonitor.Capacity", "Capacity")}>
-            <GameNumber value={parking.y} unit={Unit.Integer} />
+            <GameNumber value={parking.y} unit={units.Integer} />
         </TooltipValueRow>
     </>;
 }
@@ -130,20 +193,37 @@ function PostProcessingDetails({ t }: { t: Translate }) {
     const delivered = useValue(infoview.deliveredMail$);
     if (!Number.isFinite(collected) || !Number.isFinite(delivered)) return null;
     return <TooltipValueRow label={t("CityMonitor.ProcessingRate", "Processing")}>
-        <GameNumber value={collected + delivered} unit={Unit.IntegerPerMonth} />
+        <GameNumber value={collected + delivered} unit={units.IntegerPerMonth} />
     </TooltipValueRow>;
 }
 
 export const hasDetailedValues = (id: string) =>
     Object.prototype.hasOwnProperty.call(metrics, id) || id === "parkingBike";
 
+// Keep a failing optional game binding inside the hovered tooltip.
+class DetailValuesBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+    state = { failed: false };
+
+    static getDerivedStateFromError() {
+        return { failed: true };
+    }
+
+    componentDidCatch(error: Error) {
+        console.warn("[CityMonitor] Detailed tooltip data unavailable", error);
+    }
+
+    render() {
+        return this.state.failed ? <TooltipValueRow>–</TooltipValueRow> : this.props.children;
+    }
+}
+
 export function DetailedServiceValues({ id, t }: { id: string; t: Translate }) {
-    return <>
+    return <DetailValuesBoundary>
         {id === "electricity" && <ElectricityDetails t={t} />}
-        {metrics[id]?.map(metric => <MetricRow key={metric[0]} metric={metric} t={t} />)}
+        {metrics[id]?.filter(metric => !!metric[2]).map(metric => <MetricRow key={metric[0]} metric={metric} t={t} />)}
         {id === "post" && <PostProcessingDetails t={t} />}
         {id === "parkingBike" && <BikeParkingDetails t={t} />}
-    </>;
+    </DetailValuesBoundary>;
 }
 
 const profitabilitySectors = [

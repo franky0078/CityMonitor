@@ -1,5 +1,6 @@
 import { ModRegistrar } from "cs2/modding";
 import { bindValue, useValue } from "cs2/api";
+import { registerTooltipFormatters } from "mods/service-tooltip";
 // import { registerSelectedInfoFontFix } from "mods/selected-info-font-fix";
 import {
     CityMonitorComponent,
@@ -21,6 +22,7 @@ const UniversalMenuCityMonitor = () =>
 
 const register: ModRegistrar = (moduleRegistry) => {
     // registerSelectedInfoFontFix(moduleRegistry);
+    registerTooltipFormatters(moduleRegistry);
     let panelClass = "";
     try {
         panelClass = (moduleRegistry as any).registry.get(

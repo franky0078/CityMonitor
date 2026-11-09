@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect, createContext, useContext } f
 import { VisualOptions, setVisualOption } from "./visual-options";
 import { NormalRowLayout, NormalRowContext } from "./normal-row-layout";
 import styles from "./city-monitor.module.scss";
-import { DetailedServiceValues, hasDetailedValues, TooltipValueRow, useCompanyProfitability } from "./service-tooltip";
+import { DetailedServiceValues, hasDetailedValues, TooltipDivider, TooltipValueRow, useCompanyProfitability } from "./service-tooltip";
 import { AppearanceEditor, AppearanceBackdrop, backdropBlurClass, defaultAppearance, normalizeAppearance, type WindowAppearance, type SurfaceAppearance } from "./appearance-editor";
 import { bindValue, trigger, useValue } from "cs2/api";
 import { Portal, Tooltip } from "cs2/ui";
@@ -348,6 +348,7 @@ const Icon = ({
     color = "#fff",
     white = false,
     opacity = 1,
+    emphasizeCash = false,
 }: {
     path?: string;
     src?: string;
@@ -355,11 +356,12 @@ const Icon = ({
     color?: string;
     white?: boolean;
     opacity?: number;
+    emphasizeCash?: boolean;
 }) => {
     const dim = size + "rem";
 
     if (src) {
-        return (
+        const image = (
             <img
                 src={src}
                 style={{
@@ -371,6 +373,21 @@ const Icon = ({
                 }}
             />
         );
+        if (!emphasizeCash) return image;
+        return <span className={styles.profitabilityGlyph} style={{ width: dim, height: dim, opacity }}>
+            <span className={styles.profitabilityBaseTop}>
+                <img src={src} alt="" style={{ width: dim, height: dim }} />
+            </span>
+            <span className={styles.profitabilityBaseBottom}>
+                <img src={src} alt="" style={{ width: dim, height: dim }} />
+            </span>
+            <svg viewBox="0 0 20 20" aria-hidden="true" className={styles.profitabilityCash}>
+                <path d="M15 6a6 6 0 1 0 0 8M10 1.5v2.8m0 11.4v2.8" fill="none"
+                    stroke="#523307" strokeWidth="5" strokeLinecap="round" />
+                <path d="M15 6a6 6 0 1 0 0 8M10 1.5v2.8m0 11.4v2.8" fill="none"
+                    stroke="#ffcb38" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+        </span>;
     }
 
     return (
@@ -480,6 +497,7 @@ const Row = ({
     value,
     color,
     showText,
+    emphasizeCash,
 }: {
     icon?: string;
     iconSrc?: string;
@@ -487,6 +505,7 @@ const Row = ({
     value: string;
     color?: string;
     showText: boolean;
+    emphasizeCash?: boolean;
 }) => (
     <div
         style={{
@@ -499,7 +518,7 @@ const Row = ({
         <span style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
             <Tooltip tooltip={label}>
                 <div style={{ display: "flex" }}>
-                    <Icon path={icon} src={iconSrc} white={false} size={20} />
+                    <Icon path={icon} src={iconSrc} white={false} size={20} emphasizeCash={emphasizeCash} />
                 </div>
             </Tooltip>
 
@@ -540,7 +559,7 @@ const EditableNormalStat = ({
     children: React.ReactNode;
 }) => {
     const rowOrder = useContext(NormalRowContext);
-    const [hovered, setHovered] = useState(false);
+    const [tooltipPosition, setTooltipPosition] = useState<React.CSSProperties | null>(null);
     const showTooltip = !!tooltip && !editMode && !rowOrder.enabled;
     if (hidden && !editMode) {
         return null;
@@ -550,11 +569,19 @@ const EditableNormalStat = ({
         <div
             data-normal-stat={id}
             title={rowOrder.enabled ? rowOrder.hint : editMode ? title : undefined}
-            onMouseEnter={() => {
+            onMouseEnter={event => {
                 rowOrder.move(id);
-                if (showTooltip) setHovered(true);
+                if (!showTooltip) return;
+                const rect = event.currentTarget.getBoundingClientRect();
+                const viewport = document.documentElement;
+                setTooltipPosition({
+                    ...(rect.left > viewport.clientWidth - rect.right
+                        ? { right: "calc(100% + 6rem)" }
+                        : { left: "calc(100% + 6rem)" }),
+                    ...(rect.top > viewport.clientHeight - rect.bottom ? { bottom: 0 } : { top: 0 }),
+                });
             }}
-            onMouseLeave={() => { if (hovered) setHovered(false); }}
+            onMouseLeave={() => setTooltipPosition(null)}
             onMouseDown={(event) => {
                 if (rowOrder.enabled && event.button === 0) {
                     event.preventDefault(); event.stopPropagation(); rowOrder.start(id); return;
@@ -572,6 +599,8 @@ const EditableNormalStat = ({
                 event.stopPropagation();
             }}
             style={{
+                position: showTooltip ? "relative" : undefined,
+                zIndex: showTooltip && tooltipPosition ? 2 : undefined,
                 outline: rowOrder.dragging === id ? "1rem solid #80d5ff" : undefined,
                 transform: rowOrder.dragging === id ? "translateX(3rem)" : undefined,
                 opacity: editMode && hidden ? 0.45 : 1,
@@ -584,11 +613,10 @@ const EditableNormalStat = ({
                 transition: "opacity 120ms ease, background-color 120ms ease",
             }}
         >
-            {showTooltip ? (
-                <Tooltip tooltip={hovered ? <div className={styles.monitorPanel}>{tooltip}</div> : null}>
-                    <div>{children}</div>
-                </Tooltip>
-            ) : children}
+            {children}
+            {showTooltip && tooltipPosition && (
+                <div className={styles.normalDetailTooltip} style={tooltipPosition}>{tooltip}</div>
+            )}
         </div>
     );
 };
@@ -1177,7 +1205,7 @@ const StatusIcon = ({
                         justifyContent: "center",
                     }}
                 >
-                    <Icon src={iconSrc} size={glyphSize} opacity={symbolOpacity} />
+                    <Icon src={iconSrc} size={glyphSize} opacity={symbolOpacity} emphasizeCash={monitorId === "profitability"} />
                 </div>
             </div>
 
@@ -1227,6 +1255,7 @@ const StatusIcon = ({
                     }}
                 >
                     <div
+                        className={styles.tooltipHeading}
                         style={{
                             color: "rgba(255,255,255,0.72)",
                             fontSize: "11rem",
@@ -1239,9 +1268,12 @@ const StatusIcon = ({
                     </div>
 
                     {details.map((detail, index) => (
-                        <TooltipValueRow key={index} label={detail.label}>{detail.value}</TooltipValueRow>
+                        <TooltipValueRow key={index} label={detail.label} summary={!extraDetails}>{detail.value}</TooltipValueRow>
                     ))}
-                    {extraDetails}
+                    {extraDetails && <>
+                        {details.length > 0 && <TooltipDivider />}
+                        {extraDetails}
+                    </>}
 
                     {canToggleVisibility && visibilityHint && (
                         <div
@@ -1892,6 +1924,7 @@ const ServiceStatusIcon = ({
 
 
 interface NormalServiceRowsProps {
+    profitabilityIcon: string;
     compactValues: boolean;
     detailedTooltips: boolean;
     showText: boolean;
@@ -1907,6 +1940,7 @@ interface NormalServiceRowsProps {
 
 // Servicewerte für den normalen Panelmodus
 const NormalServiceRows = ({
+    profitabilityIcon,
     compactValues,
     detailedTooltips,
     showText,
@@ -2112,6 +2146,7 @@ const NormalServiceRows = ({
                 showText={showText}
             />)}
             {renderStat("profitability", <NormalProfitabilityRow
+                iconSrc={profitabilityIcon}
                 showText={showText}
                 t={t}
                 thresholds={thresholds}
@@ -2121,7 +2156,8 @@ const NormalServiceRows = ({
     );
 };
 
-const NormalProfitabilityRow = ({ showText, t, thresholds, tooltipEnabled }: {
+const NormalProfitabilityRow = ({ iconSrc, showText, t, thresholds, tooltipEnabled }: {
+    iconSrc: string;
     showText: boolean;
     t: Translate;
     thresholds: StatusThresholds;
@@ -2129,7 +2165,8 @@ const NormalProfitabilityRow = ({ showText, t, thresholds, tooltipEnabled }: {
 }) => {
     const { lowest, details } = useCompanyProfitability(t);
     const row = <Row
-        iconSrc={ICON_PROFITABILITY}
+        iconSrc={iconSrc}
+        emphasizeCash
         label={t("CityMonitor.CompanyProfitability", "Unternehmensrentabilität")}
         value={lowest === undefined ? "–" : lowest.toFixed(0) + " %"}
         color={lowest === undefined ? STATUS_INACTIVE : availabilityStatusColor(lowest, thresholds)}
@@ -3147,6 +3184,97 @@ export const CityMonitorComponent = () => {
         return () => window.removeEventListener("mouseup", onMouseUp);
     }, [reorderingIconId, finishIconReorder]);
 
+    const infoviewSearchTerms: Record<string, string[]> = {
+        unemployment: ["population"],
+        homeless: ["population"],
+        jobs: ["population"],
+        elementary: ["education"],
+        highschool: ["education"],
+        college: ["education"],
+        university: ["education"],
+        fire: ["fire"],
+        healthcare: ["healthcare", "health", "deathcare"],
+        cemetery: ["healthcare", "deathcare", "health"],
+        crematorium: ["healthcare", "deathcare", "health"],
+        garbageProcessing: ["garbage", "waste"],
+        landfill: ["garbage", "waste"],
+        police: ["police", "crime"],
+        traffic: ["traffic"],
+        electricity: ["electricity"],
+        water: ["water", "sewage"],
+        // Parkplätze liegen im Spiel in zwei getrennten Infoviews
+        parkingCar: ["roads", "road", "streets", "street"],
+        parkingBike: ["bicycles", "bicycle", "bike", "cycling"],
+        post: ["post", "mail"],
+        tourism: ["tourism"],
+        attractiveness: ["tourism", "attraction"],
+        profitability: ["companyprofitability", "profitability", "companyprofit"],
+    };
+
+    const normalizeInfoviewText = (
+        value: string | null | undefined
+    ) =>
+        (value ?? "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+
+    const findInfoviewForIcon = (iconId: string, includeLocked = false) => {
+        const terms =
+            infoviewSearchTerms[iconId]?.map(
+                normalizeInfoviewText
+            ) ?? [];
+
+        if (terms.length === 0) {
+            return undefined;
+        }
+
+        let bestMatch:
+            | (typeof availableInfoviews)[number]
+            | undefined;
+        let bestScore = 0;
+
+        for (const view of availableInfoviews ?? []) {
+            if (!includeLocked && view.locked) {
+                continue;
+            }
+
+            const id = normalizeInfoviewText(view.id);
+            const uiTag = normalizeInfoviewText(view.uiTag);
+            const icon = normalizeInfoviewText(view.icon);
+
+            let score = 0;
+
+            for (const term of terms) {
+                if (!term) {
+                    continue;
+                }
+
+                if (id === term) {
+                    score = Math.max(score, 100);
+                } else if (id.includes(term)) {
+                    score = Math.max(score, 70);
+                }
+
+                if (uiTag.includes(term)) {
+                    score = Math.max(score, 45);
+                }
+
+                if (icon.includes(term)) {
+                    score = Math.max(score, 30);
+                }
+            }
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = view;
+            }
+        }
+
+        return bestMatch;
+    };
+
+    const profitabilityIcon = findInfoviewForIcon("profitability", true)?.icon || ICON_PROFITABILITY;
+
     type IconItem = {
         id: string;
         iconSrc: string;
@@ -3459,7 +3587,7 @@ export const CityMonitorComponent = () => {
             {
                 id: "profitability",
                 service: "profitability",
-                iconSrc: ICON_PROFITABILITY,
+                iconSrc: profitabilityIcon,
                 label: t("CityMonitor.CompanyProfitability", "Unternehmensrentabilität"),
             },
         ]
@@ -3473,95 +3601,6 @@ export const CityMonitorComponent = () => {
     const displayedIconItems = iconVisibilityEditMode
         ? orderedIconItems
         : orderedIconItems.filter((item) => !hiddenIconIds.has(item.id));
-
-    const infoviewSearchTerms: Record<string, string[]> = {
-        unemployment: ["population"],
-        homeless: ["population"],
-        jobs: ["population"],
-        elementary: ["education"],
-        highschool: ["education"],
-        college: ["education"],
-        university: ["education"],
-        fire: ["fire"],
-        healthcare: ["healthcare", "health", "deathcare"],
-        cemetery: ["healthcare", "deathcare", "health"],
-        crematorium: ["healthcare", "deathcare", "health"],
-        garbageProcessing: ["garbage", "waste"],
-        landfill: ["garbage", "waste"],
-        police: ["police", "crime"],
-        traffic: ["traffic"],
-        electricity: ["electricity"],
-        water: ["water", "sewage"],
-        // Parkplätze liegen im Spiel in zwei getrennten Infoviews
-        parkingCar: ["roads", "road", "streets", "street"],
-        parkingBike: ["bicycles", "bicycle", "bike", "cycling"],
-        post: ["post", "mail"],
-        tourism: ["tourism"],
-        attractiveness: ["tourism", "attraction"],
-        profitability: ["companyprofitability", "profitability", "companyprofit"],
-    };
-
-    const normalizeInfoviewText = (
-        value: string | null | undefined
-    ) =>
-        (value ?? "")
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, "");
-
-    const findInfoviewForIcon = (iconId: string) => {
-        const terms =
-            infoviewSearchTerms[iconId]?.map(
-                normalizeInfoviewText
-            ) ?? [];
-
-        if (terms.length === 0) {
-            return undefined;
-        }
-
-        let bestMatch:
-            | (typeof availableInfoviews)[number]
-            | undefined;
-        let bestScore = 0;
-
-        for (const view of availableInfoviews) {
-            if (view.locked) {
-                continue;
-            }
-
-            const id = normalizeInfoviewText(view.id);
-            const uiTag = normalizeInfoviewText(view.uiTag);
-            const icon = normalizeInfoviewText(view.icon);
-
-            let score = 0;
-
-            for (const term of terms) {
-                if (!term) {
-                    continue;
-                }
-
-                if (id === term) {
-                    score = Math.max(score, 100);
-                } else if (id.includes(term)) {
-                    score = Math.max(score, 70);
-                }
-
-                if (uiTag.includes(term)) {
-                    score = Math.max(score, 45);
-                }
-
-                if (icon.includes(term)) {
-                    score = Math.max(score, 30);
-                }
-            }
-
-            if (score > bestScore) {
-                bestScore = score;
-                bestMatch = view;
-            }
-        }
-
-        return bestMatch;
-    };
 
     const toggleInfoviewForIcon = (iconId: string) => {
         const target = findInfoviewForIcon(iconId);
@@ -3659,6 +3698,7 @@ export const CityMonitorComponent = () => {
                             color: "#fff",
                             borderRadius: "7rem",
                             fontSize: "13rem",
+                            fontFamily: '"CityMonitor Noto Sans", "Noto Sans", sans-serif',
                             fontWeight: 400,
                             border: iconOnlyMode
                                 ? "none"
@@ -3966,6 +4006,7 @@ export const CityMonitorComponent = () => {
                                     <div className={styles.legacyBody}>
                                         <AppearanceBackdrop value={appearance.window} panelClass={gamePanelClass} />
                                             <NormalServiceRows reorderEnabled={normalRowReorder}
+                                                profitabilityIcon={profitabilityIcon}
                                                 compactValues={compactValues}
                                                 detailedTooltips={detailedTooltips}
                                                 showText={showText}

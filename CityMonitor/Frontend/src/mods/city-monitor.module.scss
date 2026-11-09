@@ -1,10 +1,3 @@
-// Keep the bundled Latin font and use the game's locale-specific fallback stack.
-$monitorFont: "CityMonitor Noto Sans", var(--fontFamily, "Noto Sans"), sans-serif;
-
-.monitorPanel {
-    font-family: $monitorFont;
-}
-
 // Use a private family name so another mod's global Noto Sans face cannot replace it.
 @font-face {
     font-family: "CityMonitor Noto Sans";
@@ -132,7 +125,7 @@ $monitorFont: "CityMonitor Noto Sans", var(--fontFamily, "Noto Sans"), sans-seri
     backdrop-filter: blur(15rem);
     color: #e9f4fb;
     font-size: 13rem;
-    font-family: $monitorFont;
+    font-family: "CityMonitor Noto Sans", "Noto Sans", sans-serif;
     font-weight: 400;
     box-sizing: border-box;
     box-shadow: 0 8rem 24rem rgba(0,0,0,.3);
@@ -183,7 +176,7 @@ $monitorFont: "CityMonitor Noto Sans", var(--fontFamily, "Noto Sans"), sans-seri
     position: absolute; width: 420rem; max-width: 95vw; box-sizing: border-box;
     border: 1rem solid rgba(176,210,229,.37); border-radius: 7rem;
     box-shadow: 0 8rem 24rem rgba(0,0,0,.3); color: #fff; z-index: 200;
-    font-family: $monitorFont; font-size: 13rem;
+    font-family: "CityMonitor Noto Sans", "Noto Sans", sans-serif; font-size: 13rem;
     pointer-events: auto;
 }
 .visualOptionsContent { position: relative; padding: 8rem 8rem 12rem; box-sizing: border-box; }
@@ -203,7 +196,7 @@ $monitorFont: "CityMonitor Noto Sans", var(--fontFamily, "Noto Sans"), sans-seri
 .visualOptions input,
 .appearanceEditor button,
 .appearanceEditor input {
-    font-family: $monitorFont !important;
+    font-family: "CityMonitor Noto Sans", "Noto Sans", sans-serif !important;
     font-size: 12rem !important;
     font-weight: 400 !important;
     font-style: normal !important;
@@ -242,18 +235,88 @@ $monitorFont: "CityMonitor Noto Sans", var(--fontFamily, "Noto Sans"), sans-seri
     align-items: center;
     justify-content: space-between;
     margin-top: 2rem;
+    width: 100%;
 }
 
-.tooltipValueRow > span {
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 11rem;
-    line-height: 16rem;
-    margin-right: 10rem;
-}
-
-.tooltipValueRow > strong {
-    color: #fff;
-    font-size: 14rem;
-    line-height: 17rem;
+.tooltipSummaryRow {
     white-space: nowrap;
+}
+
+.tooltipValueRow:first-of-type,
+.tooltipHeading + .tooltipValueRow {
+    margin-top: 0;
+}
+
+.normalDetailTooltip {
+    position: absolute;
+    z-index: 20;
+    min-width: 190rem;
+    max-width: 340rem;
+    padding: 6rem 9rem;
+    border-radius: 6rem;
+    background-color: rgba(15, 20, 25, 0.94);
+    border: 1rem solid rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+}
+
+.profitabilityGlyph {
+    display: block;
+    position: relative;
+    flex-shrink: 0;
+}
+
+// Keep the original building and cover the old cash glyph by omitting its corner.
+.profitabilityBaseTop,
+.profitabilityBaseBottom {
+    position: absolute;
+    left: 0;
+    overflow: hidden;
+}
+
+.profitabilityBaseTop {
+    top: 0;
+    width: 52%;
+    height: 55%;
+}
+
+.profitabilityBaseBottom {
+    top: 55%;
+    right: 0;
+    bottom: 0;
+}
+
+.profitabilityBaseTop img,
+.profitabilityBaseBottom img {
+    position: absolute;
+    left: 0;
+}
+
+.profitabilityBaseTop img { top: 0; }
+.profitabilityBaseBottom img { bottom: 0; }
+
+.profitabilityCash {
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    top: 8%;
+    right: -1%;
+    pointer-events: none;
+}
+
+.monitorPanel {
+    font-family: "CityMonitor Noto Sans", "Noto Sans", sans-serif;
+}
+
+@each $locale, $family in (ja-JP: "Noto Sans JP", ko-KR: "Noto Sans KR", zh-HANS: "Noto Sans SC", zh-HANT: "Noto Sans TC") {
+    :global(.locale-#{$locale}) {
+        .monitorPanel,
+        .appearanceEditor,
+        .visualOptions,
+        .visualOptions button,
+        .visualOptions input,
+        .appearanceEditor button,
+        .appearanceEditor input {
+            font-family: "CityMonitor Noto Sans", $family, "Noto Sans", sans-serif !important;
+        }
+    }
 }
