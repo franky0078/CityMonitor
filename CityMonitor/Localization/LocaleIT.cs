@@ -329,6 +329,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DetailedTooltips)), "Mostra valori dettagliati" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DetailedTooltips)), "Mostra dati aggiuntivi nelle descrizioni al passaggio del mouse, come produzione, consumo e capacità, se disponibili." },
+                { "CityMonitor.Visual.DetailedTooltipNormal", "Descrizione dettagliata" },
                 { "CityMonitor.Visual.DetailedTooltips", "Mostra valori dettagliati" },
                 { "CityMonitor.Visual.DetailedTooltips.Description", "Mostra dati aggiuntivi nelle descrizioni al passaggio del mouse, come produzione, consumo e capacità, se disponibili." },
                 { "CityMonitor.CompanyProfitability", "Redditività delle aziende" },

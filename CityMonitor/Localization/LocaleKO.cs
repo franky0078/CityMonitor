@@ -351,6 +351,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DetailedTooltips)), "상세 수치 표시" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DetailedTooltips)), "생산량, 소비량, 수용량 등 확인 가능한 상세 수치를 도움말에 표시합니다." },
+                { "CityMonitor.Visual.DetailedTooltipNormal", "상세 툴팁" },
                 { "CityMonitor.Visual.DetailedTooltips", "상세 수치 표시" },
                 { "CityMonitor.Visual.DetailedTooltips.Description", "생산량, 소비량, 수용량 등 확인 가능한 상세 수치를 도움말에 표시합니다." },
                 { "CityMonitor.CompanyProfitability", "기업 수익성" },

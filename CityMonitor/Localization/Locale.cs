@@ -351,6 +351,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DetailedTooltips)), "Detaillierte Werte anzeigen" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DetailedTooltips)), "Zeigt in Tooltips zusätzliche Zahlen wie Produktion, Verbrauch und Kapazität, sofern verfügbar." },
+                { "CityMonitor.Visual.DetailedTooltipNormal", "Detaillierter Tooltip" },
                 { "CityMonitor.Visual.DetailedTooltips", "Detaillierte Werte anzeigen" },
                 { "CityMonitor.Visual.DetailedTooltips.Description", "Zeigt in Tooltips zusätzliche Zahlen wie Produktion, Verbrauch und Kapazität, sofern verfügbar." },
                 { "CityMonitor.CompanyProfitability", "Unternehmensrentabilität" },

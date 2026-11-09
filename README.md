@@ -6,9 +6,9 @@ Instead of repeatedly opening multiple information views, City Monitor can displ
 
 
 <p align="center">
-  <img src="CityMonitor/Properties/Screenshot01.jpg"
+  <img src="CityMonitor/Properties/Thumbnail.jpg"
        alt="CityMonitor"
-       width="400">
+       width="500">
 </p>
 
 

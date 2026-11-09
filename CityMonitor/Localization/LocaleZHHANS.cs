@@ -351,6 +351,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DetailedTooltips)), "显示详细数值" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DetailedTooltips)), "在悬停提示中显示可用的详细数值，例如产量、用量和容量。" },
+                { "CityMonitor.Visual.DetailedTooltipNormal", "详细工具提示" },
                 { "CityMonitor.Visual.DetailedTooltips", "显示详细数值" },
                 { "CityMonitor.Visual.DetailedTooltips.Description", "在悬停提示中显示可用的详细数值，例如产量、用量和容量。" },
                 { "CityMonitor.CompanyProfitability", "企业盈利能力" },

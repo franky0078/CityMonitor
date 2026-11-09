@@ -329,6 +329,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DetailedTooltips)), "Afficher les valeurs détaillées" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DetailedTooltips)), "Affiche des chiffres supplémentaires dans les infobulles, comme la production, la consommation et la capacité, si disponibles." },
+                { "CityMonitor.Visual.DetailedTooltipNormal", "Infobulle détaillée" },
                 { "CityMonitor.Visual.DetailedTooltips", "Afficher les valeurs détaillées" },
                 { "CityMonitor.Visual.DetailedTooltips.Description", "Affiche des chiffres supplémentaires dans les infobulles, comme la production, la consommation et la capacité, si disponibles." },
                 { "CityMonitor.CompanyProfitability", "Rentabilité des entreprises" },

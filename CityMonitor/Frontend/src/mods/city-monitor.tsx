@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect, createContext, useContext } f
 import { VisualOptions, setVisualOption } from "./visual-options";
 import { NormalRowLayout, NormalRowContext } from "./normal-row-layout";
 import styles from "./city-monitor.module.scss";
+import { useHoverTooltip } from "./hover-tooltip";
 import { DetailedServiceValues, hasDetailedValues, TooltipDivider, TooltipValueRow, useCompanyProfitability } from "./service-tooltip";
 import { AppearanceEditor, AppearanceBackdrop, backdropBlurClass, defaultAppearance, normalizeAppearance, type WindowAppearance, type SurfaceAppearance } from "./appearance-editor";
 import { bindValue, trigger, useValue } from "cs2/api";
@@ -512,18 +513,15 @@ const Row = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            gap: "8rem",
             padding: "3rem 0",
         }}
     >
         <span style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
-            <Tooltip tooltip={label}>
-                <div style={{ display: "flex" }}>
-                    <Icon path={icon} src={iconSrc} white={false} size={20} emphasizeCash={emphasizeCash} />
-                </div>
-            </Tooltip>
+            <Icon path={icon} src={iconSrc} white={false} size={20} emphasizeCash={emphasizeCash} />
 
             {showText && (
-                <span style={{ whiteSpace: "nowrap", marginLeft: "8rem" }}>
+                <span style={{ whiteSpace: "normal", overflowWrap: "anywhere", marginLeft: "8rem" }}>
                     {label}
                 </span>
             )}
@@ -533,6 +531,7 @@ const Row = ({
             style={{
                 color: color ?? "#eee",
                 fontWeight: "bold",
+                flexShrink: 0,
                 whiteSpace: "nowrap",
             }}
         >
@@ -559,8 +558,8 @@ const EditableNormalStat = ({
     children: React.ReactNode;
 }) => {
     const rowOrder = useContext(NormalRowContext);
-    const [tooltipPosition, setTooltipPosition] = useState<React.CSSProperties | null>(null);
     const showTooltip = !!tooltip && !editMode && !rowOrder.enabled;
+    const { position: tooltipPosition, ...tooltipEvents } = useHoverTooltip(showTooltip, "side");
     if (hidden && !editMode) {
         return null;
     }
@@ -569,19 +568,11 @@ const EditableNormalStat = ({
         <div
             data-normal-stat={id}
             title={rowOrder.enabled ? rowOrder.hint : editMode ? title : undefined}
+            {...tooltipEvents}
             onMouseEnter={event => {
                 rowOrder.move(id);
-                if (!showTooltip) return;
-                const rect = event.currentTarget.getBoundingClientRect();
-                const viewport = document.documentElement;
-                setTooltipPosition({
-                    ...(rect.left > viewport.clientWidth - rect.right
-                        ? { right: "calc(100% + 6rem)" }
-                        : { left: "calc(100% + 6rem)" }),
-                    ...(rect.top > viewport.clientHeight - rect.bottom ? { bottom: 0 } : { top: 0 }),
-                });
+                tooltipEvents.onMouseEnter(event);
             }}
-            onMouseLeave={() => setTooltipPosition(null)}
             onMouseDown={(event) => {
                 if (rowOrder.enabled && event.button === 0) {
                     event.preventDefault(); event.stopPropagation(); rowOrder.start(id); return;
@@ -615,7 +606,7 @@ const EditableNormalStat = ({
         >
             {children}
             {showTooltip && tooltipPosition && (
-                <div className={styles.normalDetailTooltip} style={tooltipPosition}>{tooltip}</div>
+                <div role="tooltip" className={`${styles.statTooltipSurface} ${styles.normalDetailTooltip}`} style={tooltipPosition}>{tooltip}</div>
             )}
         </div>
     );
@@ -643,24 +634,21 @@ const SchoolRow = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            gap: "8rem",
             padding: "3rem 0",
         }}
     >
         <span style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
-            <Tooltip tooltip={label}>
-                <div style={{ display: "flex" }}>
-                    <Icon src={iconSrc} white={false} size={20} />
-                </div>
-            </Tooltip>
+            <Icon src={iconSrc} white={false} size={20} />
 
             {showText && (
-                <span style={{ whiteSpace: "nowrap", marginLeft: "8rem" }}>
+                <span style={{ whiteSpace: "normal", overflowWrap: "anywhere", marginLeft: "8rem" }}>
                     {label}
                 </span>
             )}
         </span>
 
-        <span style={{ whiteSpace: "nowrap" }}>
+        <span style={{ whiteSpace: "nowrap", flexShrink: 0 }}>
             {compactValues ? (
                 <span style={{ color: schoolStatusColor(free, students, thresholds) }}>
                     {free}
@@ -907,6 +895,7 @@ const IconDisplayContext = createContext({
 
 interface StatusIconProps {
     monitorId?: string;
+    tooltipOnly?: boolean;
     iconSrc: string;
     label: string;
     details: TooltipDetail[];
@@ -932,8 +921,36 @@ interface StatusIconProps {
     onActivate?: () => void;
 }
 
+const StatusTooltipContent = ({ label, details, extraDetails }: Pick<StatusIconProps, "label" | "details" | "extraDetails">) => (
+    <>
+        <div
+            className={styles.tooltipHeading}
+            style={{
+                color: "rgba(255,255,255,0.72)",
+                fontSize: "11rem",
+                lineHeight: "14rem",
+                whiteSpace: "nowrap",
+                marginBottom: "2rem",
+            }}
+        >
+            {label}
+        </div>
+
+        {details.map((detail, index) => (
+            <TooltipValueRow key={index} label={detail.label} summary={!extraDetails}>{detail.value}</TooltipValueRow>
+        ))}
+        {extraDetails && <>
+            {details.length > 0 && <TooltipDivider />}
+            {extraDetails}
+        </>}
+    </>
+);
+
+const StatusIcon = (props: StatusIconProps) =>
+    props.tooltipOnly ? <StatusTooltipContent {...props} /> : <StatusIconVisual {...props} />;
+
 // Statussymbol mit Tooltip und Bearbeitungsfunktionen
-const StatusIcon = ({
+const StatusIconVisual = ({
     monitorId = "",
     iconSrc,
     label,
@@ -1239,6 +1256,7 @@ const StatusIcon = ({
 
             {hovered && !reorderActive && (
                 <div
+                    className={styles.statTooltipSurface}
                     style={{
                         position: "absolute",
                         ...tooltipPositionStyle,
@@ -1246,7 +1264,6 @@ const StatusIcon = ({
                         maxWidth: extraDetails ? "340rem" : undefined,
                         padding: "6rem 9rem",
                         borderRadius: "6rem",
-                        backgroundColor: "rgba(15, 20, 25, 0.86)",
                         border: "1rem solid rgba(255,255,255,0.12)",
                         color: "#fff",
                         pointerEvents: "none",
@@ -1254,26 +1271,7 @@ const StatusIcon = ({
                         zIndex: 20,
                     }}
                 >
-                    <div
-                        className={styles.tooltipHeading}
-                        style={{
-                            color: "rgba(255,255,255,0.72)",
-                            fontSize: "11rem",
-                            lineHeight: "14rem",
-                            whiteSpace: "nowrap",
-                            marginBottom: "2rem",
-                        }}
-                    >
-                        {label}
-                    </div>
-
-                    {details.map((detail, index) => (
-                        <TooltipValueRow key={index} label={detail.label} summary={!extraDetails}>{detail.value}</TooltipValueRow>
-                    ))}
-                    {extraDetails && <>
-                        {details.length > 0 && <TooltipDivider />}
-                        {extraDetails}
-                    </>}
+                    <StatusTooltipContent label={label} details={details} extraDetails={extraDetails} />
 
                     {canToggleVisibility && visibilityHint && (
                         <div
@@ -1454,59 +1452,14 @@ const CrematoriumStatusIcon = (
     );
 };
 
-const GarbageProcessingStatusIcon = (
-    props: ServiceStatusIconProps
-) => {
-    const availability =
-        useValue(infoview.processingAvailability$);
-    const productionRate =
-        useValue(infoview.garbageProductionRate$);
-    const processingRate =
-        useValue(infoview.garbageProcessingRate$);
-    const percent = indicatorPercent(availability);
-
-    return (
-        <StatusIcon
-            {...props}
-            details={
-                props.compactValues
-                    ? [
-                        {
-                            value: percent.toFixed(0) + " %",
-                        },
-                    ]
-                    : [
-                        {
-                            label: props.t(
-                                "CityMonitor.Status",
-                                "Status"
-                            ),
-                            value: percent.toFixed(0) + " %",
-                        },
-                        ...(!props.detailedTooltips ? [{
-                            label: props.t(
-                                "CityMonitor.GarbageProduction",
-                                "Müll"
-                            ),
-                            value:
-                                Math.max(0, Math.round(Number(productionRate) || 0)) +
-                                " t/Mo.",
-                        },
-                        {
-                            label: props.t(
-                                "CityMonitor.ProcessingRate",
-                                "Verarbeitung"
-                            ),
-                            value:
-                                Math.max(0, Math.round(Number(processingRate) || 0)) +
-                                " t/Mo.",
-                        }] : []),
-                    ]
-            }
-            ringColor={availabilityStatusColor(percent, props.thresholds)}
-            ringPercent={percent}
-        />
-    );
+const GarbageProcessingStatusIcon = (props: ServiceStatusIconProps) => {
+    const percent = indicatorPercent(useValue(infoview.processingAvailability$));
+    return <StatusIcon
+        {...props}
+        details={[{ label: props.t("CityMonitor.Status", "Status"), value: percent.toFixed(0) + " %" }]}
+        ringColor={availabilityStatusColor(percent, props.thresholds)}
+        ringPercent={percent}
+    />;
 };
 
 const LandfillStatusIcon = (
@@ -1864,8 +1817,8 @@ const ServiceStatusIcon = ({
 }) => {
     const props = {
         ...options,
-        extraDetails: options.detailedTooltips && hasDetailedValues(service)
-            ? <DetailedServiceValues id={service} t={options.t} />
+        extraDetails: (options.detailedTooltips || service === "garbageProcessing") && hasDetailedValues(service)
+            ? <DetailedServiceValues id={service} t={options.t} detailed={options.detailedTooltips} />
             : undefined,
     };
 
@@ -1926,7 +1879,7 @@ const ServiceStatusIcon = ({
 interface NormalServiceRowsProps {
     profitabilityIcon: string;
     compactValues: boolean;
-    detailedTooltips: boolean;
+    renderTooltip: (id: string) => React.ReactNode;
     showText: boolean;
     t: Translate;
     thresholds: StatusThresholds;
@@ -1942,7 +1895,7 @@ interface NormalServiceRowsProps {
 const NormalServiceRows = ({
     profitabilityIcon,
     compactValues,
-    detailedTooltips,
+    renderTooltip,
     showText,
     t,
     thresholds,
@@ -2007,9 +1960,6 @@ const NormalServiceRows = ({
     const waterSewagePercent = Math.min(waterPercent, sewagePercent);
 
     const renderStat = (id: string, row: React.ReactNode) => {
-        const tooltip = detailedTooltips && hasDetailedValues(id)
-            ? <DetailedServiceValues id={id} t={t} />
-            : undefined;
         const hidden = hiddenStatIds.has(id);
         const action = hidden
             ? t("CityMonitor.ShowStat", "Rechtsklick: Anzeige einblenden")
@@ -2023,7 +1973,7 @@ const NormalServiceRows = ({
                 editMode={editMode}
                 onToggleVisibility={onToggleVisibility}
                 title={action}
-                tooltip={tooltip}
+                tooltip={renderTooltip(id)}
             >
                 {row}
             </EditableNormalStat>
@@ -2150,21 +2100,19 @@ const NormalServiceRows = ({
                 showText={showText}
                 t={t}
                 thresholds={thresholds}
-                tooltipEnabled={!editMode && !reorderEnabled}
             />)}
         </NormalRowLayout>
     );
 };
 
-const NormalProfitabilityRow = ({ iconSrc, showText, t, thresholds, tooltipEnabled }: {
+const NormalProfitabilityRow = ({ iconSrc, showText, t, thresholds }: {
     iconSrc: string;
     showText: boolean;
     t: Translate;
     thresholds: StatusThresholds;
-    tooltipEnabled: boolean;
 }) => {
-    const { lowest, details } = useCompanyProfitability(t);
-    const row = <Row
+    const { lowest } = useCompanyProfitability(t);
+    return <Row
         iconSrc={iconSrc}
         emphasizeCash
         label={t("CityMonitor.CompanyProfitability", "Unternehmensrentabilität")}
@@ -2172,12 +2120,6 @@ const NormalProfitabilityRow = ({ iconSrc, showText, t, thresholds, tooltipEnabl
         color={lowest === undefined ? STATUS_INACTIVE : availabilityStatusColor(lowest, thresholds)}
         showText={showText}
     />;
-    if (!tooltipEnabled) return row;
-    return <Tooltip tooltip={<div className={styles.monitorPanel}>
-        {details.map(detail => <TooltipValueRow key={detail.label} label={detail.label}>{detail.value}</TooltipValueRow>)}
-    </div>}>
-        <div>{row}</div>
-    </Tooltip>;
 };
 
 // Hauptkomponente und persistenter UI-Zustand
@@ -2563,17 +2505,13 @@ export const CityMonitorComponent = () => {
     });
 
     const DEFAULT_W = showText
-        ? compactValues
-            ? 170
-            : 215
+        ? 240
         : compactValues
             ? 76
             : 102;
 
     const MIN_W = showText
-        ? compactValues
-            ? 155
-            : 190
+        ? 228
         : compactValues
             ? 72
             : 96;
@@ -3102,7 +3040,7 @@ export const CityMonitorComponent = () => {
                 editMode={iconVisibilityEditMode && !iconOnlyMode}
                 onToggleVisibility={toggleNormalStatVisibility}
                 title={action}
-                tooltip={detailedTooltips && hasDetailedValues(id) ? <DetailedServiceValues id={id} t={t} /> : undefined}
+                tooltip={renderRowTooltip(id)}
             >
                 {row}
             </EditableNormalStat>
@@ -3114,7 +3052,7 @@ export const CityMonitorComponent = () => {
         normalEditMode || !hiddenNormalStatIds.has(id);
 
     const hasVisibleEmploymentStats =
-        (!compactValues && isNormalStatVisible("unemployed")) ||
+        isNormalStatVisible("unemployed") ||
         isNormalStatVisible("unemployment") ||
         isNormalStatVisible("homeless") ||
         isNormalStatVisible("jobs");
@@ -3593,6 +3531,18 @@ export const CityMonitorComponent = () => {
         ]
         : [];
 
+    const renderRowTooltip = (id: string) => {
+        const item = iconItems.find(icon => icon.id === (id === "unemployed" ? "unemployment" : id));
+        if (!item) return null;
+        const props = { tooltipOnly: true, iconSrc: item.iconSrc, label: item.label,
+            iconOpacity: 1, size: iconSize, gapAfter: 0, orientation: iconOrientation };
+        return item.service
+            ? <ServiceStatusIcon {...props} service={item.service} t={t} thresholds={thresholds}
+                compactValues={false} detailedTooltips={detailedTooltips} />
+            : <StatusIcon {...props} details={item.details ?? []} ringColor={item.ringColor ?? STATUS_INFO}
+                extraDetails={detailedTooltips && hasDetailedValues(id) ? <DetailedServiceValues id={id} t={t} /> : undefined} />;
+    };
+
     const orderedIconItems = iconOrderIds
         .map((id) => iconItems.find((item) => item.id === id))
         .filter((item): item is IconItem => item !== undefined);
@@ -4008,7 +3958,7 @@ export const CityMonitorComponent = () => {
                                             <NormalServiceRows reorderEnabled={normalRowReorder}
                                                 profitabilityIcon={profitabilityIcon}
                                                 compactValues={compactValues}
-                                                detailedTooltips={detailedTooltips}
+                                                renderTooltip={renderRowTooltip}
                                                 showText={showText}
                                                 t={t}
                                                 thresholds={thresholds}
@@ -4023,14 +3973,12 @@ export const CityMonitorComponent = () => {
                                                     toggleNormalStatVisibility
                                                 }
                                             >
-                                            {!compactValues && (
-                                                renderNormalStat("unemployed", <Row
-                                                    iconSrc={alos}
-                                                    label={t("CityMonitor.Unemployed", "Arbeitslose")}
-                                                    value={String(data.unemployedCount)}
-                                                    showText={showText}
-                                                />)
-                                            )}
+                                            {renderNormalStat("unemployed", <Row
+                                                iconSrc={alos}
+                                                label={t("CityMonitor.Unemployed", "Arbeitslose")}
+                                                value={String(data.unemployedCount)}
+                                                showText={showText}
+                                            />)}
 
                                             {renderNormalStat("unemployment", <Row
                                                 iconSrc={stat}

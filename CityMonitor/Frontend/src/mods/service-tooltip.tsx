@@ -123,6 +123,12 @@ function formatMetric(localization: Localization, value: number, unit: MetricUni
     const prefix = signed && value > 0 ? "+" : "";
     const current = Number(value.toFixed(2)).toString();
     const quantity = total === undefined ? prefix + current : current + " / " + Number(total.toFixed(2));
+    if (unit === units.WeightPerMonth) {
+        const german = document.documentElement.classList.contains("locale-de-DE");
+        const quantity = Math.abs(value) >= 1000 ? String(Number((value / 1000).toFixed(1))) : current;
+        const massUnit = Math.abs(value) >= 1000 ? "t" : "kg";
+        return prefix + (german ? quantity.replace(".", ",") : quantity) + " " + massUnit + (german ? "/Mo." : "/mo.");
+    }
     const suffix = fallbackUnits[unit];
     return suffix ? quantity + " " + suffix : quantity;
 }
@@ -217,10 +223,10 @@ class DetailValuesBoundary extends Component<{ children: ReactNode }, { failed: 
     }
 }
 
-export function DetailedServiceValues({ id, t }: { id: string; t: Translate }) {
+export function DetailedServiceValues({ id, t, detailed = true }: { id: string; t: Translate; detailed?: boolean }) {
     return <DetailValuesBoundary>
         {id === "electricity" && <ElectricityDetails t={t} />}
-        {metrics[id]?.filter(metric => !!metric[2]).map(metric => <MetricRow key={metric[0]} metric={metric} t={t} />)}
+        {metrics[id]?.filter(metric => !!metric[2] && (detailed || metric[0] !== "ProcessingRate")).map(metric => <MetricRow key={metric[0]} metric={metric} t={t} />)}
         {id === "post" && <PostProcessingDetails t={t} />}
         {id === "parkingBike" && <BikeParkingDetails t={t} />}
     </DetailValuesBoundary>;

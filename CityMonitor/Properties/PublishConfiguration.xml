@@ -127,6 +127,7 @@
 	<Screenshot Value="Properties/Screenshot07.jpg" />
 	<Screenshot Value="Properties/Screenshot08.jpg" />
 	<Screenshot Value="Properties/Screenshot09.jpg" />
+	<Screenshot Value="Properties/Screenshot10.jpg" />
 
 
 	<Tag Value="Code Mod" />
@@ -147,8 +148,8 @@
 		Version 1.6.0
 
 		- added support for all ingame languages (English, German, French, Spanish, Italian, Japanese, Korean, Polish, Portuguese-Brazilian, Russian, Simplified Chinese, Traditional Chinese)
-		- added option for detailed tooltips when hovering over status icons
-		- 
+		- added option for detailed tooltips when hovering over status icons and text in normal panel mode
+		- added new status icon for company profitability monitoring (commercial, industrial and office companies)
 
 	</ChangeLog>
 

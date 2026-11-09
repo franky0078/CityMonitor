@@ -247,6 +247,11 @@
     margin-top: 0;
 }
 
+.statTooltipSurface {
+    background-color: rgba(15, 20, 25, 0.64);
+    backdrop-filter: blur(6rem);
+}
+
 .normalDetailTooltip {
     position: absolute;
     z-index: 20;
@@ -254,10 +259,26 @@
     max-width: 340rem;
     padding: 6rem 9rem;
     border-radius: 6rem;
-    background-color: rgba(15, 20, 25, 0.94);
     border: 1rem solid rgba(255, 255, 255, 0.12);
     pointer-events: none;
 }
+
+.visualOptionHelp {
+    position: absolute;
+    z-index: 20;
+    width: 280rem;
+    max-width: 80vw;
+    padding: 7rem 9rem;
+    box-sizing: border-box;
+    border-radius: 5rem;
+    background-color: #0b1215;
+    color: #fff;
+    font-size: 12rem;
+    line-height: 17rem;
+    pointer-events: none;
+}
+
+.visualOptionHelp > strong { display: block; margin-bottom: 2rem; }
 
 .profitabilityGlyph {
     display: block;

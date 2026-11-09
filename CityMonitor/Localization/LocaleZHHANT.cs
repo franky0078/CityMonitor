@@ -351,6 +351,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DetailedTooltips)), "顯示詳細數值" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DetailedTooltips)), "在滑鼠提示中顯示可用的詳細數值，例如產量、用量與容量。" },
+                { "CityMonitor.Visual.DetailedTooltipNormal", "詳細工具提示" },
                 { "CityMonitor.Visual.DetailedTooltips", "顯示詳細數值" },
                 { "CityMonitor.Visual.DetailedTooltips.Description", "在滑鼠提示中顯示可用的詳細數值，例如產量、用量與容量。" },
                 { "CityMonitor.CompanyProfitability", "企業獲利能力" },

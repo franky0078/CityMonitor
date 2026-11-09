@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { bindValue, useValue, trigger } from "cs2/api";
 import { AppearanceBackdrop, AppearanceSlider, type WindowAppearance } from "./appearance-editor";
+import { useHoverTooltip } from "./hover-tooltip";
 import styles from "./city-monitor.module.scss";
 
 type Translate = (key: string, fallback: string) => string;
@@ -16,19 +17,38 @@ const definitions = [
     ["IconBarBlur", "toggle"], ["IconBarBlurStrength", "slider", 0, 30], ["IconBarTransparency", "slider", 0, 100],
 ] as const;
 const bindings = Object.fromEntries(definitions.map(([key]) => [key, bindValue<any>("cityMonitor", key[0].toLowerCase() + key.slice(1))]));
-function Control({ definition, t }: { definition: typeof definitions[number]; t: Translate }) {
+function OptionHelp({ label, description, className, children }: {
+    label: string;
+    description: string;
+    className?: string;
+    children: React.ReactNode;
+}) {
+    const { position, ...events } = useHoverTooltip(!!description, "above");
+    return <div className={className} style={{ position: "relative", zIndex: position ? 2 : undefined }} {...events}>
+        {children}
+        {position && <div role="tooltip" className={styles.visualOptionHelp} style={position}>
+            <strong>{label}</strong>
+            <div>{description}</div>
+        </div>}
+    </div>;
+}
+
+function Control({ definition, t, iconMode }: { definition: typeof definitions[number]; t: Translate; iconMode: boolean }) {
     const [key, kind] = definition;
     const value = useValue(bindings[key]);
-    const label = t(`CityMonitor.Visual.${key}`, key);
+    const label = key === "DetailedTooltips" && !iconMode
+        ? t("CityMonitor.Visual.DetailedTooltipNormal", "Detailed tooltip")
+        : t(`CityMonitor.Visual.${key}`, key);
+    const description = t(`CityMonitor.Visual.${key}.Description`, "");
     const change = (next: number) => setVisualOption(key, next);
     if (kind === "slider") {
         const min = definition[2], max = definition[3];
-        return <div title={t(`CityMonitor.Visual.${key}.Description`, "")}>
+        return <OptionHelp label={label} description={description}>
             <AppearanceSlider label={label} value={Number(value)} max={max} min={min} onChange={change} />
-        </div>;
+        </OptionHelp>;
     }
     const choices = kind === "orientation" ? [[0,"Vertical"],[1,"Horizontal"]] : [[0,"Below"],[1,"Left"],[2,"Right"]];
-    return <div className={styles.visualOptionRow} title={t(`CityMonitor.Visual.${key}.Description`, "")}>
+    return <OptionHelp label={label} description={description} className={styles.visualOptionRow}>
         <span>{label}</span>
         {kind === "toggle" ? <button role="checkbox" aria-checked={!!value} onClick={() => change(value ? 0 : 1)} aria-label={label}>
                 <svg aria-hidden="true" viewBox="0 0 20 20" style={{ width: "16rem", height: "16rem", display: "block", pointerEvents: "none" }}>
@@ -38,7 +58,7 @@ function Control({ definition, t }: { definition: typeof definitions[number]; t:
             </button>
             : <div className={styles.visualChoices}>{choices.map(([id, text]) => <button key={id} aria-pressed={Number(value) === id}
                 onClick={() => change(Number(id))}>{t(`CityMonitor.Visual.${text}`, String(text))}</button>)}</div>}
-    </div>;
+    </OptionHelp>;
 }
 export function VisualOptions({ open, t, panelClass, appearance, onClose, onColors }: {
     open: boolean; t: Translate; panelClass: string; appearance: WindowAppearance;
@@ -54,8 +74,10 @@ export function VisualOptions({ open, t, panelClass, appearance, onClose, onColo
     const drag = useRef<{mx:number;my:number;x:number;y:number;scale:number}|null>(null);
     useEffect(() => {
         const move = (event: MouseEvent) => {
-            const d = drag.current, rect = panel.current?.getBoundingClientRect();
-            if (!d || !rect) return;
+            const d = drag.current;
+            if (!d) return;
+            const rect = panel.current?.getBoundingClientRect();
+            if (!rect) return;
             event.preventDefault();
             setPos({x: Math.max(0, Math.min((window.innerWidth-rect.width)/d.scale, d.x+(event.clientX-d.mx)/d.scale)),
                 y: Math.max(0, Math.min((window.innerHeight-rect.height)/d.scale, d.y+(event.clientY-d.my)/d.scale))});
@@ -87,9 +109,12 @@ export function VisualOptions({ open, t, panelClass, appearance, onClose, onColo
     }, [open, iconMode]);
     if (!open) return null;
     const controls = <div className={styles.visualOptionsContent}>
-        {visibleDefinitions.map(definition => <Control key={definition[0]} definition={definition} t={t} />)}
-        {(iconMode ? ["ShowAllIcons", "ResetIconOrder"] : ["ShowAllNormalStats", "ResetNormalRowOrder"]).map(key => <button className={styles.appearanceReset} key={key}
-            onClick={() => setVisualOption(key, 1)}>{t(`CityMonitor.Visual.${key}`, key)}</button>)}
+        {visibleDefinitions.map(definition => <Control key={definition[0]} definition={definition} t={t} iconMode={iconMode} />)}
+        {(iconMode ? ["ShowAllIcons", "ResetIconOrder"] : ["ShowAllNormalStats", "ResetNormalRowOrder"]).map(key =>
+            <OptionHelp key={key} label={t(`CityMonitor.Visual.${key}`, key)} description={t(`CityMonitor.Visual.${key}.Description`, "")}>
+                <button className={styles.appearanceReset}
+                    onClick={() => setVisualOption(key, 1)}>{t(`CityMonitor.Visual.${key}`, key)}</button>
+            </OptionHelp>)}
     </div>;
     return <div ref={panel} className={styles.visualOptions} style={{left: `${pos.x}rem`, top: `${pos.y}rem`}}>
         <AppearanceBackdrop value={appearance.window} panelClass={panelClass} />

@@ -329,6 +329,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DetailedTooltips)), "Mostrar valores detallados" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DetailedTooltips)), "Muestra cifras adicionales en las ayudas emergentes, como producción, consumo y capacidad, si están disponibles." },
+                { "CityMonitor.Visual.DetailedTooltipNormal", "Información emergente detallada" },
                 { "CityMonitor.Visual.DetailedTooltips", "Mostrar valores detallados" },
                 { "CityMonitor.Visual.DetailedTooltips.Description", "Muestra cifras adicionales en las ayudas emergentes, como producción, consumo y capacidad, si están disponibles." },
                 { "CityMonitor.CompanyProfitability", "Rentabilidad empresarial" },

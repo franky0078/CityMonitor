@@ -351,6 +351,7 @@ namespace CityMonitor
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.DetailedTooltips)), "詳細な数値を表示" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.DetailedTooltips)), "ツールチップに生産量、消費量、容量などの詳細な数値を表示します。" },
+                { "CityMonitor.Visual.DetailedTooltipNormal", "詳細ツールチップ" },
                 { "CityMonitor.Visual.DetailedTooltips", "詳細な数値を表示" },
                 { "CityMonitor.Visual.DetailedTooltips.Description", "ツールチップに生産量、消費量、容量などの詳細な数値を表示します。" },
                 { "CityMonitor.CompanyProfitability", "企業の収益性" },
