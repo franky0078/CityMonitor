@@ -8,7 +8,7 @@ Instead of repeatedly opening multiple information views, City Monitor can displ
 <p align="center">
   <img src="CityMonitor/Properties/Thumbnail.jpg"
        alt="CityMonitor"
-       width="500">
+       width="300">
 </p>
 
 
