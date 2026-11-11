@@ -137,7 +137,7 @@
 	
 
 	<!-- First public release -->
-	<ModVersion Value="1.6.0" />
+	<ModVersion Value="1.6.1" />
 
 	<!-- Tested Cities: Skylines II version -->
 	<GameVersion Value="1.6.*" />
@@ -145,11 +145,9 @@
 	<!-- City Monitor currently has no required mod dependencies. -->
 
 	<ChangeLog>
-		Version 1.6.0
+		Version 1.6.1
 
-		- added support for all ingame languages (English, German, French, Spanish, Italian, Japanese, Korean, Polish, Portuguese-Brazilian, Russian, Simplified Chinese, Traditional Chinese)
-		- added option for detailed tooltips when hovering over status icons and text in normal panel mode
-		- added new status icon for company profitability monitoring (commercial, industrial and office companies)
+		- tooltips fixes and changes
 
 	</ChangeLog>
 
