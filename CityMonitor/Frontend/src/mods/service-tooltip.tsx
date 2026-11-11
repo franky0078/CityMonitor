@@ -140,10 +140,7 @@ function GameNumber({ value, unit, signed, total }: {
 }
 
 export function TooltipDivider() {
-    return <div aria-hidden="true" style={{
-        display: "block", width: "100%", height: "1rem", minHeight: "1rem",
-        flexShrink: 0, marginTop: "4rem", marginBottom: "4rem", backgroundColor: "rgba(255, 255, 255, 0.42)",
-    }} />;
+    return <div aria-hidden="true" className={styles.tooltipDivider} />;
 }
 
 const detailGroupStarts = new Set(["Import", "SewageProduction", "Sentenced", "Criminals"]);

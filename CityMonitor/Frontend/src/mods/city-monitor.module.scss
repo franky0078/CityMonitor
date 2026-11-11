@@ -230,6 +230,23 @@
 
 .visualOptionsScroll { position: relative; width: 100%; min-height: 0; }
 
+.tooltipHeading {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11rem;
+    line-height: 14rem;
+    white-space: nowrap;
+    padding-bottom: 4rem;
+    margin-bottom: 4rem;
+    border-bottom: 1rem solid rgba(255, 255, 255, 0.28);
+}
+
+.tooltipDivider {
+    align-self: stretch;
+    flex-shrink: 0;
+    margin: 4rem 0;
+    border-top: 1rem solid rgba(255, 255, 255, 0.28);
+}
+
 .tooltipValueRow {
     display: flex;
     align-items: center;

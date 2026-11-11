@@ -923,18 +923,7 @@ interface StatusIconProps {
 
 const StatusTooltipContent = ({ label, details, extraDetails }: Pick<StatusIconProps, "label" | "details" | "extraDetails">) => (
     <>
-        <div
-            className={styles.tooltipHeading}
-            style={{
-                color: "rgba(255,255,255,0.72)",
-                fontSize: "11rem",
-                lineHeight: "14rem",
-                whiteSpace: "nowrap",
-                marginBottom: "2rem",
-            }}
-        >
-            {label}
-        </div>
+        <div className={styles.tooltipHeading}>{label}</div>
 
         {details.map((detail, index) => (
             <TooltipValueRow key={index} label={detail.label} summary={!extraDetails}>{detail.value}</TooltipValueRow>
