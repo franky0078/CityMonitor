@@ -17,7 +17,7 @@
 	Supports a limited Markdown subset.
 	-->
 	<LongDescription>
-		City Monitor provides a compact overview of important city statistics and service conditions directly in the interface.
+		**City Monitor** provides a compact overview of important city statistics and service conditions directly in the interface.
 
 
 		**Monitored statistics**
@@ -63,7 +63,7 @@
 		- Color Thresholds can be customized
 		- Optional detailed hover tooltips with raw service figures and localized units
 		- Company profitability monitoring for commercial, industrial and office companies
-		- Language support for all 12 in-game languages: English, German, French, Spanish (Spain), Italian, Japanese, Korean, Polish, Portuguese (Brazil), Russian, Simplified Chinese and Traditional Chinese
+		- Language support for all 12 in-game languages
 
 
 		When icon editing is enabled, icons can be reordered by dragging them. Right-clicking an icon hides or restores it.
